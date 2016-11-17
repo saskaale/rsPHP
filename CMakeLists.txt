@@ -5,6 +5,9 @@ project(rsPHP)
 include(FeatureSummary)
 feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
+find_package(BISON)
+find_package(FLEX)
+
 # Subdirectories
 add_subdirectory(src)
 
