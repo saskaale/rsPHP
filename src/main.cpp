@@ -1,5 +1,5 @@
 #include <iostream>
-#include "types.h"
+#include "ast.h"
 #include "parser.hpp"
 
 int main(int argc, char *argv[])

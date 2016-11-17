@@ -1,6 +1,6 @@
 %{
 #include <stdlib.h>
-#include "types.h"
+#include "ast.h"
 #include "parser.hpp"
 void yyerror(const char *);
 %}

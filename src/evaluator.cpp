@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "types.h"
+#include "ast.h"
 #include "parser.hpp"
 
 int ex(nodeType *p) {
