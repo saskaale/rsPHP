@@ -1,6 +1,8 @@
 set(rsphp_SRCS
     main.cpp
     evaluator.cpp
+    environment.cpp
+    ast.cpp
 )
 
 BISON_TARGET(phpParser parser.y ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp)

@@ -1,25 +1,38 @@
+#ifndef ____AST_H_12312313123123
+#define ____AST_H_12312313123123
+
+#define ID_LEN 30
+
+void yyerror(const char* );
+
+class nodeType;
+class conNodeType;
+class idNodeType;
+class oprNodeType;
+
+#include "environment.h"
+
 typedef enum { typeCon, typeId, typeOpr } nodeEnum;
 
-#define ID_LEN
 
 /* constants */
-typedef struct {
+struct conNodeType{
     int value;                  /* value of constant */
-} conNodeType;
+};
 
 /* identifiers */
-typedef struct {
-    int i;                      /* subscript to sym array */
-} idNodeType;
+struct idNodeType {
+    char str[ID_LEN];
+};
 
 /* operators */
-typedef struct {
+struct oprNodeType {
     int oper;                   /* operator */
     int nops;                   /* number of operands */
-    struct nodeTypeTag *op[1];	/* operands, extended at runtime */
-} oprNodeType;
+    struct nodeType *op[1];	/* operands, extended at runtime */
+};
 
-typedef struct nodeTypeTag {
+struct nodeType {
     nodeEnum type;              /* type of node */
 
     union {
@@ -27,6 +40,14 @@ typedef struct nodeTypeTag {
         idNodeType id;          /* identifiers */
         oprNodeType opr;        /* operators */
     };
-} nodeType;
+};
 
-extern int sym[26];
+extern Environment envir;
+
+
+nodeType* con(int v);
+nodeType* id(char str[ID_LEN]);
+nodeType* opr(int open, int nops, ...);
+void freeNode(nodeType* t);
+
+#endif

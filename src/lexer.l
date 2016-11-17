@@ -7,10 +7,6 @@ void yyerror(const char *);
 
 %%
 
-[a-z]       { 
-                yylval.sIndex = *yytext - 'a';
-                return VARIABLE;
-            }
 
 0           {
                 yylval.iValue = atoi(yytext);
@@ -34,6 +30,14 @@ void yyerror(const char *);
 "if"            return IF;
 "else"          return ELSE;
 "print"         return PRINT;
+
+
+[a-z][a-z]* { 
+                yylval.sIndex = *yytext - 'a';
+                strncpy(yylval.str, yytext, ID_LEN);
+                yylval.str[ID_LEN-1] = '\0';
+                return VARIABLE;
+            }
 
 [ \t\n]+        ;       /* ignore whitespace */
 
