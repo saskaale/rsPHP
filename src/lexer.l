@@ -32,7 +32,7 @@ void yyerror(const char *);
 "print"         return PRINT;
 
 
-[a-z][a-z]* { 
+[a-z][a-z]* {
                 yylval.sIndex = *yytext - 'a';
                 strncpy(yylval.str, yytext, ID_LEN);
                 yylval.str[ID_LEN-1] = '\0';

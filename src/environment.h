@@ -1,5 +1,4 @@
-#ifndef ___ENVIRONMENT_H_414253451242412
-#define ___ENVIRONMENT_H_414253451242412
+#pragma once
 
 class Environment;
 
@@ -15,4 +14,3 @@ class Environment{
         void set(const char* key, nodeType* val);
 };
 
-#endif
