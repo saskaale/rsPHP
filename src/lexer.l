@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "ast.h"
 #include "parser.hpp"
+
 void yyerror(const char *);
 %}
 
@@ -33,9 +34,9 @@ void yyerror(const char *);
 
 
 [a-z][a-z]* {
-                yylval.sIndex = *yytext - 'a';
-                strncpy(yylval.str, yytext, ID_LEN);
-                yylval.str[ID_LEN-1] = '\0';
+                size_t size = strlen(yytext) + 1;
+                yylval.str = (char*) malloc(size);
+                strncpy(yylval.str, yytext, size);
                 return VARIABLE;
             }
 

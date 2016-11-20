@@ -15,12 +15,9 @@ Environment envir;                    /* symbol table */
 %}
 
 %union {
-    union{
-        int iValue;                 /* integer value */
-        char sIndex;                /* symbol table index */
-        char str[ID_LEN];
-    };
-    nodeType *nPtr;             /* node pointer */
+    int iValue;
+    char *str;
+    nodeType *nPtr;
 };
 
 %token <iValue> INTEGER
