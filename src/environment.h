@@ -8,9 +8,9 @@ class Environment;
 #include <map>
 
 class Environment{
-    std::map<std::string, nodeType*> entries;
+    std::map<std::string, Ast::Node*> entries;
     public:
-        nodeType* get(const char* key);
-        void set(const char* key, nodeType* val);
+        Ast::Node* get(const char* key);
+        void set(const char* key, Ast::Node* val);
 };
 

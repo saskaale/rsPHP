@@ -2,22 +2,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "environment.h"
 #include "ast.h"
+#include <iostream>
 
 /* prototypes */
-int ex(nodeType *p);
+/* int ex(nodeType *p); */
+int ex(Ast::Node *p);
 
 int yylex(void);
 
-//void yyerror(const char *s);
-Environment envir;                    /* symbol table */
+void yyerror(const char *s);
 %}
 
 %union {
     int iValue;
     char *str;
-    nodeType *nPtr;
+    Ast::Node *nPtr;
 };
 
 %token <iValue> INTEGER
@@ -40,40 +40,40 @@ program:
         ;
 
 function:
-          function stmt         { ex($2); freeNode($2); }
+          function stmt         { ex($2); /*freeNode($2);*/ }
         | /* NULL */
         ;
 
 stmt:
-          ';'                            { $$ = opr(';', 2, NULL, NULL); }
+          ';'                            { $$ = /*new Ast::Statement()*/0; }
         | expr ';'                       { $$ = $1; }
-        | PRINT expr ';'                 { $$ = opr(PRINT, 1, $2); }
-        | VARIABLE '=' expr ';'          { $$ = opr('=', 2, id($1), $3); }
-        | WHILE '(' expr ')' stmt        { $$ = opr(WHILE, 2, $3, $5); }
-        | IF '(' expr ')' stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
-        | IF '(' expr ')' stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }
+        | PRINT expr ';'                 { $$ = new Ast::FunctionCall("print", $2); }
+        | VARIABLE '=' expr ';'          { $$ = new Ast::Assignment(new Ast::Variable($1), $3); }
+        | WHILE '(' expr ')' stmt        { $$ = /*opr(WHILE, 2, $3, $5)*/0; }
+        | IF '(' expr ')' stmt %prec IFX { $$ = /*opr(IF, 2, $3, $5)*/0; }
+        | IF '(' expr ')' stmt ELSE stmt { $$ = /*opr(IF, 3, $3, $5, $7)*/0; }
         | '{' stmt_list '}'              { $$ = $2; }
         ;
 
 stmt_list:
           stmt                  { $$ = $1; }
-        | stmt_list stmt        { $$ = opr(';', 2, $1, $2); }
+        | stmt_list stmt        { $$ = /*opr(';', 2, $1, $2)*/0; }
         ;
 
 expr:
-          INTEGER               { $$ = con($1); }
-        | VARIABLE              { $$ = id($1); }
-        | '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
-        | expr '+' expr         { $$ = opr('+', 2, $1, $3); }
-        | expr '-' expr         { $$ = opr('-', 2, $1, $3); }
-        | expr '*' expr         { $$ = opr('*', 2, $1, $3); }
-        | expr '/' expr         { $$ = opr('/', 2, $1, $3); }
-        | expr '<' expr         { $$ = opr('<', 2, $1, $3); }
-        | expr '>' expr         { $$ = opr('>', 2, $1, $3); }
-        | expr GE expr          { $$ = opr(GE, 2, $1, $3); }
-        | expr LE expr          { $$ = opr(LE, 2, $1, $3); }
-        | expr NE expr          { $$ = opr(NE, 2, $1, $3); }
-        | expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
+          INTEGER               { $$ = new Ast::IntegerLiteral($1); }
+        | VARIABLE              { $$ = new Ast::Variable($1); }
+        | '-' expr %prec UMINUS { $$ = /*opr(UMINUS, 1, $2)*/0; }
+        | expr '+' expr         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Plus, $1, $3); }
+        | expr '-' expr         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Minus, $1, $3); }
+        | expr '*' expr         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Times, $1, $3); }
+        | expr '/' expr         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Div, $1, $3); }
+        | expr '<' expr         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::LessThan, $1, $3); }
+        | expr '>' expr         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::GreaterThan, $1, $3); }
+        | expr GE expr          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::GreaterThanEqual, $1, $3); }
+        | expr LE expr          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::LessThanEqual, $1, $3); }
+        | expr NE expr          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::NotEqual, $1, $3); }
+        | expr EQ expr          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Equal, $1, $3); }
         | '(' expr ')'          { $$ = $2; }
         ;
 
@@ -83,8 +83,3 @@ expr:
 void yyerror(const char *s) {
     fprintf(stdout, "%s\n", s);
 }
-
-/*int main(void) {
-    yyparse();
-    return 0;
-}*/
