@@ -148,11 +148,20 @@ Node::Type Assignment::type() const
 }
 
 
-If::If(Expression *cond, StatementList *thenStm, StatementList *elseStm)
+If::If(Expression *cond, Statement *thenStm, Statement *elseStm)
     : condition(cond)
-    , thenStatement(thenStm)
-    , elseStatement(elseStm)
 {
+    if (StatementList *lst = thenStm->as<StatementList*>()) {
+        thenStatement = lst;
+    } else {
+        thenStatement = new StatementList(thenStm);
+    }
+
+    if (StatementList *lst = elseStm->as<StatementList*>()) {
+        elseStatement = lst;
+    } else {
+        elseStatement = new StatementList(elseStm);
+    }
 }
 
 Node::Type If::type() const

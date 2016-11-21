@@ -92,6 +92,16 @@ int ex(Ast::Node *p)
         return 0;
     }
 
+    case Ast::Node::IfT: {
+        Ast::If *v = p->as<Ast::If*>();
+        if (ex(v->condition)) {
+            ex(v->thenStatement);
+        } else {
+            ex(v->elseStatement);
+        }
+        return 0;
+    }
+
     case Ast::Node::WhileT: {
         Ast::While *v = p->as<Ast::While*>();
         while (ex(v->condition)) {

@@ -198,7 +198,7 @@ public:
 class If : public Statement
 {
 public:
-    explicit If(Expression *cond, StatementList *thenStm, StatementList *elseStm);
+    explicit If(Expression *cond, Statement *thenStm, Statement *elseStm);
 
     Type type() const;
 
