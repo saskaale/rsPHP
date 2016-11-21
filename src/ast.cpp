@@ -186,13 +186,16 @@ Node::Type While::type() const
 }
 
 
-For::For(Variable *var, Direction d, Expression *from, Expression *to, StatementList *stm)
-    : variable(var)
-    , direction(d)
-    , from(from)
-    , to(to)
-    , statement(stm)
+For::For(Expression *init, Expression *cond, Expression *after, Statement *stm)
+    : init(init)
+    , cond(cond)
+    , after(after)
 {
+    if (StatementList *lst = stm->as<StatementList*>()) {
+        statement = lst;
+    } else {
+        statement = new StatementList(stm);
+    }
 }
 
 Node::Type For::type() const

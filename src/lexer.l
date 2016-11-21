@@ -27,6 +27,7 @@ void yyerror(const char *);
 "<="            return LE;
 "=="            return EQ;
 "!="            return NE;
+"for"           return FOR;
 "while"         return WHILE;
 "if"            return IF;
 "else"          return ELSE;

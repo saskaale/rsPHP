@@ -22,7 +22,7 @@ void yyerror(const char *s);
 
 %token <iValue> INTEGER
 %token <str> VARIABLE
-%token WHILE IF PRINT
+%token FOR WHILE IF PRINT
 %nonassoc IFX
 %nonassoc ELSE
 
@@ -45,14 +45,15 @@ function:
         ;
 
 stmt:
-          ';'                            { $$ = 0; /* nop */ }
-        | expr ';'                       { $$ = $1; }
-        | PRINT expr ';'                 { $$ = new Ast::FunctionCall("print", $2); }
-        | VARIABLE '=' expr ';'          { $$ = new Ast::Assignment(new Ast::Variable($1), $3); }
-        | WHILE '(' expr ')' stmt        { $$ = new Ast::While($3, $5); }
-        | IF '(' expr ')' stmt %prec IFX { $$ = new Ast::If($3, $5, nullptr); }
-        | IF '(' expr ')' stmt ELSE stmt { $$ = new Ast::If($3, $5, $7); }
-        | '{' stmt_list '}'              { $$ = $2; }
+          ';'                                     { $$ = 0; /* nop */ }
+        | expr ';'                                { $$ = $1; }
+        | PRINT expr ';'                          { $$ = new Ast::FunctionCall("print", $2); }
+        | VARIABLE '=' expr ';'                   { $$ = new Ast::Assignment(new Ast::Variable($1), $3); }
+        | WHILE '(' expr ')' stmt                 { $$ = new Ast::While($3, $5); }
+        | IF '(' expr ')' stmt %prec IFX          { $$ = new Ast::If($3, $5, nullptr); }
+        | IF '(' expr ')' stmt ELSE stmt          { $$ = new Ast::If($3, $5, $7); }
+        | FOR '(' expr ';' expr ';' expr ')' stmt { $$ = new Ast::For($3, $5, $7, $9); }
+        | '{' stmt_list '}'                       { $$ = $2; }
         ;
 
 stmt_list:

@@ -110,6 +110,14 @@ int ex(Ast::Node *p)
         return 0;
     }
 
+    case Ast::Node::ForT: {
+        Ast::For *v = p->as<Ast::For*>();
+        for (ex(v->init); ex(v->cond); ex(v->after)) {
+            ex(v->statement);
+        }
+        return 0;
+    }
+
     default:
         std::cout << "Unhandled node " << p << std::endl;
         break;

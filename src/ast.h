@@ -221,19 +221,13 @@ public:
 class For : public Statement
 {
 public:
-    enum Direction {
-        To,
-        Downto
-    };
-
-    explicit For(Variable *var, Direction d, Expression *from, Expression *to, StatementList *stm);
+    explicit For(Expression *init, Expression *cond, Expression *after, Statement *stm);
 
     Type type() const;
 
-    Variable *variable;
-    Direction direction;
-    Expression *from;
-    Expression *to;
+    Expression *init;
+    Expression *cond;
+    Expression *after;
     StatementList *statement;
 };
 
