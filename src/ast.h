@@ -1,6 +1,5 @@
 #pragma once
 
-#include <list>
 #include <vector>
 #include <string>
 
@@ -174,12 +173,11 @@ public:
 class ExpressionList : public Expression
 {
 public:
-    explicit ExpressionList(Expression *expr, ExpressionList *list = nullptr);
+    explicit ExpressionList(Expression *expr, ExpressionList *lst = nullptr);
 
     Type type() const;
-    void append(ExpressionList *list);
 
-    std::list<Expression*> expressions;
+    std::vector<Expression*> expressions;
 };
 
 
@@ -274,12 +272,11 @@ public:
 class VariableList : public Node
 {
 public:
-    explicit VariableList(Variable *var, VariableList *list = nullptr);
+    explicit VariableList(Variable *var, VariableList *lst = nullptr);
 
     Type type() const;
-    void append(VariableList *list);
 
-    std::list<Variable*> variables;
+    std::vector<Variable*> variables;
 };
 
 class Function : public Node
@@ -325,7 +322,7 @@ public:
 
 private:
     VariableList* m_globVars;
-    std::list<Function*> m_functions;
+    std::vector<Function*> m_functions;
 
     Function *m_main;
 

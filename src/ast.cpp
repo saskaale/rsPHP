@@ -121,22 +121,17 @@ Node::Type FunctionCall::type() const
 }
 
 
-ExpressionList::ExpressionList(Expression *expr, ExpressionList *list)
+ExpressionList::ExpressionList(Expression *expr, ExpressionList *lst)
 {
-    if (list)
-        expressions = list->expressions;
-    expressions.push_front(expr);
+    if (lst) {
+        expressions = lst->expressions;
+    }
+    expressions.push_back(expr);
 }
 
 Node::Type ExpressionList::type() const
 {
     return ExpressionListT;
-}
-
-void ExpressionList::append(ExpressionList *list)
-{
-    if (list)
-        expressions.insert(expressions.end(), list->expressions.begin(), list->expressions.end());
 }
 
 
@@ -232,22 +227,17 @@ Node::Type StatementList::type() const
 }
 
 
-VariableList::VariableList(Variable *var, VariableList *list)
+VariableList::VariableList(Variable *var, VariableList *lst)
 {
-    if (list)
-        variables = list->variables;
-    variables.push_front(var);
+    if (lst) {
+        variables = lst->variables;
+    }
+    variables.push_back(var);
 }
 
 Node::Type VariableList::type() const
 {
     return VariableListT;
-}
-
-void VariableList::append(VariableList *list)
-{
-    if (list)
-        variables.insert(variables.end(), list->variables.begin(), list->variables.end());
 }
 
 
