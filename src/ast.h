@@ -44,7 +44,7 @@ class Node
 public:
     enum Type {
         VariableT, ArrayT, ArraySubscriptT, IntegerLiteralT, StringLiteralT,
-        BinaryOperatorT, FunctionCallT, ExpressionListT, AssignmentT,
+        UnaryOperatorT, BinaryOperatorT, FunctionCallT, ExpressionListT, AssignmentT,
         IfT, WhileT, ForT, ExitT, WriteT,
         StatementListT, VariableListT, FunctionT, LoopT
     };
@@ -126,6 +126,20 @@ public:
     std::string value;
 };
 
+class UnaryOperator : public Expression
+{
+public:
+    enum Op {
+        Minus, PreIncrement, PostIncrement, PreDecrement, PostDecrement
+    };
+
+    explicit UnaryOperator(Op op, Expression *expr);
+
+    Type type() const;
+
+    Op op;
+    Expression *expr;
+};
 
 class BinaryOperator : public Expression
 {

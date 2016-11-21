@@ -63,7 +63,7 @@ stmt_list:
 expr:
           INTEGER               { $$ = new Ast::IntegerLiteral($1); }
         | VARIABLE              { $$ = new Ast::Variable($1); }
-        | '-' expr %prec UMINUS { $$ = /*opr(UMINUS, 1, $2)*/0; }
+        | '-' expr %prec UMINUS { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::Minus, $2); }
         | expr '+' expr         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Plus, $1, $3); }
         | expr '-' expr         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Minus, $1, $3); }
         | expr '*' expr         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Times, $1, $3); }

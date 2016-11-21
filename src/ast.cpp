@@ -80,6 +80,18 @@ Node::Type StringLiteral::type() const
 }
 
 
+UnaryOperator::UnaryOperator(Op op, Expression *expr)
+    : op(op)
+    , expr(expr)
+{
+}
+
+Node::Type UnaryOperator::type() const
+{
+    return UnaryOperatorT;
+}
+
+
 BinaryOperator::BinaryOperator(Op op, Expression *left, Expression *right)
     : op(op)
     , left(left)

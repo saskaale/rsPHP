@@ -2,6 +2,7 @@
 #include "ast.h"
 #include "parser.hpp"
 #include "environment.h"
+#include "common.h"
 
 Environment envir;
 
@@ -36,6 +37,17 @@ int ex(Ast::Node *p)
          return 0;
     }
 
+    case Ast::Node::UnaryOperatorT: {
+        Ast::UnaryOperator *v = p->as<Ast::UnaryOperator*>();
+        switch (v->op) {
+        case Ast::UnaryOperator::Minus:
+            return -ex(v->expr);
+        default:
+            X_UNREACHABLE();
+        };
+        break;
+    }
+
     case Ast::Node::BinaryOperatorT: {
         Ast::BinaryOperator *v = p->as<Ast::BinaryOperator*>();
         switch (v->op) {
@@ -66,9 +78,9 @@ int ex(Ast::Node *p)
         case Ast::BinaryOperator::Or:
             return ex(v->left) || ex(v->right);
         default:
-            break;
-            // assert(false);
+            X_UNREACHABLE();
         }
+        break;
     }
 
     }
