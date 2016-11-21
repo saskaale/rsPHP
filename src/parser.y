@@ -31,7 +31,7 @@ void yyerror(const char *s);
 %left '*' '/'
 %nonassoc UMINUS
 
-%type <nPtr> stmt expr stmt_list
+%type <nPtr> stmt stmt2 expr stmt_list
 
 %%
 
@@ -44,15 +44,19 @@ function:
         | /* NULL */
         ;
 
+stmt2:
+                                                  { $$ = new Ast::IntegerLiteral(1); }
+        | expr                                    { $$ = $1; }
+        | PRINT expr                              { $$ = new Ast::FunctionCall("print", $2); }
+        | VARIABLE '=' expr                       { $$ = new Ast::Assignment(new Ast::Variable($1), $3); }
+
+
 stmt:
-          ';'                                     { $$ = 0; /* nop */ }
-        | expr ';'                                { $$ = $1; }
-        | PRINT expr ';'                          { $$ = new Ast::FunctionCall("print", $2); }
-        | VARIABLE '=' expr ';'                   { $$ = new Ast::Assignment(new Ast::Variable($1), $3); }
+        | stmt2 ';'                               { $$ = $1; }
         | WHILE '(' expr ')' stmt                 { $$ = new Ast::While($3, $5); }
         | IF '(' expr ')' stmt %prec IFX          { $$ = new Ast::If($3, $5, nullptr); }
         | IF '(' expr ')' stmt ELSE stmt          { $$ = new Ast::If($3, $5, $7); }
-        | FOR '(' expr ';' expr ';' expr ')' stmt { $$ = new Ast::For($3, $5, $7, $9); }
+        | FOR '(' stmt2 ';' stmt2 ';' stmt2 ')' stmt { $$ = new Ast::For($3, $5, $7, $9); }
         | '{' stmt_list '}'                       { $$ = $2; }
         ;
 
