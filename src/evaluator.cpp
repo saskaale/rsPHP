@@ -13,23 +13,23 @@ int ex(Ast::Node *p)
 
     switch (p->type()) {
     case Ast::Node::IntegerLiteralT:
-        return static_cast<Ast::IntegerLiteral*>(p)->value;
+        return p->as<Ast::IntegerLiteral*>()->value;
 
     case Ast::Node::VariableT: {
-        Ast::Variable *v = static_cast<Ast::Variable*>(p);
+        Ast::Variable *v = p->as<Ast::Variable*>();
         Ast::Node *stored = envir.get(v->name.c_str());
         return ex(stored); // return n->type == typeCon ? n->con.value : 0;
     }
 
     case Ast::Node::AssignmentT: {
-        Ast::Assignment *v = static_cast<Ast::Assignment*>(p);
+        Ast::Assignment *v = p->as<Ast::Assignment*>();
         int r = ex(v->expression);
         envir.set(v->variable->name.c_str(), new Ast::IntegerLiteral(r));
         return 0;
     }
 
     case Ast::Node::FunctionCallT: {
-         Ast::FunctionCall *v = static_cast<Ast::FunctionCall*>(p);
+         Ast::FunctionCall *v = p->as<Ast::FunctionCall*>();
          if (v->functionName == "print") {
              printf("%d\n", ex(v->arguments->expressions.front()));
          }
@@ -37,7 +37,7 @@ int ex(Ast::Node *p)
     }
 
     case Ast::Node::BinaryOperatorT: {
-        Ast::BinaryOperator *v = static_cast<Ast::BinaryOperator*>(p);
+        Ast::BinaryOperator *v = p->as<Ast::BinaryOperator*>();
         switch (v->op) {
         case Ast::BinaryOperator::Plus:
             return ex(v->left) + ex(v->right);

@@ -49,14 +49,19 @@ public:
         StatementListT, VariableListT, FunctionT, LoopT
     };
 
-    Node();
+    explicit Node();
     virtual ~Node();
 
     virtual Type type() const = 0;
 
-    void *data;
+    template<typename T> T as() { return dynamic_cast<T>(this); }
+    template<typename T> T as() const { return dynamic_cast<T>(this); }
 };
 
+#if 1
+#define Expression Node
+#define Statement  Node
+#else
 class Expression : public Node
 {
 };
@@ -64,6 +69,7 @@ class Expression : public Node
 class Statement : public Node
 {
 };
+#endif
 
 
 
@@ -72,53 +78,38 @@ class Statement : public Node
 class Variable : public Expression
 {
 public:
-    enum Classifier {
-        Const,
-        Normal
-    };
-
-    Variable(const std::string &name, bool decl = false,
-             Classifier cls = Normal, int val = 0);
+    explicit Variable(const std::string &name);
 
     Type type() const;
-    bool isConst() const;
-    bool isDeclaration() const;
     void print() const;
 
     std::string name;
-    Classifier classifier;
-    int value;
-    bool declaration;
 };
 
 class Array : public Variable
 {
 public:
-    Array(const std::string &name, int from, int to);
+    explicit Array(const std::string &name, int size);
 
     Type type() const;
 
-    int from;
-    int to;
     int size;
 };
 
 class ArraySubscript : public Variable
 {
 public:
-    ArraySubscript(const std::string &name, Expression *expr);
+    explicit ArraySubscript(const std::string &name, Expression *expr);
 
     Type type() const;
-    void updateExpression();
 
-    Array *array; // needs to be resolved
     Expression *expression;
 };
 
 class IntegerLiteral : public Expression
 {
 public:
-    IntegerLiteral(int value);
+    explicit IntegerLiteral(int value);
 
     Type type() const;
 
@@ -128,12 +119,13 @@ public:
 class StringLiteral : public Expression
 {
 public:
-    StringLiteral(const std::string &value);
+    explicit StringLiteral(const std::string &value);
 
     Type type() const;
 
     std::string value;
 };
+
 
 class BinaryOperator : public Expression
 {
@@ -144,7 +136,7 @@ public:
         Div, Mod, And, Or
     };
 
-    BinaryOperator(Op op, Node *left, Node *right);
+    explicit BinaryOperator(Op op, Expression *left, Expression *right);
 
     Type type() const;
 
@@ -156,19 +148,18 @@ public:
 class FunctionCall : public Expression
 {
 public:
-    FunctionCall(const std::string &name, Node *args);
+    explicit FunctionCall(const std::string &name, Expression *args);
 
     Type type() const;
 
     std::string functionName;
-    Function *function; // needs to be resolved
     ExpressionList *arguments;
 };
 
 class ExpressionList : public Expression
 {
 public:
-    ExpressionList(Expression *expr, ExpressionList *list = 0);
+    explicit ExpressionList(Expression *expr, ExpressionList *list = nullptr);
 
     Type type() const;
     void append(ExpressionList *list);
@@ -183,7 +174,7 @@ public:
 class Assignment : public Statement
 {
 public:
-    Assignment(Node *var, Node *expr);
+    explicit Assignment(Node *var, Expression *expr);
 
     Type type() const;
 
@@ -194,7 +185,7 @@ public:
 class If : public Statement
 {
 public:
-    If(Expression *cond, StatementList *thenStm, StatementList *elseStm);
+    explicit If(Expression *cond, StatementList *thenStm, StatementList *elseStm);
 
     Type type() const;
 
@@ -206,7 +197,7 @@ public:
 class While : public Statement
 {
 public:
-    While(Expression *cond, StatementList *stm);
+    explicit While(Expression *cond, StatementList *stm);
 
     Type type() const;
 
@@ -222,7 +213,7 @@ public:
         Downto
     };
 
-    For(Variable *var, Direction d, Expression *from, Expression *to, StatementList *stm);
+    explicit For(Variable *var, Direction d, Expression *from, Expression *to, StatementList *stm);
 
     Type type() const;
 
@@ -236,7 +227,7 @@ public:
 class Exit : public Statement
 {
 public:
-    Exit();
+    explicit Exit();
 
     Type type() const;
 };
@@ -244,7 +235,7 @@ public:
 class Write : public Statement
 {
 public:
-    Write(const std::string &str);
+    explicit Write(const std::string &str);
 
     Type type() const;
 
@@ -254,7 +245,7 @@ public:
 class StatementList : public Statement
 {
 public:
-    StatementList(Statement *stm, StatementList *list = 0);
+    explicit StatementList(Statement *stm, StatementList *list = nullptr);
 
     Type type() const;
     void append(StatementList *list);
@@ -269,7 +260,7 @@ public:
 class VariableList : public Node
 {
 public:
-    VariableList(Variable *var, VariableList *list = 0);
+    explicit VariableList(Variable *var, VariableList *list = nullptr);
 
     Type type() const;
     void append(VariableList *list);
@@ -280,22 +271,14 @@ public:
 class Function : public Node
 {
 public:
-    Function(const std::string &name, Variable *ret,
-             VariableList *params, VariableList* locvars,
-             StatementList *stm = 0);
+    explicit Function(const std::string &name, Variable *ret, VariableList *params, StatementList *stm = nullptr);
 
     Type type() const;
-    bool isForward() const;
-    bool isProcedure() const;
 
     std::string name;
     Variable *ret;
     VariableList *parameters;
-    VariableList *localVariables;
     StatementList *statements;
-
-    bool forward;
-    Function *forwardedFunc;
 };
 
 
@@ -304,7 +287,7 @@ public:
 class Loop : public Statement
 {
 public:
-    Loop(Expression *cond, StatementList *stmlist);
+    explicit Loop(Expression *cond, StatementList *stmlist);
 
     Type type() const;
 
@@ -319,7 +302,7 @@ public:
 class Program
 {
 public:
-    Program();
+    explicit Program();
 
     void setGlobalVariables(VariableList *globvars);
     void addFunction(Function *function);
@@ -331,12 +314,6 @@ private:
     std::list<Function*> m_functions;
 
     Function *m_main;
-    Function *m_print;
-#if 0
-    Function *m_write;
-    Function *m_readln;
-    Function *m_dec;
-#endif
 
     friend class Utils;
     friend class Generic;

@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "common.h"
 
 #include <cstdio>
 #include <cstring>
@@ -17,11 +18,8 @@ Node::~Node()
 }
 
 
-Variable::Variable(const std::string &name, bool decl, Classifier cls, int val)
+Variable::Variable(const std::string &name)
     : name(name)
-    , classifier(cls)
-    , value(val)
-    , declaration(decl)
 {
 }
 
@@ -30,38 +28,16 @@ Node::Type Variable::type() const
     return VariableT;
 }
 
-bool Variable::isConst() const
-{
-    return classifier == Const;
-}
-
-bool Variable::isDeclaration() const
-{
-    return declaration;
-}
-
 void Variable::print() const
 {
-    printf("Variable ");
-    printf("'%s' ", name.c_str());
-    if (isConst())
-        printf("const = %d ", value);
-
-#if 0
-    if (const Ast::Array *arr = dynamic_cast<const Ast::Array*>(this))
-        printf(": array[%d .. %d] - %d\n", arr->from, arr->to, arr->size);
-    else
-        printf(": integer\n");
-#endif
+    printf("Variable %s", name.c_str());
 }
 
 
-Array::Array(const std::string &name, int from, int to)
-    : Variable(name, /*decl*/true, Normal)
-    , from(from)
-    , to(to)
+Array::Array(const std::string &name, int size)
+    : Variable(name)
+    , size(size)
 {
-    size = to - from + 1;
 }
 
 Node::Type Array::type() const
@@ -72,7 +48,6 @@ Node::Type Array::type() const
 
 ArraySubscript::ArraySubscript(const std::string &name, Expression *expr)
     : Variable(name)
-    , array(0)
     , expression(expr)
 {
 }
@@ -80,16 +55,6 @@ ArraySubscript::ArraySubscript(const std::string &name, Expression *expr)
 Node::Type ArraySubscript::type() const
 {
     return ArraySubscriptT;
-}
-
-void ArraySubscript::updateExpression()
-{
-    if (array->from == 0)
-        return;
-
-    // So the array can start from 0 ...
-    IntegerLiteral *num = new IntegerLiteral(array->from);
-    expression = new BinaryOperator(BinaryOperator::Minus, expression, num);
 }
 
 
@@ -115,10 +80,10 @@ Node::Type StringLiteral::type() const
 }
 
 
-BinaryOperator::BinaryOperator(Op op, Node *left, Node *right)
+BinaryOperator::BinaryOperator(Op op, Expression *left, Expression *right)
     : op(op)
-    , left(static_cast<Expression*>(left))
-    , right(static_cast<Expression*>(right))
+    , left(left)
+    , right(right)
 {
 }
 
@@ -128,17 +93,15 @@ Node::Type BinaryOperator::type() const
 }
 
 
-FunctionCall::FunctionCall(const std::string &name, Node *args)
+FunctionCall::FunctionCall(const std::string &name, Expression *args)
     : functionName(name)
-    , function(0)
 {
-    if (dynamic_cast<Expression*>(args)) {
-        Expression *exp = static_cast<Expression*>(args);
+    if (Expression *exp = args->as<Expression*>()) {
         arguments = new ExpressionList(exp);
-    } else if (dynamic_cast<ExpressionList*>(args)) {
-        arguments = static_cast<ExpressionList*>(args);
+    } else if (ExpressionList *lst = args->as<ExpressionList*>()) {
+        arguments = lst;
     } else {
-        // assert(false);
+        X_UNREACHABLE();
     }
 }
 
@@ -167,10 +130,11 @@ void ExpressionList::append(ExpressionList *list)
 }
 
 
-Assignment::Assignment(Node *var, Node *expr)
-    : variable(static_cast<Variable*>(var))
-    , expression(static_cast<Expression*>(expr))
+Assignment::Assignment(Node *var, Expression *expr)
+    : variable(var->as<Variable*>())
+    , expression(expr)
 {
+    X_ASSERT(variable);
 }
 
 Node::Type Assignment::type() const
@@ -278,32 +242,17 @@ void VariableList::append(VariableList *list)
 }
 
 
-Function::Function(const std::string &name, Variable *ret,
-                   VariableList *params, VariableList *locvars,
-                   StatementList *stm)
+Function::Function(const std::string &name, Variable *ret, VariableList *params, StatementList *stm)
     : name(name)
     , ret(ret)
     , parameters(params)
-    , localVariables(locvars)
     , statements(stm)
-    , forward(stm == 0)
-    , forwardedFunc(0)
 {
 }
 
 Node::Type Function::type() const
 {
     return FunctionT;
-}
-
-bool Function::isForward() const
-{
-    return forward;
-}
-
-bool Function::isProcedure() const
-{
-    return ret == 0;
 }
 
 
@@ -321,15 +270,10 @@ Node::Type Loop::type() const
 
 
 Program::Program()
-    : m_globVars(0)
+    : m_globVars(nullptr)
 {
     // Create dummy built-in functions
-    m_print = new Function("print", 0, 0, 0, 0);
-#if 0
-    m_write = new Function("write", 0, 0, 0, 0);
-    m_readln = new Function("readln", 0, 0, 0, 0);
-    m_dec = new Function("dec", 0, 0, 0, 0);
-#endif
+    m_main = new Function("main", nullptr, nullptr, nullptr);
 }
 
 void Program::setGlobalVariables(VariableList *globvars)
