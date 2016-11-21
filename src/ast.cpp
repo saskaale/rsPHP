@@ -108,12 +108,10 @@ Node::Type BinaryOperator::type() const
 FunctionCall::FunctionCall(const std::string &name, Expression *args)
     : functionName(name)
 {
-    if (Expression *exp = args->as<Expression*>()) {
-        arguments = new ExpressionList(exp);
-    } else if (ExpressionList *lst = args->as<ExpressionList*>()) {
+    if (ExpressionList *lst = args->as<ExpressionList*>()) {
         arguments = lst;
     } else {
-        X_UNREACHABLE();
+        arguments = new ExpressionList(args);
     }
 }
 
