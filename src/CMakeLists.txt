@@ -17,4 +17,6 @@ add_executable(rsphp
     ${FLEX_phpScanner_OUTPUTS}
 )
 
+add_definitions(-std=gnu++0x)
+
 #target_link_libraries(rsphp Qt5::Core)
