@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include <vector>
 #include <string>
 
 namespace Ast
@@ -259,12 +260,11 @@ public:
 class StatementList : public Statement
 {
 public:
-    explicit StatementList(Statement *stm, StatementList *list = nullptr);
+    explicit StatementList(Statement *stm, StatementList *lst = nullptr);
 
     Type type() const;
-    void append(StatementList *list);
 
-    std::list<Statement*> statements;
+    std::vector<Statement*> statements;
 };
 
 

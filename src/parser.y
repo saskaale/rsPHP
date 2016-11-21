@@ -56,8 +56,12 @@ stmt:
         ;
 
 stmt_list:
-          stmt                  { $$ = $1; }
-        | stmt_list stmt        { $$ = /*opr(';', 2, $1, $2)*/0; }
+          stmt                  { $$ = new Ast::StatementList($1); }
+        | stmt_list stmt        {
+                                    Ast::StatementList *stmlist = $1->as<Ast::StatementList*>();
+                                    Ast::Statement *stm = $2->as<Ast::Statement*>();
+                                    $$ = new Ast::StatementList(stm, stmlist);
+                                }
         ;
 
 expr:

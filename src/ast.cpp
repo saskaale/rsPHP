@@ -218,22 +218,17 @@ Node::Type Write::type() const
 }
 
 
-StatementList::StatementList(Statement *stm, StatementList *list)
+StatementList::StatementList(Statement *stm, StatementList *lst)
 {
-    if (list)
-        statements = list->statements;
-    statements.push_front(stm);
+    if (lst) {
+        statements = lst->statements;
+    }
+    statements.push_back(stm);
 }
 
 Node::Type StatementList::type() const
 {
     return StatementListT;
-}
-
-void StatementList::append(StatementList *list)
-{
-    if (list)
-        statements.insert(statements.end(), list->statements.begin(), list->statements.end());
 }
 
 
