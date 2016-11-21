@@ -45,11 +45,11 @@ function:
         ;
 
 stmt:
-          ';'                            { $$ = /*new Ast::Statement()*/0; }
+          ';'                            { $$ = 0; /* nop */ }
         | expr ';'                       { $$ = $1; }
         | PRINT expr ';'                 { $$ = new Ast::FunctionCall("print", $2); }
         | VARIABLE '=' expr ';'          { $$ = new Ast::Assignment(new Ast::Variable($1), $3); }
-        | WHILE '(' expr ')' stmt        { $$ = /*opr(WHILE, 2, $3, $5)*/0; }
+        | WHILE '(' expr ')' stmt        { $$ = new Ast::While($3, $5); }
         | IF '(' expr ')' stmt %prec IFX { $$ = /*opr(IF, 2, $3, $5)*/0; }
         | IF '(' expr ')' stmt ELSE stmt { $$ = /*opr(IF, 3, $3, $5, $7)*/0; }
         | '{' stmt_list '}'              { $$ = $2; }

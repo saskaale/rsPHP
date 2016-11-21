@@ -1,8 +1,9 @@
-#include <stdio.h>
+#include "common.h"
 #include "ast.h"
 #include "parser.hpp"
 #include "environment.h"
-#include "common.h"
+
+#include <iostream>
 
 Environment envir;
 
@@ -83,6 +84,26 @@ int ex(Ast::Node *p)
         break;
     }
 
+    case Ast::Node::StatementListT: {
+        Ast::StatementList *v = p->as<Ast::StatementList*>();
+        for (Ast::Statement *s : v->statements) {
+            ex(s);
+        }
+        return 0;
     }
+
+    case Ast::Node::WhileT: {
+        Ast::While *v = p->as<Ast::While*>();
+        while (ex(v->condition)) {
+            ex(v->statement);
+        }
+        return 0;
+    }
+
+    default:
+        std::cout << "Unhandled node " << p << std::endl;
+        break;
+    }
+
     return 0;
 }

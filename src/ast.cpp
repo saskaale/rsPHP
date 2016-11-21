@@ -166,10 +166,14 @@ Node::Type If::type() const
 }
 
 
-While::While(Expression *cond, StatementList *stm)
+While::While(Expression *cond, Statement *stm)
     : condition(cond)
-    , statement(stm)
 {
+    if (StatementList *lst = stm->as<StatementList*>()) {
+        statement = lst;
+    } else {
+        statement = new StatementList(stm);
+    }
 }
 
 Node::Type While::type() const

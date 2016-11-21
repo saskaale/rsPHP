@@ -211,7 +211,7 @@ public:
 class While : public Statement
 {
 public:
-    explicit While(Expression *cond, StatementList *stm);
+    explicit While(Expression *cond, Statement *stm);
 
     Type type() const;
 
