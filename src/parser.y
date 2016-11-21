@@ -48,7 +48,6 @@ stmt2:
                                                   { $$ = new Ast::ValueLiteral(true); }
         | expr                                    { $$ = $1; }
         | PRINT expr                              { $$ = new Ast::FunctionCall("print", $2); }
-        | VARIABLE '=' expr                       { $$ = new Ast::Assignment(new Ast::Variable($1), $3); }
 
 
 stmt:
@@ -72,6 +71,7 @@ stmt_list:
 expr:
           INTEGER               { $$ = new Ast::ValueLiteral($1); }
         | VARIABLE              { $$ = new Ast::Variable($1); }
+        | VARIABLE '=' expr     { $$ = new Ast::Assignment(new Ast::Variable($1), $3); }
         | '-' expr %prec UMINUS { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::Minus, $2); }
         | expr '+' expr         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Plus, $1, $3); }
         | expr '-' expr         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Minus, $1, $3); }
