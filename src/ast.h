@@ -14,7 +14,7 @@ class Statement;
 class Variable;
 class Array;
 class ArraySubscript;
-class IntegerLiteral;
+class ValueLiteral;
 class StringLiteral;
 class BinaryOperator;
 class FunctionCall;
@@ -43,7 +43,7 @@ class Node
 {
 public:
     enum Type {
-        VariableT, ArrayT, ArraySubscriptT, IntegerLiteralT, StringLiteralT,
+        VariableT, ArrayT, ArraySubscriptT, ValueLiteralT, StringLiteralT,
         UnaryOperatorT, BinaryOperatorT, FunctionCallT, ExpressionListT, AssignmentT,
         IfT, WhileT, ForT, ExitT, WriteT,
         StatementListT, VariableListT, FunctionT, LoopT
@@ -106,10 +106,10 @@ public:
     Expression *expression;
 };
 
-class IntegerLiteral : public Expression
+class ValueLiteral : public Expression
 {
 public:
-    explicit IntegerLiteral(int value);
+    explicit ValueLiteral(int value);
 
     Type type() const;
 

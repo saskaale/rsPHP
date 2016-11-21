@@ -45,7 +45,7 @@ function:
         ;
 
 stmt2:
-                                                  { $$ = new Ast::IntegerLiteral(1); }
+                                                  { $$ = new Ast::ValueLiteral(true); }
         | expr                                    { $$ = $1; }
         | PRINT expr                              { $$ = new Ast::FunctionCall("print", $2); }
         | VARIABLE '=' expr                       { $$ = new Ast::Assignment(new Ast::Variable($1), $3); }
@@ -70,7 +70,7 @@ stmt_list:
         ;
 
 expr:
-          INTEGER               { $$ = new Ast::IntegerLiteral($1); }
+          INTEGER               { $$ = new Ast::ValueLiteral($1); }
         | VARIABLE              { $$ = new Ast::Variable($1); }
         | '-' expr %prec UMINUS { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::Minus, $2); }
         | expr '+' expr         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Plus, $1, $3); }

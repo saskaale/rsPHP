@@ -14,8 +14,8 @@ int ex(Ast::Node *p)
     }
 
     switch (p->type()) {
-    case Ast::Node::IntegerLiteralT:
-        return p->as<Ast::IntegerLiteral*>()->value;
+    case Ast::Node::ValueLiteralT:
+        return p->as<Ast::ValueLiteral*>()->value;
 
     case Ast::Node::VariableT: {
         Ast::Variable *v = p->as<Ast::Variable*>();
@@ -26,7 +26,7 @@ int ex(Ast::Node *p)
     case Ast::Node::AssignmentT: {
         Ast::Assignment *v = p->as<Ast::Assignment*>();
         int r = ex(v->expression);
-        envir.set(v->variable->name.c_str(), new Ast::IntegerLiteral(r));
+        envir.set(v->variable->name.c_str(), new Ast::ValueLiteral(r));
         return 0;
     }
 

@@ -58,14 +58,14 @@ Node::Type ArraySubscript::type() const
 }
 
 
-IntegerLiteral::IntegerLiteral(int value)
+ValueLiteral::ValueLiteral(int value)
     : value(value)
 {
 }
 
-Node::Type IntegerLiteral::type() const
+Node::Type ValueLiteral::type() const
 {
-    return IntegerLiteralT;
+    return ValueLiteralT;
 }
 
 
