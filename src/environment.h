@@ -8,9 +8,10 @@ class Environment;
 #include <map>
 
 class Environment{
-    std::map<std::string, Ast::Node*> entries;
+    std::vector<Ast::Value>     values;
+    std::map<std::string, int>  keys;
     public:
-        Ast::Node* get(const char* key);
-        void set(const char* key, Ast::Node* val);
+        Ast::Value* get(const char* key);
+        void set(const char* key, const Ast::Value& val);
 };
 

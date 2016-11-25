@@ -32,6 +32,8 @@ void yyerror(const char *);
 "if"            return IF;
 "else"          return ELSE;
 "print"         return PRINT;
+"true"          return TRUE;
+"false"         return FALSE;
 
 
 [a-z][a-z]* {

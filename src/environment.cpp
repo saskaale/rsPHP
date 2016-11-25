@@ -1,11 +1,13 @@
 #include "environment.h"
 #include "ast.h"
 
-void Environment::set(const char* key, Ast::Node* val){
-    entries[key] = val;
+void Environment::set(const char* key, const Ast::Value& val){
+    int nextidx = values.size();
+    keys[key] = nextidx;
+    values.push_back(val);
 }
 
-Ast::Node* Environment::get(const char* key){
-    return entries[key];
+Ast::Value* Environment::get(const char* key){
+    return &values[keys[key]];
 }
 

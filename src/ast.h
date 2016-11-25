@@ -14,7 +14,7 @@ class Statement;
 class Variable;
 class Array;
 class ArraySubscript;
-class ValueLiteral;
+class Value;
 class StringLiteral;
 class BinaryOperator;
 class FunctionCall;
@@ -43,16 +43,18 @@ class Node
 {
 public:
     enum Type {
-        VariableT, ArrayT, ArraySubscriptT, ValueLiteralT, StringLiteralT,
+        VariableT, ArrayT, ArraySubscriptT, ValueT, StringLiteralT,
         UnaryOperatorT, BinaryOperatorT, FunctionCallT, ExpressionListT, AssignmentT,
         IfT, WhileT, ForT, ExitT, WriteT,
         StatementListT, VariableListT, FunctionT, LoopT
     };
+    static const char* const tNames[];
 
     explicit Node();
     virtual ~Node();
 
     virtual Type type() const = 0;
+    const char* typeStr() const;
 
     template<typename T> T as() { return dynamic_cast<T>(this); }
     template<typename T> T as() const { return dynamic_cast<T>(this); }
@@ -106,13 +108,15 @@ public:
     Expression *expression;
 };
 
-class ValueLiteral : public Expression
+class Value : public Expression
 {
 public:
-    explicit ValueLiteral(int value);
+    explicit Value(int value);
+    explicit Value(bool value);
 
     Type type() const;
 
+    bool castBool() const;
     int value;
 };
 
