@@ -71,6 +71,12 @@ Node::Type ArraySubscript::type() const
 }
 
 
+Value::Value(Ast::VariableList* params, Ast::StatementList* statements)
+    : valueType(FUNCTION), params(params), statements(statements)
+{
+}
+
+
 Value::Value(int value)
     : valueType(INT), value(value)
 {
@@ -128,7 +134,9 @@ Node::Type BinaryOperator::type() const
 FunctionCall::FunctionCall(const std::string &name, Expression *args)
     : functionName(name)
 {
-    if (ExpressionList *lst = args->as<ExpressionList*>()) {
+    if (args == nullptr) {
+        arguments = new ExpressionList();
+    } else if (ExpressionList *lst = args->as<ExpressionList*>()) {
         arguments = lst;
     } else {
         arguments = new ExpressionList(args);
@@ -140,6 +148,10 @@ Node::Type FunctionCall::type() const
     return FunctionCallT;
 }
 
+
+ExpressionList::ExpressionList()
+{
+}
 
 ExpressionList::ExpressionList(Expression *expr, ExpressionList *lst)
 {
@@ -259,6 +271,10 @@ Node::Type StatementList::type() const
 }
 
 
+VariableList::VariableList()
+{
+}
+
 VariableList::VariableList(Variable *var, VariableList *lst)
 {
     if (lst) {
@@ -273,9 +289,8 @@ Node::Type VariableList::type() const
 }
 
 
-Function::Function(const std::string &name, Variable *ret, VariableList *params, StatementList *stm)
+Function::Function(const std::string &name, VariableList *params, StatementList *stm)
     : name(name)
-    , ret(ret)
     , parameters(params)
     , statements(stm)
 {
@@ -304,7 +319,7 @@ Program::Program()
     : m_globVars(nullptr)
 {
     // Create dummy built-in functions
-    m_main = new Function("main", nullptr, nullptr, nullptr);
+    m_main = new Function("main", nullptr, nullptr);
 }
 
 void Program::setGlobalVariables(VariableList *globvars)

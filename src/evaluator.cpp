@@ -19,10 +19,10 @@
 #define OP_MOD(arg1, arg2) ((arg1)%(arg2))
 #define OP_LAND(arg1, arg2) ((arg1)&&(arg2))
 #define OP_LOR(arg1, arg2) ((arg1)||(arg2))
-
 #define BINARY_OPERATOR(arg1, arg2, opname) ( Ast::Value ( OP_ ## opname ( (arg1).value, (arg2).value) ) )
 #define TO_INT(arg) (arg).value
 #define TO_BOOL(arg) (!!TO_INT(arg))
+#define IS_FUNCTION(arg) ((arg).valueType == Ast::Value::FUNCTION)
 
 Ast::Value ex(Ast::Node *p, Environment* envir)
 {
@@ -36,19 +36,28 @@ Ast::Value ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::VariableT: {
         Ast::Variable *v = p->as<Ast::Variable*>();
-        Ast::Node *stored = envir->get(v->name.c_str());
+        Ast::Node *stored = envir->get(v->name);
         return ex(stored, envir); // return n->type == typeCon ? n->con.value : 0;
     }
 
     case Ast::Node::AssignmentT: {
         Ast::Assignment *v = p->as<Ast::Assignment*>();
         Ast::Value r = ex(v->expression, envir);
-        envir->set(v->variable->name.c_str(), r);
+        envir->set(v->variable->name, r);
         return r;
     }
 
+    case Ast::Node::FunctionT: {
+         Ast::Function *v = p->as<Ast::Function*>();
+         Ast::Value fun = Ast::Value(v->parameters->as<Ast::VariableList*>(), v->statements->as<Ast::StatementList*>());
+         envir->set(v->name, fun);
+         return fun;
+    }    
+    
     case Ast::Node::FunctionCallT: {
          Ast::FunctionCall *v = p->as<Ast::FunctionCall*>();
+
+         //handle built-in functions
          if (v->functionName == "print") {
              Ast::Value printV = ex(v->arguments->expressions.front(), envir);
              if(printV.valueType == Ast::Value::BOOL){
@@ -57,6 +66,17 @@ Ast::Value ex(Ast::Node *p, Environment* envir)
                 printf("%d\n", TO_INT(printV));
              }
          }
+         
+         if(envir->has(v->functionName)){
+            Ast::Value* func = envir->get(v->functionName);
+            if(IS_FUNCTION(*func)){
+                //create environment for this function
+                Environment funcEnvironment(envir);
+                //execute statement list of function
+                ex(func->statements,&funcEnvironment);
+            }
+         }
+         
          return Ast::Value(0);
     }
 

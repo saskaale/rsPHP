@@ -110,15 +110,22 @@ public:
 class Value : public Expression
 {
 public:
-    enum ValueType {INT, BOOL};
+    enum ValueType {INT, BOOL, FUNCTION};
 
+    explicit Value(Ast::VariableList* params, Ast::StatementList* statements);
     explicit Value(int value);
     explicit Value(bool value);
 
     Type type() const;
     ValueType valueType;
 
-    int value;
+    union{
+      int value;
+      struct{
+        Ast::VariableList* params;
+        Ast::StatementList* statements;
+      };
+    };
 };
 
 class StringLiteral : public Expression
@@ -167,7 +174,7 @@ public:
 class FunctionCall : public Expression
 {
 public:
-    explicit FunctionCall(const std::string &name, Expression *args);
+    explicit FunctionCall(const std::string &name, Expression *args = nullptr);
 
     Type type() const;
 
@@ -178,6 +185,7 @@ public:
 class ExpressionList : public Expression
 {
 public:
+    explicit ExpressionList();
     explicit ExpressionList(Expression *expr, ExpressionList *lst = nullptr);
 
     Type type() const;
@@ -271,6 +279,7 @@ public:
 class VariableList : public Node
 {
 public:
+    explicit VariableList();
     explicit VariableList(Variable *var, VariableList *lst = nullptr);
 
     Type type() const;
@@ -281,12 +290,11 @@ public:
 class Function : public Node
 {
 public:
-    explicit Function(const std::string &name, Variable *ret, VariableList *params, StatementList *stm = nullptr);
+    explicit Function(const std::string &name, VariableList *params, StatementList *stm = nullptr);
 
     Type type() const;
 
     std::string name;
-    Variable *ret;
     VariableList *parameters;
     StatementList *statements;
 };

@@ -8,10 +8,13 @@ class Environment;
 #include <map>
 
 class Environment{
+    Environment* parent;
     std::vector<Ast::Value>     values;
     std::map<std::string, int>  keys;
     public:
-        Ast::Value* get(const char* key);
-        void set(const char* key, const Ast::Value& val);
+        Environment(Environment* parent = nullptr);
+        Ast::Value* get(const std::string& key);
+        bool has(const std::string& key) const;
+        void set(const std::string& key, const Ast::Value& val);
 };
 

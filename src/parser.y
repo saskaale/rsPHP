@@ -27,7 +27,7 @@ void yyerror(const char *s);
 
 %token <iValue> INTEGER
 %token <str> VARIABLE
-%token FOR WHILE IF PRINT TRUE FALSE
+%token FOR WHILE IF PRINT TRUE FALSE FUNCTION
 %nonassoc IFX
 %nonassoc ELSE
 
@@ -36,7 +36,7 @@ void yyerror(const char *s);
 %left '*' '/'
 %nonassoc UMINUS
 
-%type <nPtr> stmt stmt2 expr expr2 stmt_list value
+%type <nPtr> stmt stmt2 expr expr2 stmt_list value fundecl fun_list fun_list2 expr_list
 
 %%
 
@@ -52,11 +52,19 @@ function:
 stmt2:
           expr                                    { $$ = $1; }
         | PRINT expr                              { $$ = new Ast::FunctionCall("print", $2); }
+        | VARIABLE '(' ')'                        { $$ = new Ast::FunctionCall($1); }
+        | VARIABLE '(' expr_list ')'              { $$ = new Ast::FunctionCall($1, $3->as<Ast::ExpressionList*>()); }
         |                                         { $$ = new Ast::Value(true); }
+        ;
+        
+expr_list:
+          expr                                        { $$ = new Ast::ExpressionList($1); }
+        | expr_list ',' expr                          { $$ = new Ast::ExpressionList($3, $1->as<Ast::ExpressionList*>()); }
         ;
 
 stmt:
           stmt2 ';'                                   { $$ = $1; }
+        | fundecl                                     { $$ = $1; }
         | WHILE '(' expr ')' stmt                     { $$ = new Ast::While($3, $5); }
         | IF '(' expr ')' stmt %prec IFX              { $$ = new Ast::If($3, $5, nullptr); }
         | IF '(' expr ')' stmt ELSE stmt              { $$ = new Ast::If($3, $5, $7); }
@@ -64,20 +72,29 @@ stmt:
         | '{' stmt_list '}'                           { $$ = $2; }
         ;
 
+fundecl:
+        FUNCTION VARIABLE '(' fun_list ')' '{' stmt_list '}'   { $$ = new Ast::Function($2, $4->as<Ast::VariableList*>(), $7->as<Ast::StatementList*>());}
+        ;
+
+fun_list:
+          fun_list2               { $$ = $1; }
+        |                         { $$ = new Ast::VariableList(); }
+        ;
+
+fun_list2:
+        | VARIABLE                { $$ = new Ast::VariableList(new Ast::Variable($1)); }
+        | fun_list ',' VARIABLE   { $$ = new Ast::VariableList(new Ast::Variable($3), $1->as<Ast::VariableList*>()); }
+        ;
+        
 stmt_list:
-          stmt                  { $$ = new Ast::StatementList($1); }
-        | stmt_list stmt        {
-                                    Ast::StatementList *stmlist = $1->as<Ast::StatementList*>();
-                                    Ast::Statement *stm = $2->as<Ast::Statement*>();
-                                    $$ = new Ast::StatementList(stm, stmlist);
-                                }
+          stmt                    { $$ = new Ast::StatementList($1); }
+        | stmt_list stmt          { $$ = new Ast::StatementList($2->as<Ast::Statement*>(), $1->as<Ast::StatementList*>()); }
         ;
 
 expr:
-          expr2                  { $$ = $1; }
-        | VARIABLE '=' expr2     { $$ = new Ast::Assignment(new Ast::Variable($1), $3); }
+          expr2                   { $$ = $1; }
+        | VARIABLE '=' expr2      { $$ = new Ast::Assignment(new Ast::Variable($1), $3); }
         ;
-
 
 expr2:
           value                   { $$ = $1; }
