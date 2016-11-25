@@ -21,6 +21,8 @@
 #define OP_LOR(arg1, arg2) ((arg1)||(arg2))
 
 #define BINARY_OPERATOR(arg1, arg2, opname) ( Ast::Value ( OP_ ## opname ( (arg1).value, (arg2).value) ) )
+#define TO_INT(arg) (arg).value
+#define TO_BOOL(arg) (!!TO_INT(arg))
 
 Ast::Value ex(Ast::Node *p, Environment* envir)
 {
@@ -48,7 +50,12 @@ Ast::Value ex(Ast::Node *p, Environment* envir)
     case Ast::Node::FunctionCallT: {
          Ast::FunctionCall *v = p->as<Ast::FunctionCall*>();
          if (v->functionName == "print") {
-             printf("%d\n", ex(v->arguments->expressions.front(), envir).value);
+             Ast::Value printV = ex(v->arguments->expressions.front(), envir);
+             if(printV.valueType == Ast::Value::BOOL){
+                printf("%s\n", TO_BOOL(printV)?"true":"false");
+             }else{
+                printf("%d\n", TO_INT(printV));
+             }
          }
          return Ast::Value(0);
     }
@@ -113,7 +120,7 @@ Ast::Value ex(Ast::Node *p, Environment* envir)
         Ast::If *v = p->as<Ast::If*>();
         
         Ast::Value cond = ex(v->condition, envir);
-        if (cond.castBool()) {
+        if (TO_BOOL(cond)) {
             ex(v->thenStatement, envir);
         } else {
             ex(v->elseStatement, envir);
@@ -123,7 +130,7 @@ Ast::Value ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::WhileT: {
         Ast::While *v = p->as<Ast::While*>();
-        while (ex(v->condition, envir).castBool()) {
+        while (TO_BOOL(ex(v->condition, envir))) {
             ex(v->statement, envir);
         }
         return Ast::Value(false);
@@ -131,7 +138,7 @@ Ast::Value ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::ForT: {
         Ast::For *v = p->as<Ast::For*>();
-        for (ex(v->init, envir); ex(v->cond, envir).castBool(); ex(v->after, envir)) {
+        for (ex(v->init, envir); TO_BOOL(ex(v->cond, envir)); ex(v->after, envir)) {
             ex(v->statement, envir);
         }
         return Ast::Value(false);

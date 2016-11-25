@@ -9,13 +9,6 @@
 namespace Ast
 {
   
-const char* const Node::tNames[] = {
-        "VariableT", "ArrayT", "ArraySubscriptT", "ValueT", "StringLiteralT",
-        "UnaryOperatorT", "BinaryOperatorT", "FunctionCallT", "ExpressionListT", "AssignmentT",
-        "IfT", "WhileT", "ForT", "ExitT", "WriteT",
-        "StatementListT", "VariableListT", "FunctionT", "LoopT"
-    };
-
 Node::Node()
 {
 }
@@ -26,6 +19,13 @@ Node::~Node()
 
 const char* Node::typeStr() const
 {
+    static const char* const tNames[] = {
+        "VariableT", "ArrayT", "ArraySubscriptT", "ValueT", "StringLiteralT",
+        "UnaryOperatorT", "BinaryOperatorT", "FunctionCallT", "ExpressionListT", "AssignmentT",
+        "IfT", "WhileT", "ForT", "ExitT", "WriteT",
+        "StatementListT", "VariableListT", "FunctionT", "LoopT"
+    };
+
     return tNames[(int)this->type()];
 }
 
@@ -72,24 +72,19 @@ Node::Type ArraySubscript::type() const
 
 
 Value::Value(int value)
-    : value(value)
+    : valueType(INT), value(value)
 {
 }
 
 
 Value::Value(bool value)
-    : value(value)
+    : valueType(BOOL), value(value)
 {
 }
 
 Node::Type Value::type() const
 {
     return ValueT;
-}
-
-bool Value::castBool() const
-{
-    return value;
 }
 
 

@@ -48,7 +48,6 @@ public:
         IfT, WhileT, ForT, ExitT, WriteT,
         StatementListT, VariableListT, FunctionT, LoopT
     };
-    static const char* const tNames[];
 
     explicit Node();
     virtual ~Node();
@@ -111,12 +110,14 @@ public:
 class Value : public Expression
 {
 public:
+    enum ValueType {INT, BOOL};
+
     explicit Value(int value);
     explicit Value(bool value);
 
     Type type() const;
+    ValueType valueType;
 
-    bool castBool() const;
     int value;
 };
 
