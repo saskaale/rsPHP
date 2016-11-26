@@ -164,9 +164,9 @@ AVal ex(Ast::Node *p, Environment* envir)
         case Ast::BinaryOperator::Mod:
             return INT_BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), MOD);
         case Ast::BinaryOperator::And:
-            return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), LAND);
+            return INT_BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), LAND);
         case Ast::BinaryOperator::Or:
-            return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), LOR);
+            return INT_BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), LOR);
         default:
             X_UNREACHABLE();
         }
