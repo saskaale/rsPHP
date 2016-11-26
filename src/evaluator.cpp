@@ -78,13 +78,13 @@ AVal ex(Ast::Node *p, Environment* envir)
                 printf("%d\n", TO_INT(printV));
              }
          }
-         
+
          if(envir->has(v->functionName)){
             AVal func = envir->get(v->functionName);
             if(IS_FUNCTION(func)){
                 //create environment for this function
                 Environment funcEnvironment(envir);
-                
+
                 Ast::VariableList *parameters = func.func->parameters;
                 Ast::ExpressionList *exprs    = v->arguments;
                 if(parameters->variables.size() != exprs->expressions.size()){
@@ -98,12 +98,12 @@ AVal ex(Ast::Node *p, Environment* envir)
                 for(int i = 0; i < argslen; i++){
                   funcEnvironment.set(parameters->variables[i]->name, ex(exprs->expressions[i], envir));
                 }
-                
+
                 //execute statement list of function
                 ex(func.func->statements,&funcEnvironment);
             }
          }
-         
+
          return AVal(0);
     }
 

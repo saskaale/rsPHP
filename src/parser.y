@@ -8,8 +8,6 @@
 
 
 /* prototypes */
-
-/* int ex(nodeType *p); */
 void eval(Ast::Node *p);
 
 int yylex(void);
