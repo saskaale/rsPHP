@@ -20,7 +20,7 @@ Node::~Node()
 const char* Node::typeStr() const
 {
     static const char* const tNames[] = {
-        "VariableT", "ArrayT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolValueT", "StringLiteralT",
+        "VariableT", "ArrayT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolLiteralT", "StringLiteralT",
         "UnaryOperatorT", "BinaryOperatorT", "FunctionCallT", "ExpressionListT", "AssignmentT",
         "IfT", "WhileT", "ForT", "ExitT", "WriteT",
         "StatementListT", "VariableListT", "FunctionT", "LoopT"
