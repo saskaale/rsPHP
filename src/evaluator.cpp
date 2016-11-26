@@ -42,6 +42,11 @@
     ) 
     
     
+#define THROW(name, descr) \
+    (fprintf(stderr, name, descr), fprintf(stderr, "\n"), X_ASSERT(false && name)); \
+    return AVal(0);\
+
+    
 AVal ex(Ast::Node *p, Environment* envir);
 
     
@@ -67,9 +72,7 @@ inline AVal doUserdefFunction(Ast::FunctionCall * v, Ast::Function * func, Envir
     Ast::VariableList *parameters = func->parameters;
     Ast::ExpressionList *exprs    = v->arguments;
     if(parameters->variables.size() != exprs->expressions.size()){
-      fprintf(stderr, "PARAMETERS MISMATCH FOR FUNCTION %s\n", v->functionName.c_str());
-      X_ASSERT(false && "PARAMETERS MISMATCH");
-      return AVal(0);
+      THROW("PARAMETERS MISMATCH FOR FUNCTION %s", v->functionName.c_str())
     }
 
 
@@ -107,8 +110,7 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::VariableT: {
         Ast::Variable *v = p->as<Ast::Variable*>();
         if(!envir->has(v->name)){
-            fprintf(stderr, "SYMBOL %s LOOKUP ERROR\n", v->name.c_str());
-            X_ASSERT(false && "SYMBOL LOOKUP ERROR");
+            THROW("SYMBOL %s LOOKUP ERROR", v->name.c_str())
         }
         return envir->get(v->name);
     }
