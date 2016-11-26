@@ -40,6 +40,49 @@
       : \
     INT_BINARY_OPERATOR ( arg1, arg2, opname ) \
     ) 
+    
+    
+AVal ex(Ast::Node *p, Environment* envir);
+
+    
+inline AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir){
+    AVal printV = ex(v->arguments->expressions.front(), envir);
+    
+    int ret = -1;
+    if(IS_BOOL(printV)){
+      ret = printf("%s\n", TO_BOOL(printV)?"true":"false");
+    }else if(IS_DOUBLE(printV)){
+      ret = printf("%lf\n", TO_DOUBLE(printV));
+    }else{
+      ret = printf("%d\n", TO_INT(printV));
+    }
+    
+    return AVal(ret);
+}
+
+inline AVal doUserdefFunction(Ast::FunctionCall * v, Ast::Function * func, Environment* envir ){
+    //create environment for this function
+    Environment funcEnvironment(envir);
+
+    Ast::VariableList *parameters = func->parameters;
+    Ast::ExpressionList *exprs    = v->arguments;
+    if(parameters->variables.size() != exprs->expressions.size()){
+      fprintf(stderr, "PARAMETERS MISMATCH FOR FUNCTION %s\n", v->functionName.c_str());
+      X_ASSERT(false && "PARAMETERS MISMATCH");
+      return AVal(0);
+    }
+
+
+    int argslen = exprs->expressions.size();
+    for(int i = 0; i < argslen; i++){
+      funcEnvironment.set(parameters->variables[i]->name, ex(exprs->expressions[i], envir));
+    }
+
+    //execute statement list of function
+    ex(func->statements,&funcEnvironment);
+
+    return AVal(0);
+}
 
 
 Environment globalenvir;
@@ -89,38 +132,13 @@ AVal ex(Ast::Node *p, Environment* envir)
 
          //handle built-in functions
          if (v->functionName == "print") {
-             AVal printV = ex(v->arguments->expressions.front(), envir);
-             if(IS_BOOL(printV)){
-                printf("%s\n", TO_BOOL(printV)?"true":"false");
-             }else if(IS_DOUBLE(printV)){
-                printf("%lf\n", TO_DOUBLE(printV));
-             }else{
-                printf("%d\n", TO_INT(printV));
-             }
+             return doBuiltInPrint(v, envir);
          }
 
          if(envir->has(v->functionName)){
             AVal func = envir->get(v->functionName);
             if(IS_FUNCTION(func)){
-                //create environment for this function
-                Environment funcEnvironment(envir);
-
-                Ast::VariableList *parameters = func.func->parameters;
-                Ast::ExpressionList *exprs    = v->arguments;
-                if(parameters->variables.size() != exprs->expressions.size()){
-                  fprintf(stderr, "PARAMETERS MISMATCH FOR FUNCTION %s\n", v->functionName.c_str());
-                  X_ASSERT(false && "PARAMETERS MISMATCH");
-                  return AVal(0);
-                }
-
-
-                int argslen = exprs->expressions.size();
-                for(int i = 0; i < argslen; i++){
-                  funcEnvironment.set(parameters->variables[i]->name, ex(exprs->expressions[i], envir));
-                }
-
-                //execute statement list of function
-                ex(func.func->statements,&funcEnvironment);
+                return doUserdefFunction(v, func.func, envir);
             }
          }
 
