@@ -20,7 +20,7 @@ Node::~Node()
 const char* Node::typeStr() const
 {
     static const char* const tNames[] = {
-        "VariableT", "ArrayT", "ArraySubscriptT", "ValueT", "StringLiteralT",
+        "VariableT", "ArrayT", "ArraySubscriptT", "IntegerLiteralT", "BoolValueT", "StringLiteralT",
         "UnaryOperatorT", "BinaryOperatorT", "FunctionCallT", "ExpressionListT", "AssignmentT",
         "IfT", "WhileT", "ForT", "ExitT", "WriteT",
         "StatementListT", "VariableListT", "FunctionT", "LoopT"
@@ -71,28 +71,28 @@ Node::Type ArraySubscript::type() const
 }
 
 
-Value::Value(Ast::VariableList* params, Ast::StatementList* statements)
-    : valueType(FUNCTION), params(params), statements(statements)
+IntegerLiteral::IntegerLiteral(int value)
+    : value(value)
 {
 }
 
 
-Value::Value(int value)
-    : valueType(INT), value(value)
+Node::Type IntegerLiteral::type() const
+{
+    return IntegerLiteralT;
+}
+
+
+BoolLiteral::BoolLiteral(bool value)
+    : value(value)
 {
 }
 
 
-Value::Value(bool value)
-    : valueType(BOOL), value(value)
+Node::Type BoolLiteral::type() const
 {
+    return BoolLiteralT;
 }
-
-Node::Type Value::type() const
-{
-    return ValueT;
-}
-
 
 
 StringLiteral::StringLiteral(const std::string &value)

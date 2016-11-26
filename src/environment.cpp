@@ -8,7 +8,7 @@ Environment::Environment(Environment* parent)
 }
 
 
-void Environment::set(const std::string& key, const Ast::Value& val)
+void Environment::set(const std::string& key, const AVal& val)
 {
     int nextidx = values.size();
     keys[key] = nextidx;
@@ -24,10 +24,10 @@ bool Environment::has(const std::string& key) const
     return false;
 }
 
-Ast::Value* Environment::get(const std::string& key)
+AVal Environment::get(const std::string& key)
 {
     if(keys.find(key) != keys.end())
-      return &values[keys[key]];
+      return values[keys[key]];
     X_ASSERT(false && "symbol lookup error in global scope");
     return parent->get(key);
 }

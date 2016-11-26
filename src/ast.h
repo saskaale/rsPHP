@@ -14,7 +14,8 @@ class Statement;
 class Variable;
 class Array;
 class ArraySubscript;
-class Value;
+class IntegerLiteral;
+class BoolLiteral;
 class StringLiteral;
 class BinaryOperator;
 class FunctionCall;
@@ -43,7 +44,7 @@ class Node
 {
 public:
     enum Type {
-        VariableT, ArrayT, ArraySubscriptT, ValueT, StringLiteralT,
+        VariableT, ArrayT, ArraySubscriptT, IntegerLiteralT, BoolLiteralT, StringLiteralT,
         UnaryOperatorT, BinaryOperatorT, FunctionCallT, ExpressionListT, AssignmentT,
         IfT, WhileT, ForT, ExitT, WriteT,
         StatementListT, VariableListT, FunctionT, LoopT
@@ -107,25 +108,24 @@ public:
     Expression *expression;
 };
 
-class Value : public Expression
+class IntegerLiteral : public Expression
 {
 public:
-    enum ValueType {INT, BOOL, FUNCTION};
-
-    explicit Value(Ast::VariableList* params, Ast::StatementList* statements);
-    explicit Value(int value);
-    explicit Value(bool value);
+    explicit IntegerLiteral(int value);
 
     Type type() const;
-    ValueType valueType;
 
-    union{
-      int value;
-      struct{
-        Ast::VariableList* params;
-        Ast::StatementList* statements;
-      };
-    };
+    int value;
+};
+
+class BoolLiteral : public Expression
+{
+public:
+    explicit BoolLiteral(bool value);
+
+    Type type() const;
+
+    bool value;
 };
 
 class StringLiteral : public Expression

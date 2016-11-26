@@ -2,6 +2,7 @@
 #include "ast.h"
 #include "parser.hpp"
 #include "environment.h"
+#include "evaluator.h"
 
 #include <iostream>
 
@@ -19,37 +20,48 @@
 #define OP_MOD(arg1, arg2) ((arg1)%(arg2))
 #define OP_LAND(arg1, arg2) ((arg1)&&(arg2))
 #define OP_LOR(arg1, arg2) ((arg1)||(arg2))
-#define BINARY_OPERATOR(arg1, arg2, opname) ( Ast::Value ( OP_ ## opname ( (arg1).value, (arg2).value) ) )
+#define BINARY_OPERATOR(arg1, arg2, opname) ( AVal ( OP_ ## opname ( (arg1).value, (arg2).value) ) )
 #define TO_INT(arg) (arg).value
 #define TO_BOOL(arg) (!!TO_INT(arg))
-#define IS_FUNCTION(arg) ((arg).valueType == Ast::Value::FUNCTION)
+#define IS_FUNCTION(arg) ((arg).type == AVal::FUNCTION)
+#define IS_BOOL(arg) ((arg).type == AVal::BOOL)
 
-Ast::Value ex(Ast::Node *p, Environment* envir)
+
+Environment globalenvir;
+
+AVal ex(Ast::Node *p, Environment* envir)
 {
     if (!p) {
-        return Ast::Value(0);
+        return AVal(0);
     }
     
     switch (p->type()) {
-    case Ast::Node::ValueT:
-        return *(p->as<Ast::Value*>());
+
+    case Ast::Node::IntegerLiteralT:
+        return AVal(p->as<Ast::IntegerLiteral*>()->value);
+
+    case Ast::Node::BoolLiteralT:
+        return AVal(p->as<Ast::BoolLiteral*>()->value);
 
     case Ast::Node::VariableT: {
         Ast::Variable *v = p->as<Ast::Variable*>();
-        Ast::Node *stored = envir->get(v->name);
-        return ex(stored, envir); // return n->type == typeCon ? n->con.value : 0;
+        if(!envir->has(v->name)){
+            printf("SYMBOL %s LOOKUP ERROR\n", v->name.c_str());
+            X_ASSERT(false && "SYMBOL LOOKUP ERROR");
+        }
+        return envir->get(v->name);
     }
 
     case Ast::Node::AssignmentT: {
         Ast::Assignment *v = p->as<Ast::Assignment*>();
-        Ast::Value r = ex(v->expression, envir);
+        AVal r = ex(v->expression, envir);
         envir->set(v->variable->name, r);
         return r;
     }
 
     case Ast::Node::FunctionT: {
          Ast::Function *v = p->as<Ast::Function*>();
-         Ast::Value fun = Ast::Value(v->parameters->as<Ast::VariableList*>(), v->statements->as<Ast::StatementList*>());
+         AVal fun = AVal(v);
          envir->set(v->name, fun);
          return fun;
     }    
@@ -59,8 +71,8 @@ Ast::Value ex(Ast::Node *p, Environment* envir)
 
          //handle built-in functions
          if (v->functionName == "print") {
-             Ast::Value printV = ex(v->arguments->expressions.front(), envir);
-             if(printV.valueType == Ast::Value::BOOL){
+             AVal printV = ex(v->arguments->expressions.front(), envir);
+             if(IS_BOOL(printV)){
                 printf("%s\n", TO_BOOL(printV)?"true":"false");
              }else{
                 printf("%d\n", TO_INT(printV));
@@ -68,23 +80,38 @@ Ast::Value ex(Ast::Node *p, Environment* envir)
          }
          
          if(envir->has(v->functionName)){
-            Ast::Value* func = envir->get(v->functionName);
-            if(IS_FUNCTION(*func)){
+            AVal func = envir->get(v->functionName);
+            if(IS_FUNCTION(func)){
                 //create environment for this function
                 Environment funcEnvironment(envir);
+                
+                Ast::VariableList *parameters = func.func->parameters;
+                Ast::ExpressionList *exprs    = v->arguments;
+                if(parameters->variables.size() != exprs->expressions.size()){
+                  printf("PARAMETERS MISMATCH FOR FUNCTION %s\n", v->functionName.c_str());
+                  X_ASSERT(false && "PARAMETERS MISMATCH");
+                  return AVal(0);
+                }
+
+
+                int argslen = exprs->expressions.size();
+                for(int i = 0; i < argslen; i++){
+                  funcEnvironment.set(parameters->variables[i]->name, ex(exprs->expressions[i], envir));
+                }
+                
                 //execute statement list of function
-                ex(func->statements,&funcEnvironment);
+                ex(func.func->statements,&funcEnvironment);
             }
          }
          
-         return Ast::Value(0);
+         return AVal(0);
     }
 
     case Ast::Node::UnaryOperatorT: {
         Ast::UnaryOperator *v = p->as<Ast::UnaryOperator*>();
         switch (v->op) {
         case Ast::UnaryOperator::Minus:
-            return Ast::Value(-ex(v->expr, envir).value);
+            return AVal(-ex(v->expr, envir).value);
         default:
             X_UNREACHABLE();
         };
@@ -129,7 +156,7 @@ Ast::Value ex(Ast::Node *p, Environment* envir)
     case Ast::Node::StatementListT: {
         Ast::StatementList *v = p->as<Ast::StatementList*>();
         
-        Ast::Value ret = Ast::Value(false);
+        AVal ret = AVal(false);
         for (Ast::Statement *s : v->statements) {
             ret = ex(s, envir);
         }
@@ -139,7 +166,7 @@ Ast::Value ex(Ast::Node *p, Environment* envir)
     case Ast::Node::IfT: {
         Ast::If *v = p->as<Ast::If*>();
         
-        Ast::Value cond = ex(v->condition, envir);
+        AVal cond = ex(v->condition, envir);
         if (TO_BOOL(cond)) {
             ex(v->thenStatement, envir);
         } else {
@@ -153,7 +180,7 @@ Ast::Value ex(Ast::Node *p, Environment* envir)
         while (TO_BOOL(ex(v->condition, envir))) {
             ex(v->statement, envir);
         }
-        return Ast::Value(false);
+        return AVal(false);
     }
 
     case Ast::Node::ForT: {
@@ -161,7 +188,7 @@ Ast::Value ex(Ast::Node *p, Environment* envir)
         for (ex(v->init, envir); TO_BOOL(ex(v->cond, envir)); ex(v->after, envir)) {
             ex(v->statement, envir);
         }
-        return Ast::Value(false);
+        return AVal(false);
     }
 
     default: {
@@ -170,5 +197,12 @@ Ast::Value ex(Ast::Node *p, Environment* envir)
     }
     }
 
-    return Ast::Value(false);
+    return AVal(false);
+}
+
+
+
+void eval(Ast::Node *p)
+{
+  ex(p, &globalenvir);
 }

@@ -9,10 +9,8 @@
 
 /* prototypes */
 
-Environment globalenvir;
-
 /* int ex(nodeType *p); */
-Ast::Value ex(Ast::Node *p, Environment* env = &globalenvir);
+void eval(Ast::Node *p);
 
 int yylex(void);
 
@@ -36,7 +34,7 @@ void yyerror(const char *s);
 %left '*' '/'
 %nonassoc UMINUS
 
-%type <nPtr> stmt stmt2 expr expr2 stmt_list value fundecl fun_list fun_list2 expr_list
+%type <nPtr> stmt stmt2 expr expr2 stmt_list value fundecl fun_list fun_list2 expr_list variable
 
 %%
 
@@ -45,7 +43,7 @@ program:
         ;
 
 function:
-          function stmt         { ex($2); /*freeNode($2);*/ }
+          function stmt         { eval($2); /*freeNode($2);*/ }
         | /* NULL */
         ;
 
@@ -54,7 +52,7 @@ stmt2:
         | PRINT expr                              { $$ = new Ast::FunctionCall("print", $2); }
         | VARIABLE '(' ')'                        { $$ = new Ast::FunctionCall($1); }
         | VARIABLE '(' expr_list ')'              { $$ = new Ast::FunctionCall($1, $3->as<Ast::ExpressionList*>()); }
-        |                                         { $$ = new Ast::Value(true); }
+        |                                         { $$ = new Ast::BoolLiteral(true); }
         ;
         
 expr_list:
@@ -80,10 +78,14 @@ fun_list:
           fun_list2               { $$ = $1; }
         |                         { $$ = new Ast::VariableList(); }
         ;
+        
+variable:
+          VARIABLE                { $$ = new Ast::Variable($1);}
+        ;
 
 fun_list2:
-        | VARIABLE                { $$ = new Ast::VariableList(new Ast::Variable($1)); }
-        | fun_list ',' VARIABLE   { $$ = new Ast::VariableList(new Ast::Variable($3), $1->as<Ast::VariableList*>()); }
+          variable                 { $$ = new Ast::VariableList($1->as<Ast::Variable*>()); }
+        | fun_list2 ',' variable   { $$ = new Ast::VariableList($3->as<Ast::Variable*>(), $1->as<Ast::VariableList*>()); }
         ;
         
 stmt_list:
@@ -93,12 +95,12 @@ stmt_list:
 
 expr:
           expr2                   { $$ = $1; }
-        | VARIABLE '=' expr2      { $$ = new Ast::Assignment(new Ast::Variable($1), $3); }
+        | variable '=' expr2      { $$ = new Ast::Assignment($1->as<Ast::Variable*>(), $3); }
         ;
 
 expr2:
           value                   { $$ = $1; }
-        | VARIABLE                { $$ = new Ast::Variable($1); }
+        | variable                { $$ = $1->as<Ast::Variable*>(); }
         | '-' expr2 %prec UMINUS  { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::Minus, $2); }
         | expr2 '+' expr2         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Plus, $1, $3); }
         | expr2 '-' expr2         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Minus, $1, $3); }
@@ -114,9 +116,9 @@ expr2:
         ;
 
 value:  
-          INTEGER                 { $$ = new Ast::Value($1); }
-        | TRUE                    { $$ = new Ast::Value(true); }
-        | FALSE                   { $$ = new Ast::Value(false); }
+          INTEGER                 { $$ = new Ast::IntegerLiteral($1); }
+        | TRUE                    { $$ = new Ast::BoolLiteral(true); }
+        | FALSE                   { $$ = new Ast::BoolLiteral(false); }
         ;
 %%
 
