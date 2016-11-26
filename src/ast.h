@@ -15,6 +15,7 @@ class Variable;
 class Array;
 class ArraySubscript;
 class IntegerLiteral;
+class DoubleLiteral;
 class BoolLiteral;
 class StringLiteral;
 class BinaryOperator;
@@ -44,7 +45,7 @@ class Node
 {
 public:
     enum Type {
-        VariableT, ArrayT, ArraySubscriptT, IntegerLiteralT, BoolLiteralT, StringLiteralT,
+        VariableT, ArrayT, ArraySubscriptT, IntegerLiteralT, DoubleLiteralT, BoolLiteralT, StringLiteralT,
         UnaryOperatorT, BinaryOperatorT, FunctionCallT, ExpressionListT, AssignmentT,
         IfT, WhileT, ForT, ExitT, WriteT,
         StatementListT, VariableListT, FunctionT, LoopT
@@ -116,6 +117,16 @@ public:
     Type type() const;
 
     int value;
+};
+
+class DoubleLiteral : public Expression
+{
+public:
+    explicit DoubleLiteral(double value);
+
+    Type type() const;
+
+    double value;
 };
 
 class BoolLiteral : public Expression

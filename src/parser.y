@@ -16,11 +16,13 @@ void yyerror(const char *s);
 %}
 
 %union {
+    double fValue;
     int iValue;
     char *str;
     Ast::Node *nPtr;
 };
 
+%token <fValue> DOUBLE
 %token <iValue> INTEGER
 %token <str> VARIABLE
 %token FOR WHILE IF PRINT TRUE FALSE FUNCTION
@@ -115,6 +117,7 @@ expr2:
 
 value:  
           INTEGER                 { $$ = new Ast::IntegerLiteral($1); }
+        | DOUBLE                  { $$ = new Ast::DoubleLiteral($1); }
         | TRUE                    { $$ = new Ast::BoolLiteral(true); }
         | FALSE                   { $$ = new Ast::BoolLiteral(false); }
         ;

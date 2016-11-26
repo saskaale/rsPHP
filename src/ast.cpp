@@ -20,7 +20,7 @@ Node::~Node()
 const char* Node::typeStr() const
 {
     static const char* const tNames[] = {
-        "VariableT", "ArrayT", "ArraySubscriptT", "IntegerLiteralT", "BoolValueT", "StringLiteralT",
+        "VariableT", "ArrayT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolValueT", "StringLiteralT",
         "UnaryOperatorT", "BinaryOperatorT", "FunctionCallT", "ExpressionListT", "AssignmentT",
         "IfT", "WhileT", "ForT", "ExitT", "WriteT",
         "StatementListT", "VariableListT", "FunctionT", "LoopT"
@@ -80,6 +80,18 @@ IntegerLiteral::IntegerLiteral(int value)
 Node::Type IntegerLiteral::type() const
 {
     return IntegerLiteralT;
+}
+
+
+DoubleLiteral::DoubleLiteral(double value)
+    : value(value)
+{
+}
+
+
+Node::Type DoubleLiteral::type() const
+{
+    return DoubleLiteralT;
 }
 
 

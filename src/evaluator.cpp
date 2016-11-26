@@ -7,6 +7,15 @@
 #include <iostream>
 
 
+#define TO_INT(arg) IS_DOUBLE(arg) ? (int)(arg).fValue : (arg).value
+#define TO_DOUBLE(arg) (IS_INT(arg) || IS_BOOL(arg)) ? (double)(arg).value : (arg).fValue
+#define TO_BOOL(arg) (!!TO_INT(arg))
+#define IS_FUNCTION(arg) ((arg).type == AVal::FUNCTION)
+#define IS_INT(arg) ((arg).type == AVal::INT)
+#define IS_BOOL(arg) ((arg).type == AVal::BOOL)
+#define IS_DOUBLE(arg) ((arg).type == AVal::DOUBLE)
+
+
 #define OP_PLUS(arg1, arg2) ((arg1)+(arg2))
 #define OP_MINUS(arg1, arg2) ((arg1)-(arg2))
 #define OP_EQ(arg1, arg2) ((arg1)==(arg2))
@@ -20,11 +29,17 @@
 #define OP_MOD(arg1, arg2) ((arg1)%(arg2))
 #define OP_LAND(arg1, arg2) ((arg1)&&(arg2))
 #define OP_LOR(arg1, arg2) ((arg1)||(arg2))
-#define BINARY_OPERATOR(arg1, arg2, opname) ( AVal ( OP_ ## opname ( (arg1).value, (arg2).value) ) )
-#define TO_INT(arg) (arg).value
-#define TO_BOOL(arg) (!!TO_INT(arg))
-#define IS_FUNCTION(arg) ((arg).type == AVal::FUNCTION)
-#define IS_BOOL(arg) ((arg).type == AVal::BOOL)
+
+#define INT_BINARY_OPERATOR(arg1, arg2, opname) ( AVal ( OP_ ## opname ( TO_INT(arg1), TO_INT(arg2) ) ) ) 
+#define DOUBLE_BINARY_OPERATOR(arg1, arg2, opname) ( AVal ( OP_ ## opname ( TO_DOUBLE(arg1), TO_DOUBLE(arg2) ) ) ) 
+
+#define BINARY_OPERATOR(arg1, arg2, opname) ( \
+    (IS_BOOL(arg1) || IS_BOOL(arg2)) \
+      ? \
+    DOUBLE_BINARY_OPERATOR ( arg1, arg2, opname ) \
+      : \
+    INT_BINARY_OPERATOR ( arg1, arg2, opname ) \
+    ) 
 
 
 Environment globalenvir;
@@ -43,10 +58,13 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::BoolLiteralT:
         return AVal(p->as<Ast::BoolLiteral*>()->value);
 
+    case Ast::Node::DoubleLiteralT:
+        return AVal(p->as<Ast::DoubleLiteral*>()->value);
+
     case Ast::Node::VariableT: {
         Ast::Variable *v = p->as<Ast::Variable*>();
         if(!envir->has(v->name)){
-            printf("SYMBOL %s LOOKUP ERROR\n", v->name.c_str());
+            fprintf(stderr, "SYMBOL %s LOOKUP ERROR\n", v->name.c_str());
             X_ASSERT(false && "SYMBOL LOOKUP ERROR");
         }
         return envir->get(v->name);
@@ -74,6 +92,8 @@ AVal ex(Ast::Node *p, Environment* envir)
              AVal printV = ex(v->arguments->expressions.front(), envir);
              if(IS_BOOL(printV)){
                 printf("%s\n", TO_BOOL(printV)?"true":"false");
+             }else if(IS_DOUBLE(printV)){
+                printf("%lf\n", TO_DOUBLE(printV));
              }else{
                 printf("%d\n", TO_INT(printV));
              }
@@ -88,7 +108,7 @@ AVal ex(Ast::Node *p, Environment* envir)
                 Ast::VariableList *parameters = func.func->parameters;
                 Ast::ExpressionList *exprs    = v->arguments;
                 if(parameters->variables.size() != exprs->expressions.size()){
-                  printf("PARAMETERS MISMATCH FOR FUNCTION %s\n", v->functionName.c_str());
+                  fprintf(stderr, "PARAMETERS MISMATCH FOR FUNCTION %s\n", v->functionName.c_str());
                   X_ASSERT(false && "PARAMETERS MISMATCH");
                   return AVal(0);
                 }
@@ -142,7 +162,7 @@ AVal ex(Ast::Node *p, Environment* envir)
         case Ast::BinaryOperator::Div:
             return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), DIV);
         case Ast::BinaryOperator::Mod:
-            return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), MOD);
+            return INT_BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), MOD);
         case Ast::BinaryOperator::And:
             return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), LAND);
         case Ast::BinaryOperator::Or:
