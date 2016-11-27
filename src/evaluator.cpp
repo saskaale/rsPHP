@@ -6,19 +6,10 @@
 
 #include <iostream>
 
-
-#define IS_FUNCTION(arg) ((arg).type == AVal::FUNCTION)
-#define IS_INT(arg) ((arg).type == AVal::INT)
-#define IS_BOOL(arg) ((arg).type == AVal::BOOL)
-#define IS_DOUBLE(arg) ((arg).type == AVal::DOUBLE)
-#define IS_STRING(arg) ((arg).type == AVal::STRING)
-
 #define THROW(name, descr) \
     (fprintf(stderr, name, descr), fprintf(stderr, "\n"), X_ASSERT(false && name)); \
     return AVal(0);\
 
-
-AVal ex(Ast::Node *p, Environment* envir);
 
 // Operators
 static AVal binaryOp_impl(Ast::BinaryOperator::Op op, const char *a, const char *b)
@@ -113,20 +104,29 @@ static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
     return 0;
 }
 
+AVal ex(Ast::Node *p, Environment* envir);
+
 // Functions
 static AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir)
 {
     AVal printV = ex(v->arguments->expressions.front(), envir);
 
     int ret = -1;
-    if(IS_BOOL(printV)){
-      ret = printf("%s\n", printV.toBool() ? "true" : "false");
-    }else if(IS_DOUBLE(printV)){
-      ret = printf("%lf\n", printV.toDouble());
-    }else if(IS_STRING(printV) || IS_FUNCTION(printV)){
-      ret = printf("\"%s\"\n", printV.toString());
-    }else{
-      ret = printf("%d\n", printV.toInt());
+
+    switch (printV.type) {
+    case AVal::BOOL:
+        ret = printf("%s\n", printV.toBool() ? "true" : "false");
+        break;
+    case AVal::DOUBLE:
+        ret = printf("%lf\n", printV.toDouble());
+        break;
+    case AVal::STRING:
+    case AVal::FUNCTION:
+        ret = printf("\"%s\"\n", printV.toString());
+        break;
+    default:
+        ret = printf("%d\n", printV.toInt());
+        break;
     }
 
     return AVal(ret);
@@ -210,7 +210,7 @@ AVal ex(Ast::Node *p, Environment* envir)
 
          if(envir->has(v->functionName)){
             AVal func = envir->get(v->functionName);
-            if(IS_FUNCTION(func)){
+            if (func.type == AVal::FUNCTION) {
                 return doUserdefFunction(v, func.func, envir);
             }
          }
