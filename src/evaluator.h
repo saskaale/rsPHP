@@ -9,18 +9,21 @@
 #include <sstream>
 
 struct AVal{
-  enum Type {INT, BOOL, DOUBLE, FUNCTION, STRING};
+  enum Type {INT, BOOL, DOUBLE, FUNCTION, STRING, ARRAY};
   AVal(Ast::Function* func): type(FUNCTION), func(func){};
   AVal(double value): type(DOUBLE), fValue(value){};
   AVal(int value): type(INT), value(value){};
   AVal(bool value): type(BOOL), value(value) {};
   AVal(const char *value): type(STRING), str(strdup(value)) {};
+  AVal(AVal *arr, size_t size): type(ARRAY), arr(arr), arrsize(size) {};
   AVal() {};
   void cleanup() {
       if (type == FUNCTION) {
           delete func;
       } else if (type == STRING) {
           free(str);
+      } else if (type == ARRAY) {
+          delete [] arr;
       }
   }
 
@@ -59,8 +62,10 @@ struct AVal{
           case STRING: {
               std::stringstream ss;
               ss << value;
-              return strdup(ss.str().c_str());
+              return ss.str().c_str();
           }
+          case ARRAY:
+              return AVal(nullptr, 0);
           default:
               X_UNREACHABLE();
           }
@@ -81,8 +86,10 @@ struct AVal{
           case STRING: {
               std::stringstream ss;
               ss << fValue;
-              return strdup(ss.str().c_str());
+              return ss.str().c_str();
           }
+          case ARRAY:
+              return AVal(nullptr, 0);
           default:
               X_UNREACHABLE();
           }
@@ -95,9 +102,10 @@ struct AVal{
               return AVal(func ? true : false).convertTo(t);
           case FUNCTION:
               return func;
-          case STRING: {
+          case STRING:
               return "[function]";
-          }
+          case ARRAY:
+              return AVal(nullptr, 0);
           default:
               X_UNREACHABLE();
           }
@@ -114,6 +122,23 @@ struct AVal{
               return static_cast<Ast::Function*>(nullptr);
           case STRING:
               return str;
+          case ARRAY:
+              return AVal(nullptr, 0);
+          default:
+              X_UNREACHABLE();
+          }
+
+      case ARRAY:
+          switch (t) {
+          case INT:
+          case BOOL:
+          case DOUBLE:
+          case FUNCTION:
+              return AVal(0).convertTo(t);
+          case STRING:
+              return "[array]";
+          case ARRAY:
+              return AVal(arr, arrsize);
           default:
               X_UNREACHABLE();
           }
@@ -130,6 +155,10 @@ struct AVal{
     int value;
     Ast::Function *func;
     char *str;
+    struct {
+        AVal *arr;
+        size_t arrsize;
+    };
   };
 };
 

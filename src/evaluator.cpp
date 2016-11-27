@@ -189,19 +189,23 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::ArraySubscriptT: {
         Ast::ArraySubscript *v = p->as<Ast::ArraySubscript*>();
         const int index = ex(v->expression, envir).toInt();
-        std::cerr << "Not implemented subscript " << v->name << "[" << index << "]" << std::endl;
-        return 0;
+        AVal arr = envir->get(v);
+        return arr.arr[index];
     }
 
     case Ast::Node::AssignmentT: {
         Ast::Assignment *v = p->as<Ast::Assignment*>();
+        AVal r = ex(v->expression, envir);
         if (Ast::ArraySubscript *as = v->variable->as<Ast::ArraySubscript*>()) {
             const int index = ex(as->expression, envir).toInt();
-            std::cerr << "Not implemented subscript " << as->name << "[" << index << "]" << std::endl;
-            return 0;
+            if (!envir->has(as)) {
+                envir->set(as, AVal(new AVal[100], 100));
+            }
+            AVal arr = envir->get(as);
+            arr.arr[index] = r;
+        } else {
+            envir->set(v->variable, r);
         }
-        AVal r = ex(v->expression, envir);
-        envir->set(v->variable, r);
         return r;
     }
 
