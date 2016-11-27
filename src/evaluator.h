@@ -21,3 +21,4 @@ struct AVal{
   };
 };
 
+void eval(Ast::Node *p);

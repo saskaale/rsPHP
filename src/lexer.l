@@ -15,7 +15,7 @@ void yyerror(const char *);
             }
 
 [0-9]+("."[0-9]+)? {
-                if(strchr(yytext, '.') != NULL){
+                if (strchr(yytext, '.')){
                     yylval.fValue = atof(yytext);
                     return DOUBLE;
                 } else {
@@ -42,7 +42,7 @@ void yyerror(const char *);
 "false"         return FALSE;
 
 
-[a-z][a-z]* {
+[A-Za-z][0-9A-Za-z]* {
                 size_t size = strlen(yytext) + 1;
                 yylval.str = (char*) malloc(size);
                 strncpy(yylval.str, yytext, size);

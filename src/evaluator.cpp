@@ -240,8 +240,6 @@ AVal ex(Ast::Node *p, Environment* envir)
     return AVal(false);
 }
 
-
-
 void eval(Ast::Node *p)
 {
   ex(p, &globalenvir);

@@ -6,13 +6,9 @@
 #include "environment.h"
 #include <iostream>
 
-
-/* prototypes */
-void eval(Ast::Node *p);
-
 int yylex(void);
-
 void yyerror(const char *s);
+
 %}
 
 %union {
