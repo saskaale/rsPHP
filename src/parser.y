@@ -21,6 +21,7 @@ void yyerror(const char *s);
 %token <fValue> DOUBLE
 %token <iValue> INTEGER
 %token <str> VARIABLE
+%token <str> STRING
 %token FOR WHILE IF PRINT TRUE FALSE FUNCTION
 %nonassoc IFX
 %nonassoc ELSE
@@ -116,6 +117,7 @@ value:
         | DOUBLE                  { $$ = new Ast::DoubleLiteral($1); }
         | TRUE                    { $$ = new Ast::BoolLiteral(true); }
         | FALSE                   { $$ = new Ast::BoolLiteral(false); }
+        | STRING                  { $$ = new Ast::StringLiteral($1); free($1); }
         ;
 %%
 

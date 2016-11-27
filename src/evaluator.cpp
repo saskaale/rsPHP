@@ -10,10 +10,12 @@
 #define TO_INT(arg) IS_DOUBLE(arg) ? (int)(arg).fValue : (arg).value
 #define TO_DOUBLE(arg) (IS_INT(arg) || IS_BOOL(arg)) ? (double)(arg).value : (arg).fValue
 #define TO_BOOL(arg) (!!TO_INT(arg))
+#define TO_STRING(arg) (arg).str
 #define IS_FUNCTION(arg) ((arg).type == AVal::FUNCTION)
 #define IS_INT(arg) ((arg).type == AVal::INT)
 #define IS_BOOL(arg) ((arg).type == AVal::BOOL)
 #define IS_DOUBLE(arg) ((arg).type == AVal::DOUBLE)
+#define IS_STRING(arg) ((arg).type == AVal::STRING)
 
 
 #define OP_PLUS(arg1, arg2) ((arg1)+(arg2))
@@ -58,6 +60,8 @@ inline AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir){
       ret = printf("%s\n", TO_BOOL(printV)?"true":"false");
     }else if(IS_DOUBLE(printV)){
       ret = printf("%lf\n", TO_DOUBLE(printV));
+    }else if(IS_STRING(printV)){
+      ret = printf("%s\n", TO_STRING(printV));
     }else{
       ret = printf("%d\n", TO_INT(printV));
     }
@@ -106,6 +110,9 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::DoubleLiteralT:
         return AVal(p->as<Ast::DoubleLiteral*>()->value);
+
+    case Ast::Node::StringLiteralT:
+        return AVal(p->as<Ast::StringLiteral*>()->value.c_str());
 
     case Ast::Node::VariableT: {
         Ast::Variable *v = p->as<Ast::Variable*>();

@@ -41,6 +41,12 @@ void yyerror(const char *);
 "true"          return TRUE;
 "false"         return FALSE;
 
+\"(\\.|[^\\"])*\" {
+                size_t size = strlen(yytext) + 1;
+                yylval.str = (char*) malloc(size);
+                strncpy(yylval.str, yytext, size);
+                return STRING;
+            }
 
 [A-Za-z][0-9A-Za-z]* {
                 size_t size = strlen(yytext) + 1;

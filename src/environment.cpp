@@ -9,10 +9,8 @@ Environment::Environment(Environment* parent)
 
 Environment::~Environment()
 {
-    for (const AVal &v : values) {
-        if (v.type == AVal::FUNCTION) {
-            delete v.func;
-        }
+    for (AVal &v : values) {
+        v.cleanup();
     }
 }
 
