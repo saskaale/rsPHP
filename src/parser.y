@@ -29,13 +29,13 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %token <str> VARIABLE
 %token <str> STRING
 %token FOR WHILE IF PRINT TRUE FALSE FUNCTION
-%token ASSIGN AS_PLUS AS_MINUS AS_TIMES AS_DIV
+%token ASSIGN AS_PLUS AS_MINUS AS_TIMES AS_DIV AS_MOD
 %nonassoc IFX
 %nonassoc ELSE
 
 %left GE LE EQ NE GREATER LESS
 %left PLUS MINUS
-%left TIMES DIV
+%left TIMES DIV MOD
 %left INCREMENT DECREMENT
 %nonassoc UMINUS
 %nonassoc UPREDECRE
@@ -106,6 +106,7 @@ expr:
         | variable AS_MINUS expr2  { $$ = create_assign(Ast::BinaryOperator::Minus, $1->as<Ast::Variable*>(), $3); }
         | variable AS_TIMES expr2  { $$ = create_assign(Ast::BinaryOperator::Times, $1->as<Ast::Variable*>(), $3); }
         | variable AS_DIV expr2    { $$ = create_assign(Ast::BinaryOperator::Div, $1->as<Ast::Variable*>(), $3); }
+        | variable AS_MOD expr2    { $$ = create_assign(Ast::BinaryOperator::Mod, $1->as<Ast::Variable*>(), $3); }
         ;
 
 expr2:
@@ -120,6 +121,7 @@ expr2:
         | expr2 MINUS expr2        { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Minus, $1, $3); }
         | expr2 TIMES expr2        { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Times, $1, $3); }
         | expr2 DIV expr2          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Div, $1, $3); }
+        | expr2 MOD expr2          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Mod, $1, $3); }
         | expr2 LESS expr2         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::LessThan, $1, $3); }
         | expr2 GREATER expr2      { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::GreaterThan, $1, $3); }
         | expr2 GE expr2           { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::GreaterThanEqual, $1, $3); }
