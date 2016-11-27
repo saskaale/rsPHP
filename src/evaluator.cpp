@@ -96,18 +96,17 @@ static AVal binaryOp_impl(Ast::BinaryOperator::Op op, T a, T b)
 
 static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
 {
-    switch (a.type) {
-    case AVal::INT:
-        return binaryOp_impl(op, a.toInt(), b.toInt());
-    case AVal::BOOL:
-        return binaryOp_impl(op, a.toBool(), b.toBool());
-    case AVal::DOUBLE:
-        return binaryOp_impl(op, a.toDouble(), b.toDouble());
-    case AVal::STRING:
+    if (a.type == AVal::STRING || b.type == AVal::STRING) {
         return binaryOp_impl(op, a.toString(), b.toString());
-    case AVal::FUNCTION:
+    } else if (a.type == AVal::DOUBLE || b.type == AVal::DOUBLE) {
+        return binaryOp_impl(op, a.toDouble(), b.toDouble());
+    } else if (a.type == AVal::INT || b.type == AVal::INT) {
+        return binaryOp_impl(op, a.toInt(), b.toInt());
+    } else if (a.type == AVal::BOOL || b.type == AVal::BOOL) {
+        return binaryOp_impl(op, a.toBool(), b.toBool());
+    } else if (a.type == AVal::FUNCTION || b.type == AVal::FUNCTION) {
         THROW("Cannot evaluate binary operator %d for functions", op);
-    default:
+    } else {
         X_UNREACHABLE();
     }
 
