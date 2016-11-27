@@ -21,7 +21,7 @@
 AVal ex(Ast::Node *p, Environment* envir);
 
 // Operators
-static AVal binaryOp_impl(Ast::BinaryOperator::Op op, char *a, char *b)
+static AVal binaryOp_impl(Ast::BinaryOperator::Op op, const char *a, const char *b)
 {
     std::string sa = a;
     std::string sb = b;
@@ -94,19 +94,17 @@ static AVal binaryOp_impl(Ast::BinaryOperator::Op op, T a, T b)
     return 0;
 }
 
-static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &arg1, const AVal &arg2)
+static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
 {
-    const AVal &a = arg1;
-    const AVal &b = arg2.convertTo(a.type);
-
     switch (a.type) {
     case AVal::INT:
+        return binaryOp_impl(op, a.toInt(), b.toInt());
     case AVal::BOOL:
-        return binaryOp_impl(op, a.value, b.value);
+        return binaryOp_impl(op, a.toBool(), b.toBool());
     case AVal::DOUBLE:
-        return binaryOp_impl(op, a.fValue, b.fValue);
+        return binaryOp_impl(op, a.toDouble(), b.toDouble());
     case AVal::STRING:
-        return binaryOp_impl(op, a.str, b.str);
+        return binaryOp_impl(op, a.toString(), b.toString());
     case AVal::FUNCTION:
         THROW("Cannot evaluate binary operator %d for functions", op);
     default:
