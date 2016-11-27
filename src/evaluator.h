@@ -21,4 +21,7 @@ struct AVal{
   };
 };
 
-void eval(Ast::Node *p);
+namespace Evaluator {
+    void eval(Ast::Node *p);
+    void cleanup(Ast::Node *p);
+}

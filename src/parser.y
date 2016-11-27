@@ -39,15 +39,15 @@ program:
         ;
 
 function:
-          function stmt         { eval($2); delete $2; }
+          function stmt         { Evaluator::eval($2); Evaluator::cleanup($2); }
         | /* NULL */
         ;
 
 stmt2:
           expr                                    { $$ = $1; }
         | PRINT expr                              { $$ = new Ast::FunctionCall("print", $2); }
-        | VARIABLE '(' ')'                        { $$ = new Ast::FunctionCall($1); }
-        | VARIABLE '(' expr_list ')'              { $$ = new Ast::FunctionCall($1, $3->as<Ast::ExpressionList*>()); }
+        | VARIABLE '(' ')'                        { $$ = new Ast::FunctionCall($1); free($1); }
+        | VARIABLE '(' expr_list ')'              { $$ = new Ast::FunctionCall($1, $3->as<Ast::ExpressionList*>()); free($1); }
         |                                         { $$ = new Ast::BoolLiteral(true); }
         ;
 
@@ -67,7 +67,7 @@ stmt:
         ;
 
 fundecl:
-        FUNCTION VARIABLE '(' fun_list ')' '{' stmt_list '}'   { $$ = new Ast::Function($2, $4->as<Ast::VariableList*>(), $7->as<Ast::StatementList*>());}
+        FUNCTION VARIABLE '(' fun_list ')' '{' stmt_list '}'   { $$ = new Ast::Function($2, $4->as<Ast::VariableList*>(), $7->as<Ast::StatementList*>()); free($2); }
         ;
 
 fun_list:
@@ -76,7 +76,7 @@ fun_list:
         ;
 
 variable:
-          VARIABLE                { $$ = new Ast::Variable($1);}
+          VARIABLE                { $$ = new Ast::Variable($1); free($1); }
         ;
 
 fun_list2:

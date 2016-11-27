@@ -10,10 +10,13 @@ class Environment;
 
 class Environment{
     Environment* parent;
-    std::vector<AVal>     values;
-    std::map<std::string, int>  keys;
+    std::vector<AVal> values;
+    std::map<std::string, int> keys;
+
     public:
         Environment(Environment* parent = nullptr);
+        ~Environment();
+
         AVal get(const std::string& key);
         bool has(const std::string& key) const;
         void set(const std::string& key, const AVal& val);

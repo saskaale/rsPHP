@@ -7,6 +7,14 @@ Environment::Environment(Environment* parent)
 {
 }
 
+Environment::~Environment()
+{
+    for (const AVal &v : values) {
+        if (v.type == AVal::FUNCTION) {
+            delete v.func;
+        }
+    }
+}
 
 void Environment::set(const std::string& key, const AVal& val)
 {

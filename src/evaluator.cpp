@@ -240,7 +240,26 @@ AVal ex(Ast::Node *p, Environment* envir)
     return AVal(false);
 }
 
+namespace Evaluator
+{
+
 void eval(Ast::Node *p)
 {
-  ex(p, &globalenvir);
+    ex(p, &globalenvir);
 }
+
+void cleanup(Ast::Node *p)
+{
+    if (!p) {
+        return;
+    }
+
+    // We keep the parsed function in Environment, so don't delete it
+    if (p->type() == Ast::Node::FunctionT) {
+        return;
+    }
+
+    delete p;
+}
+
+} // namespace Evaluator

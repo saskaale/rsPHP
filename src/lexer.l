@@ -15,7 +15,7 @@ void yyerror(const char *);
             }
 
 [0-9]+("."[0-9]+)? {
-                if (strchr(yytext, '.')){
+                if (strchr(yytext, '.')) {
                     yylval.fValue = atof(yytext);
                     return DOUBLE;
                 } else {
