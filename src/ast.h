@@ -213,7 +213,7 @@ public:
 class Assignment : public Statement
 {
 public:
-    explicit Assignment(Node *var, Expression *expr);
+    explicit Assignment(Variable *var, Expression *expr);
     ~Assignment();
 
     Type type() const;

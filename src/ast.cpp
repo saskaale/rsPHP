@@ -162,7 +162,7 @@ Node::Type BinaryOperator::type() const
 FunctionCall::FunctionCall(const std::string &name, Expression *args)
     : functionName(name)
 {
-    if (args == nullptr) {
+    if (!args) {
         arguments = new ExpressionList();
     } else if (ExpressionList *lst = args->as<ExpressionList*>()) {
         arguments = lst;
@@ -208,11 +208,10 @@ Node::Type ExpressionList::type() const
 }
 
 
-Assignment::Assignment(Node *var, Expression *expr)
-    : variable(var->as<Variable*>())
+Assignment::Assignment(Variable *var, Expression *expr)
+    : variable(var)
     , expression(expr)
 {
-    X_ASSERT(variable);
 }
 
 Assignment::~Assignment()

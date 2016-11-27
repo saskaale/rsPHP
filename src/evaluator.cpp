@@ -30,8 +30,8 @@
 #define OP_LAND(arg1, arg2) ((arg1)&&(arg2))
 #define OP_LOR(arg1, arg2) ((arg1)||(arg2))
 
-#define INT_BINARY_OPERATOR(arg1, arg2, opname) ( AVal ( OP_ ## opname ( TO_INT(arg1), TO_INT(arg2) ) ) ) 
-#define DOUBLE_BINARY_OPERATOR(arg1, arg2, opname) ( AVal ( OP_ ## opname ( TO_DOUBLE(arg1), TO_DOUBLE(arg2) ) ) ) 
+#define INT_BINARY_OPERATOR(arg1, arg2, opname) ( AVal ( OP_ ## opname ( TO_INT(arg1), TO_INT(arg2) ) ) )
+#define DOUBLE_BINARY_OPERATOR(arg1, arg2, opname) ( AVal ( OP_ ## opname ( TO_DOUBLE(arg1), TO_DOUBLE(arg2) ) ) )
 
 #define BINARY_OPERATOR(arg1, arg2, opname) ( \
     (IS_BOOL(arg1) || IS_BOOL(arg2)) \
@@ -39,20 +39,20 @@
     DOUBLE_BINARY_OPERATOR ( arg1, arg2, opname ) \
       : \
     INT_BINARY_OPERATOR ( arg1, arg2, opname ) \
-    ) 
-    
-    
+    )
+
+
 #define THROW(name, descr) \
     (fprintf(stderr, name, descr), fprintf(stderr, "\n"), X_ASSERT(false && name)); \
     return AVal(0);\
 
-    
+
 AVal ex(Ast::Node *p, Environment* envir);
 
-    
+
 inline AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir){
     AVal printV = ex(v->arguments->expressions.front(), envir);
-    
+
     int ret = -1;
     if(IS_BOOL(printV)){
       ret = printf("%s\n", TO_BOOL(printV)?"true":"false");
@@ -61,7 +61,7 @@ inline AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir){
     }else{
       ret = printf("%d\n", TO_INT(printV));
     }
-    
+
     return AVal(ret);
 }
 
@@ -95,7 +95,7 @@ AVal ex(Ast::Node *p, Environment* envir)
     if (!p) {
         return AVal(0);
     }
-    
+
     switch (p->type()) {
 
     case Ast::Node::IntegerLiteralT:
@@ -127,8 +127,8 @@ AVal ex(Ast::Node *p, Environment* envir)
          AVal fun = AVal(v);
          envir->set(v->name, fun);
          return fun;
-    }    
-    
+    }
+
     case Ast::Node::FunctionCallT: {
          Ast::FunctionCall *v = p->as<Ast::FunctionCall*>();
 
@@ -195,7 +195,7 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::StatementListT: {
         Ast::StatementList *v = p->as<Ast::StatementList*>();
-        
+
         AVal ret = AVal(false);
         for (Ast::Statement *s : v->statements) {
             ret = ex(s, envir);
@@ -205,7 +205,7 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::IfT: {
         Ast::If *v = p->as<Ast::If*>();
-        
+
         AVal cond = ex(v->condition, envir);
         if (TO_BOOL(cond)) {
             ex(v->thenStatement, envir);

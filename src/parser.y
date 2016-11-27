@@ -54,7 +54,7 @@ stmt2:
         | VARIABLE '(' expr_list ')'              { $$ = new Ast::FunctionCall($1, $3->as<Ast::ExpressionList*>()); }
         |                                         { $$ = new Ast::BoolLiteral(true); }
         ;
-        
+
 expr_list:
           expr                                        { $$ = new Ast::ExpressionList($1); }
         | expr_list ',' expr                          { $$ = new Ast::ExpressionList($3, $1->as<Ast::ExpressionList*>()); }
@@ -78,7 +78,7 @@ fun_list:
           fun_list2               { $$ = $1; }
         |                         { $$ = new Ast::VariableList(); }
         ;
-        
+
 variable:
           VARIABLE                { $$ = new Ast::Variable($1);}
         ;
@@ -87,7 +87,7 @@ fun_list2:
           variable                 { $$ = new Ast::VariableList($1->as<Ast::Variable*>()); }
         | fun_list2 ',' variable   { $$ = new Ast::VariableList($3->as<Ast::Variable*>(), $1->as<Ast::VariableList*>()); }
         ;
-        
+
 stmt_list:
           stmt                    { $$ = new Ast::StatementList($1); }
         | stmt_list stmt          { $$ = new Ast::StatementList($2->as<Ast::Statement*>(), $1->as<Ast::StatementList*>()); }
@@ -115,7 +115,7 @@ expr2:
         | '(' expr ')'            { $$ = $2; }
         ;
 
-value:  
+value:
           INTEGER                 { $$ = new Ast::IntegerLiteral($1); }
         | DOUBLE                  { $$ = new Ast::DoubleLiteral($1); }
         | TRUE                    { $$ = new Ast::BoolLiteral(true); }
