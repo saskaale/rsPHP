@@ -24,18 +24,27 @@ void yyerror(const char *);
                 }
             }
 
-[()<>=*/;{}.] {
+[();{}.] {
                 return *yytext;
              }
 
+"="             return ASSIGN;
 "+"             return PLUS;
 "-"             return MINUS;
+"*"             return TIMES;
+"/"             return DIV;
+"<"             return LESS;
+">"             return GREATER;
 "++"            return INCREMENT;
 "--"            return DECREMENT;
 ">="            return GE;
 "<="            return LE;
 "=="            return EQ;
 "!="            return NE;
+"+="            return AS_PLUS;
+"-="            return AS_MINUS;
+"*="            return AS_TIMES;
+"/="            return AS_DIV;
 "for"           return FOR;
 "function"      return FUNCTION;
 "while"         return WHILE;
