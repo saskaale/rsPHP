@@ -43,7 +43,7 @@ program:
         ;
 
 function:
-          function stmt         { eval($2); /*freeNode($2);*/ }
+          function stmt         { eval($2); delete $2; }
         | /* NULL */
         ;
 

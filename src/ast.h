@@ -35,9 +35,6 @@ class StatementList;
 class VariableList;
 class Function;
 
-// Generic Loop
-class Loop;
-
 // Program
 class Program;
 
@@ -48,7 +45,7 @@ public:
         VariableT, ArrayT, ArraySubscriptT, IntegerLiteralT, DoubleLiteralT, BoolLiteralT, StringLiteralT,
         UnaryOperatorT, BinaryOperatorT, FunctionCallT, ExpressionListT, AssignmentT,
         IfT, WhileT, ForT, ExitT, WriteT,
-        StatementListT, VariableListT, FunctionT, LoopT
+        StatementListT, VariableListT, FunctionT
     };
 
     explicit Node();
@@ -103,6 +100,7 @@ class ArraySubscript : public Variable
 {
 public:
     explicit ArraySubscript(const std::string &name, Expression *expr);
+    ~ArraySubscript();
 
     Type type() const;
 
@@ -157,6 +155,7 @@ public:
     };
 
     explicit UnaryOperator(Op op, Expression *expr);
+    ~UnaryOperator();
 
     Type type() const;
 
@@ -174,6 +173,7 @@ public:
     };
 
     explicit BinaryOperator(Op op, Expression *left, Expression *right);
+    ~BinaryOperator();
 
     Type type() const;
 
@@ -186,6 +186,7 @@ class FunctionCall : public Expression
 {
 public:
     explicit FunctionCall(const std::string &name, Expression *args = nullptr);
+    ~FunctionCall();
 
     Type type() const;
 
@@ -198,6 +199,7 @@ class ExpressionList : public Expression
 public:
     explicit ExpressionList();
     explicit ExpressionList(Expression *expr, ExpressionList *lst = nullptr);
+    ~ExpressionList();
 
     Type type() const;
 
@@ -212,6 +214,7 @@ class Assignment : public Statement
 {
 public:
     explicit Assignment(Node *var, Expression *expr);
+    ~Assignment();
 
     Type type() const;
 
@@ -223,6 +226,7 @@ class If : public Statement
 {
 public:
     explicit If(Expression *cond, Statement *thenStm, Statement *elseStm);
+    ~If();
 
     Type type() const;
 
@@ -235,6 +239,7 @@ class While : public Statement
 {
 public:
     explicit While(Expression *cond, Statement *stm);
+    ~While();
 
     Type type() const;
 
@@ -246,6 +251,7 @@ class For : public Statement
 {
 public:
     explicit For(Expression *init, Expression *cond, Expression *after, Statement *stm);
+    ~For();
 
     Type type() const;
 
@@ -277,6 +283,7 @@ class StatementList : public Statement
 {
 public:
     explicit StatementList(Statement *stm, StatementList *lst = nullptr);
+    ~StatementList();
 
     Type type() const;
 
@@ -292,6 +299,7 @@ class VariableList : public Node
 public:
     explicit VariableList();
     explicit VariableList(Variable *var, VariableList *lst = nullptr);
+    ~VariableList();
 
     Type type() const;
 
@@ -302,26 +310,13 @@ class Function : public Node
 {
 public:
     explicit Function(const std::string &name, VariableList *params, StatementList *stm = nullptr);
+    ~Function();
 
     Type type() const;
 
     std::string name;
     VariableList *parameters;
     StatementList *statements;
-};
-
-
-
-
-class Loop : public Statement
-{
-public:
-    explicit Loop(Expression *cond, StatementList *stmlist);
-
-    Type type() const;
-
-    Expression *condition;
-    StatementList *statement;
 };
 
 

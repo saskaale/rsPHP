@@ -8,7 +8,7 @@
 
 namespace Ast
 {
-  
+
 Node::Node()
 {
 }
@@ -63,6 +63,11 @@ ArraySubscript::ArraySubscript(const std::string &name, Expression *expr)
     : Variable(name)
     , expression(expr)
 {
+}
+
+ArraySubscript::~ArraySubscript()
+{
+    delete expression;
 }
 
 Node::Type ArraySubscript::type() const
@@ -124,6 +129,11 @@ UnaryOperator::UnaryOperator(Op op, Expression *expr)
 {
 }
 
+UnaryOperator::~UnaryOperator()
+{
+    delete expr;
+}
+
 Node::Type UnaryOperator::type() const
 {
     return UnaryOperatorT;
@@ -135,6 +145,12 @@ BinaryOperator::BinaryOperator(Op op, Expression *left, Expression *right)
     , left(left)
     , right(right)
 {
+}
+
+BinaryOperator::~BinaryOperator()
+{
+    delete left;
+    delete right;
 }
 
 Node::Type BinaryOperator::type() const
@@ -155,6 +171,11 @@ FunctionCall::FunctionCall(const std::string &name, Expression *args)
     }
 }
 
+FunctionCall::~FunctionCall()
+{
+    delete arguments;
+}
+
 Node::Type FunctionCall::type() const
 {
     return FunctionCallT;
@@ -169,8 +190,16 @@ ExpressionList::ExpressionList(Expression *expr, ExpressionList *lst)
 {
     if (lst) {
         expressions = lst->expressions;
+        delete lst;
     }
     expressions.push_back(expr);
+}
+
+ExpressionList::~ExpressionList()
+{
+    for (Expression *e : expressions) {
+        delete e;
+    }
 }
 
 Node::Type ExpressionList::type() const
@@ -184,6 +213,12 @@ Assignment::Assignment(Node *var, Expression *expr)
     , expression(expr)
 {
     X_ASSERT(variable);
+}
+
+Assignment::~Assignment()
+{
+    delete variable;
+    delete expression;
 }
 
 Node::Type Assignment::type() const
@@ -208,6 +243,13 @@ If::If(Expression *cond, Statement *thenStm, Statement *elseStm)
     }
 }
 
+If::~If()
+{
+    delete condition;
+    delete thenStatement;
+    delete elseStatement;
+}
+
 Node::Type If::type() const
 {
     return IfT;
@@ -222,6 +264,12 @@ While::While(Expression *cond, Statement *stm)
     } else {
         statement = new StatementList(stm);
     }
+}
+
+While::~While()
+{
+    delete condition;
+    delete statement;
 }
 
 Node::Type While::type() const
@@ -240,6 +288,14 @@ For::For(Expression *init, Expression *cond, Expression *after, Statement *stm)
     } else {
         statement = new StatementList(stm);
     }
+}
+
+For::~For()
+{
+    delete init;
+    delete cond;
+    delete after;
+    delete statement;
 }
 
 Node::Type For::type() const
@@ -273,8 +329,16 @@ StatementList::StatementList(Statement *stm, StatementList *lst)
 {
     if (lst) {
         statements = lst->statements;
+        delete lst;
     }
     statements.push_back(stm);
+}
+
+StatementList::~StatementList()
+{
+    for (Statement *s : statements) {
+        delete s;
+    }
 }
 
 Node::Type StatementList::type() const
@@ -291,8 +355,16 @@ VariableList::VariableList(Variable *var, VariableList *lst)
 {
     if (lst) {
         variables = lst->variables;
+        delete lst;
     }
     variables.push_back(var);
+}
+
+VariableList::~VariableList()
+{
+    for (Variable *v : variables) {
+        delete v;
+    }
 }
 
 Node::Type VariableList::type() const
@@ -308,22 +380,15 @@ Function::Function(const std::string &name, VariableList *params, StatementList 
 {
 }
 
+Function::~Function()
+{
+    delete parameters;
+    delete statements;
+}
+
 Node::Type Function::type() const
 {
     return FunctionT;
-}
-
-
-// Generic Loop
-Loop::Loop(Expression *cond, StatementList *stmlist)
-    : condition(cond)
-    , statement(stmlist)
-{
-}
-
-Node::Type Loop::type() const
-{
-    return LoopT;
 }
 
 
