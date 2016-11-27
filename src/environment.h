@@ -6,12 +6,12 @@ class Environment;
 #include "evaluator.h"
 #include "parser.hpp"
 #include <string>
-#include <map>
+#include <unordered_map>
 
 class Environment{
     Environment* parent;
     std::vector<AVal> values;
-    std::map<std::string, int> keys;
+    std::unordered_map<std::string, int> keys;
 
     public:
         Environment(Environment* parent = nullptr);
