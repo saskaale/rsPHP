@@ -195,6 +195,11 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::AssignmentT: {
         Ast::Assignment *v = p->as<Ast::Assignment*>();
+        if (Ast::ArraySubscript *as = v->variable->as<Ast::ArraySubscript*>()) {
+            const int index = ex(as->expression, envir).toInt();
+            std::cerr << "Not implemented subscript " << as->name << "[" << index << "]" << std::endl;
+            return 0;
+        }
         AVal r = ex(v->expression, envir);
         envir->set(v->variable, r);
         return r;
