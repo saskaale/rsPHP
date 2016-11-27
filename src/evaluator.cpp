@@ -223,12 +223,36 @@ AVal ex(Ast::Node *p, Environment* envir)
         Ast::UnaryOperator *v = p->as<Ast::UnaryOperator*>();
         switch (v->op) {
         case Ast::UnaryOperator::Minus:
-            return AVal(-ex(v->expr, envir).value);
-        case Ast::UnaryOperator::PreIncrement:
-        case Ast::UnaryOperator::PreDecrement:
-        case Ast::UnaryOperator::PostIncrement:
-        case Ast::UnaryOperator::PostDecrement:
-            return AVal(0);
+            return binaryOp(Ast::BinaryOperator::Minus, 0, ex(v->expr, envir));
+
+        case Ast::UnaryOperator::PreIncrement: {
+            AVal val = binaryOp(Ast::BinaryOperator::Plus, ex(v->expr, envir), 1);
+            if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
+                envir->set(var->name, val);
+            }
+            return val;
+        }
+        case Ast::UnaryOperator::PreDecrement: {
+            AVal val = binaryOp(Ast::BinaryOperator::Minus, ex(v->expr, envir), 1);
+            if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
+                envir->set(var->name, val);
+            }
+            return val;
+        }
+        case Ast::UnaryOperator::PostIncrement: {
+            AVal val = ex(v->expr, envir);
+            if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
+                envir->set(var->name, binaryOp(Ast::BinaryOperator::Plus, val, 1));
+            }
+            return val;
+        }
+        case Ast::UnaryOperator::PostDecrement: {
+            AVal val = ex(v->expr, envir);
+            if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
+                envir->set(var->name, binaryOp(Ast::BinaryOperator::Minus, val, 1));
+            }
+            return val;
+        }
         default:
             X_UNREACHABLE();
         };
