@@ -87,6 +87,7 @@ fun_list:
 
 variable:
           VARIABLE                { $$ = new Ast::Variable($1); free($1); }
+        | VARIABLE '[' expr ']'   { $$ = new Ast::ArraySubscript($1, $3); free($1); }
         ;
 
 fun_list2:

@@ -146,7 +146,7 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
 
     int argslen = exprs->expressions.size();
     for(int i = 0; i < argslen; i++){
-      funcEnvironment.set(parameters->variables[i]->name, ex(exprs->expressions[i], envir));
+      funcEnvironment.set(parameters->variables[i], ex(exprs->expressions[i], envir));
     }
 
     //execute statement list of function
@@ -180,23 +180,30 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::VariableT: {
         Ast::Variable *v = p->as<Ast::Variable*>();
-        if(!envir->has(v->name)){
+        if(!envir->has(v)){
             THROW("SYMBOL %s LOOKUP ERROR", v->name.c_str())
         }
-        return envir->get(v->name);
+        return envir->get(v);
+    }
+
+    case Ast::Node::ArraySubscriptT: {
+        Ast::ArraySubscript *v = p->as<Ast::ArraySubscript*>();
+        const int index = ex(v->expression, envir).toInt();
+        std::cerr << "Not implemented subscript " << v->name << "[" << index << "]" << std::endl;
+        return 0;
     }
 
     case Ast::Node::AssignmentT: {
         Ast::Assignment *v = p->as<Ast::Assignment*>();
         AVal r = ex(v->expression, envir);
-        envir->set(v->variable->name, r);
+        envir->set(v->variable, r);
         return r;
     }
 
     case Ast::Node::FunctionT: {
          Ast::Function *v = p->as<Ast::Function*>();
          AVal fun = AVal(v);
-         envir->set(v->name, fun);
+         envir->setFunction(v->name, fun);
          return fun;
     }
 
@@ -208,8 +215,8 @@ AVal ex(Ast::Node *p, Environment* envir)
              return doBuiltInPrint(v, envir);
          }
 
-         if(envir->has(v->functionName)){
-            AVal func = envir->get(v->functionName);
+         if(envir->hasFunction(v->functionName)){
+            AVal func = envir->getFunction(v->functionName);
             if (func.type == AVal::FUNCTION) {
                 return doUserdefFunction(v, func.func, envir);
             }
@@ -227,28 +234,28 @@ AVal ex(Ast::Node *p, Environment* envir)
         case Ast::UnaryOperator::PreIncrement: {
             AVal val = binaryOp(Ast::BinaryOperator::Plus, ex(v->expr, envir), 1);
             if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
-                envir->set(var->name, val);
+                envir->set(var, val);
             }
             return val;
         }
         case Ast::UnaryOperator::PreDecrement: {
             AVal val = binaryOp(Ast::BinaryOperator::Minus, ex(v->expr, envir), 1);
             if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
-                envir->set(var->name, val);
+                envir->set(var, val);
             }
             return val;
         }
         case Ast::UnaryOperator::PostIncrement: {
             AVal val = ex(v->expr, envir);
             if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
-                envir->set(var->name, binaryOp(Ast::BinaryOperator::Plus, val, 1));
+                envir->set(var, binaryOp(Ast::BinaryOperator::Plus, val, 1));
             }
             return val;
         }
         case Ast::UnaryOperator::PostDecrement: {
             AVal val = ex(v->expr, envir);
             if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
-                envir->set(var->name, binaryOp(Ast::BinaryOperator::Minus, val, 1));
+                envir->set(var, binaryOp(Ast::BinaryOperator::Minus, val, 1));
             }
             return val;
         }
@@ -301,10 +308,9 @@ AVal ex(Ast::Node *p, Environment* envir)
         return AVal(false);
     }
 
-    default: {
+    default:
         X_UNREACHABLE();
         break;
-    }
     }
 
     return AVal(false);

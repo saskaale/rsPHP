@@ -24,9 +24,9 @@ void yyerror(const char *);
                 }
             }
 
-[();{}.] {
-                return *yytext;
-             }
+("[")    { return '['; }
+("]")    { return ']'; }
+[();{}.] { return *yytext; }
 
 "="             return ASSIGN;
 "+"             return PLUS;
