@@ -19,7 +19,7 @@ static AVal binaryOp_impl(Ast::BinaryOperator::Op op, const char *a, const char 
 
     switch (op) {
     case Ast::BinaryOperator::Plus:
-        return strdup((sa + sb).c_str());
+        return (sa + sb).c_str();
     case Ast::BinaryOperator::Minus:
     case Ast::BinaryOperator::Times:
     case Ast::BinaryOperator::Div:
