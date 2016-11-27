@@ -27,9 +27,11 @@ void yyerror(const char *s);
 %nonassoc ELSE
 
 %left GE LE EQ NE '>' '<'
-%left '+' '-'
+%left PLUS MINUS
 %left '*' '/'
+%left INCREMENT DECREMENT
 %nonassoc UMINUS
+%nonassoc UPREDECRE
 
 %type <nPtr> stmt stmt2 expr expr2 stmt_list value fundecl fun_list fun_list2 expr_list variable
 
@@ -96,20 +98,24 @@ expr:
         ;
 
 expr2:
-          value                   { $$ = $1; }
-        | variable                { $$ = $1->as<Ast::Variable*>(); }
-        | '-' expr2 %prec UMINUS  { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::Minus, $2); }
-        | expr2 '+' expr2         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Plus, $1, $3); }
-        | expr2 '-' expr2         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Minus, $1, $3); }
-        | expr2 '*' expr2         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Times, $1, $3); }
-        | expr2 '/' expr2         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Div, $1, $3); }
-        | expr2 '<' expr2         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::LessThan, $1, $3); }
-        | expr2 '>' expr2         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::GreaterThan, $1, $3); }
-        | expr2 GE expr2          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::GreaterThanEqual, $1, $3); }
-        | expr2 LE expr2          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::LessThanEqual, $1, $3); }
-        | expr2 NE expr2          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::NotEqual, $1, $3); }
-        | expr2 EQ expr2          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Equal, $1, $3); }
-        | '(' expr ')'            { $$ = $2; }
+          value                    { $$ = $1; }
+        | variable                 { $$ = $1->as<Ast::Variable*>(); }
+        | MINUS expr2 %prec UMINUS { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::Minus, $2); }
+        | INCREMENT expr2          { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::PreIncrement, $2); }
+        | DECREMENT expr2          { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::PreDecrement, $2); }
+        | expr2 DECREMENT          { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::PostDecrement, $1); }
+        | expr2 INCREMENT          { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::PostIncrement, $1); }
+        | expr2 PLUS expr2         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Plus, $1, $3); }
+        | expr2 MINUS expr2        { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Minus, $1, $3); }
+        | expr2 '*' expr2          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Times, $1, $3); }
+        | expr2 '/' expr2          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Div, $1, $3); }
+        | expr2 '<' expr2          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::LessThan, $1, $3); }
+        | expr2 '>' expr2          { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::GreaterThan, $1, $3); }
+        | expr2 GE expr2           { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::GreaterThanEqual, $1, $3); }
+        | expr2 LE expr2           { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::LessThanEqual, $1, $3); }
+        | expr2 NE expr2           { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::NotEqual, $1, $3); }
+        | expr2 EQ expr2           { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Equal, $1, $3); }
+        | '(' expr ')'             { $$ = $2; }
         ;
 
 value:

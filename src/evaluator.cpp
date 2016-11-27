@@ -159,6 +159,11 @@ AVal ex(Ast::Node *p, Environment* envir)
         switch (v->op) {
         case Ast::UnaryOperator::Minus:
             return AVal(-ex(v->expr, envir).value);
+        case Ast::UnaryOperator::PreIncrement:
+        case Ast::UnaryOperator::PreDecrement:
+        case Ast::UnaryOperator::PostIncrement:
+        case Ast::UnaryOperator::PostDecrement:
+            return AVal(0);
         default:
             X_UNREACHABLE();
         };

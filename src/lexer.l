@@ -24,10 +24,14 @@ void yyerror(const char *);
                 }
             }
 
-[-()<>=+*/;{}.] {
+[()<>=*/;{}.] {
                 return *yytext;
              }
 
+"+"             return PLUS;
+"-"             return MINUS;
+"++"            return INCREMENT;
+"--"            return DECREMENT;
 ">="            return GE;
 "<="            return LE;
 "=="            return EQ;
