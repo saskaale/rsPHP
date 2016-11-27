@@ -22,8 +22,8 @@ const char* Node::typeStr() const
     static const char* const tNames[] = {
         "VariableT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolLiteralT", "StringLiteralT",
         "UnaryOperatorT", "BinaryOperatorT", "FunctionCallT", "ExpressionListT", "AssignmentT",
-        "IfT", "WhileT", "ForT", "ExitT", "WriteT",
-        "StatementListT", "VariableListT", "FunctionT", "LoopT"
+        "IfT", "WhileT", "ForT", "ReturnT", "BreakT", "ContinueT",
+        "StatementListT", "VariableListT", "FunctionT"
     };
 
     return tNames[(int)this->type()];
@@ -292,24 +292,33 @@ Node::Type For::type() const
 }
 
 
-Exit::Exit()
+Return::Return()
 {
 }
 
-Node::Type Exit::type() const
+Node::Type Return::type() const
 {
-    return ExitT;
+    return ReturnT;
 }
 
 
-Write::Write(const std::string &str)
-    : str(str + "\n")
+Break::Break()
 {
 }
 
-Node::Type Write::type() const
+Node::Type Break::type() const
 {
-    return WriteT;
+    return BreakT;
+}
+
+
+Continue::Continue()
+{
+}
+
+Node::Type Continue::type() const
+{
+    return ContinueT;
 }
 
 

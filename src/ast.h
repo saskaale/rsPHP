@@ -27,8 +27,9 @@ class Assignment;
 class If;
 class While;
 class For;
-class Exit;
-class Write;
+class Return;
+class Break;
+class Continue;
 class StatementList;
 
 // Functions
@@ -42,9 +43,9 @@ class Node
 {
 public:
     enum Type {
-        VariableT, ArrayT, ArraySubscriptT, IntegerLiteralT, DoubleLiteralT, BoolLiteralT, StringLiteralT,
+        VariableT, ArraySubscriptT, IntegerLiteralT, DoubleLiteralT, BoolLiteralT, StringLiteralT,
         UnaryOperatorT, BinaryOperatorT, FunctionCallT, ExpressionListT, AssignmentT,
-        IfT, WhileT, ForT, ExitT, WriteT,
+        IfT, WhileT, ForT, ReturnT, BreakT, ContinueT,
         StatementListT, VariableListT, FunctionT
     };
 
@@ -251,22 +252,28 @@ public:
     StatementList *statement;
 };
 
-class Exit : public Statement
+class Return : public Statement
 {
 public:
-    explicit Exit();
+    explicit Return();
 
     Type type() const;
 };
 
-class Write : public Statement
+class Break : public Statement
 {
 public:
-    explicit Write(const std::string &str);
+    explicit Break();
 
     Type type() const;
+};
 
-    std::string str;
+class Continue : public Statement
+{
+public:
+    explicit Continue();
+
+    Type type() const;
 };
 
 class StatementList : public Statement
