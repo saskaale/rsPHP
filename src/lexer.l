@@ -46,16 +46,15 @@ void yyerror(const char *);
 "false"         return FALSE;
 
 \"(\\.|[^\\"])*\" {
-                size_t size = strlen(yytext) + 1;
+                size_t size = strlen(yytext);
                 yylval.str = (char*) malloc(size);
-                strncpy(yylval.str, yytext, size);
+                strncpy(yylval.str, yytext + 1, size);
+                yylval.str[size - 2] = 0;
                 return STRING;
             }
 
 [A-Za-z][0-9A-Za-z]* {
-                size_t size = strlen(yytext) + 1;
-                yylval.str = (char*) malloc(size);
-                strncpy(yylval.str, yytext, size);
+                yylval.str = strdup(yytext);
                 return VARIABLE;
             }
 
