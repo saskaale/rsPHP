@@ -20,7 +20,7 @@ Node::~Node()
 const char* Node::typeStr() const
 {
     static const char* const tNames[] = {
-        "VariableT", "ArrayT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolLiteralT", "StringLiteralT",
+        "VariableT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolLiteralT", "StringLiteralT",
         "UnaryOperatorT", "BinaryOperatorT", "FunctionCallT", "ExpressionListT", "AssignmentT",
         "IfT", "WhileT", "ForT", "ExitT", "WriteT",
         "StatementListT", "VariableListT", "FunctionT", "LoopT"
@@ -47,17 +47,6 @@ void Variable::print() const
     printf("Variable %s", name.c_str());
 }
 
-
-Array::Array(const std::string &name, int size)
-    : Variable(name)
-    , size(size)
-{
-}
-
-Node::Type Array::type() const
-{
-    return ArrayT;
-}
 
 ArraySubscript::ArraySubscript(const std::string &name, Expression *expr)
     : Variable(name)

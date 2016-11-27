@@ -86,16 +86,6 @@ public:
     std::string name;
 };
 
-class Array : public Variable
-{
-public:
-    explicit Array(const std::string &name, int size);
-
-    Type type() const;
-
-    int size;
-};
-
 class ArraySubscript : public Variable
 {
 public:
