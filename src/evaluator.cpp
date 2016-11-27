@@ -17,33 +17,6 @@
 #define IS_DOUBLE(arg) ((arg).type == AVal::DOUBLE)
 #define IS_STRING(arg) ((arg).type == AVal::STRING)
 
-
-#define OP_PLUS(arg1, arg2) ((arg1)+(arg2))
-#define OP_MINUS(arg1, arg2) ((arg1)-(arg2))
-#define OP_EQ(arg1, arg2) ((arg1)==(arg2))
-#define OP_NEQ(arg1, arg2) ((arg1)!=(arg2))
-#define OP_LT(arg1, arg2) ((arg1)<(arg2))
-#define OP_GT(arg1, arg2) ((arg1)>(arg2))
-#define OP_LTE(arg1, arg2) ((arg1)<=(arg2))
-#define OP_GTE(arg1, arg2) ((arg1)>=(arg2))
-#define OP_TIMES(arg1, arg2) ((arg1)*(arg2))
-#define OP_DIV(arg1, arg2) ((arg1)/(arg2))
-#define OP_MOD(arg1, arg2) ((arg1)%(arg2))
-#define OP_LAND(arg1, arg2) ((arg1)&&(arg2))
-#define OP_LOR(arg1, arg2) ((arg1)||(arg2))
-
-#define INT_BINARY_OPERATOR(arg1, arg2, opname) ( AVal ( OP_ ## opname ( TO_INT(arg1), TO_INT(arg2) ) ) )
-#define DOUBLE_BINARY_OPERATOR(arg1, arg2, opname) ( AVal ( OP_ ## opname ( TO_DOUBLE(arg1), TO_DOUBLE(arg2) ) ) )
-
-#define BINARY_OPERATOR(arg1, arg2, opname) ( \
-    (IS_BOOL(arg1) || IS_BOOL(arg2)) \
-      ? \
-    DOUBLE_BINARY_OPERATOR ( arg1, arg2, opname ) \
-      : \
-    INT_BINARY_OPERATOR ( arg1, arg2, opname ) \
-    )
-
-
 #define THROW(name, descr) \
     (fprintf(stderr, name, descr), fprintf(stderr, "\n"), X_ASSERT(false && name)); \
     return AVal(0);\
@@ -51,8 +24,106 @@
 
 AVal ex(Ast::Node *p, Environment* envir);
 
+// Operators
+static AVal binaryOp_impl(Ast::BinaryOperator::Op op, char *a, char *b)
+{
+    std::string sa = a;
+    std::string sb = b;
 
-inline AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir){
+    switch (op) {
+    case Ast::BinaryOperator::Plus:
+        return strdup((sa + sb).c_str());
+    case Ast::BinaryOperator::Minus:
+    case Ast::BinaryOperator::Times:
+    case Ast::BinaryOperator::Div:
+    case Ast::BinaryOperator::Mod:
+        THROW("Invalid operator for string %d", op);
+        THROW("Invalid operator for string %d", op);
+    case Ast::BinaryOperator::Equal:
+        return a == b;
+    case Ast::BinaryOperator::NotEqual:
+        return a != b;
+    case Ast::BinaryOperator::LessThan:
+        return a < b;
+    case Ast::BinaryOperator::GreaterThan:
+        return a > b;
+    case Ast::BinaryOperator::LessThanEqual:
+        return a <= b;
+    case Ast::BinaryOperator::GreaterThanEqual:
+        return a >= b;
+    case Ast::BinaryOperator::And:
+        return a && b;
+    case Ast::BinaryOperator::Or:
+        return a || b;
+    default:
+        X_UNREACHABLE();
+    }
+
+    return 0;
+}
+
+template<typename T>
+static AVal binaryOp_impl(Ast::BinaryOperator::Op op, T a, T b)
+{
+    switch (op) {
+    case Ast::BinaryOperator::Plus:
+        return a + b;
+    case Ast::BinaryOperator::Minus:
+        return a - b;
+    case Ast::BinaryOperator::Times:
+        return a * b;
+    case Ast::BinaryOperator::Equal:
+        return a == b;
+    case Ast::BinaryOperator::NotEqual:
+        return a != b;
+    case Ast::BinaryOperator::LessThan:
+        return a < b;
+    case Ast::BinaryOperator::GreaterThan:
+        return a > b;
+    case Ast::BinaryOperator::LessThanEqual:
+        return a <= b;
+    case Ast::BinaryOperator::GreaterThanEqual:
+        return a >= b;
+    case Ast::BinaryOperator::Div:
+        return a / b;
+    case Ast::BinaryOperator::Mod:
+        return int(a) % int(b);
+    case Ast::BinaryOperator::And:
+        return a && b;
+    case Ast::BinaryOperator::Or:
+        return a || b;
+    default:
+        X_UNREACHABLE();
+    }
+
+    return 0;
+}
+
+static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &arg1, const AVal &arg2)
+{
+    const AVal &a = arg1;
+    const AVal &b = arg2.convertTo(a.type);
+
+    switch (a.type) {
+    case AVal::INT:
+    case AVal::BOOL:
+        return binaryOp_impl(op, a.value, b.value);
+    case AVal::DOUBLE:
+        return binaryOp_impl(op, a.fValue, b.fValue);
+    case AVal::STRING:
+        return binaryOp_impl(op, a.str, b.str);
+    case AVal::FUNCTION:
+        THROW("Cannot evaluate binary operator %d for functions", op);
+    default:
+        X_UNREACHABLE();
+    }
+
+    return 0;
+}
+
+// Functions
+static AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir)
+{
     AVal printV = ex(v->arguments->expressions.front(), envir);
 
     int ret = -1;
@@ -61,7 +132,7 @@ inline AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir){
     }else if(IS_DOUBLE(printV)){
       ret = printf("%lf\n", TO_DOUBLE(printV));
     }else if(IS_STRING(printV)){
-      ret = printf("%s\n", TO_STRING(printV));
+      ret = printf("\"%s\"\n", TO_STRING(printV));
     }else{
       ret = printf("%d\n", TO_INT(printV));
     }
@@ -69,7 +140,8 @@ inline AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir){
     return AVal(ret);
 }
 
-inline AVal doUserdefFunction(Ast::FunctionCall * v, Ast::Function * func, Environment* envir ){
+static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environment *envir)
+{
     //create environment for this function
     Environment funcEnvironment(envir);
 
@@ -172,37 +244,7 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::BinaryOperatorT: {
         Ast::BinaryOperator *v = p->as<Ast::BinaryOperator*>();
-        switch (v->op) {
-        case Ast::BinaryOperator::Plus:
-            return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), PLUS );
-        case Ast::BinaryOperator::Minus:
-            return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), MINUS );
-        case Ast::BinaryOperator::Times:
-            return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), TIMES);
-        case Ast::BinaryOperator::Equal:
-            return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), EQ );
-        case Ast::BinaryOperator::NotEqual:
-            return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), NEQ );
-        case Ast::BinaryOperator::LessThan:
-            return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), LT);
-        case Ast::BinaryOperator::GreaterThan:
-            return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), GT);
-        case Ast::BinaryOperator::LessThanEqual:
-            return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), LTE);
-        case Ast::BinaryOperator::GreaterThanEqual:
-            return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), GTE);
-        case Ast::BinaryOperator::Div:
-            return BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), DIV);
-        case Ast::BinaryOperator::Mod:
-            return INT_BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), MOD);
-        case Ast::BinaryOperator::And:
-            return INT_BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), LAND);
-        case Ast::BinaryOperator::Or:
-            return INT_BINARY_OPERATOR(ex(v->left, envir), ex(v->right, envir), LOR);
-        default:
-            X_UNREACHABLE();
-        }
-        break;
+        return binaryOp(v->op, ex(v->left, envir), ex(v->right, envir));
     }
 
     case Ast::Node::StatementListT: {
