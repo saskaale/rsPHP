@@ -24,6 +24,26 @@ struct AVal{
       }
   }
 
+  int toInt() const {
+      return convertTo(INT).value;
+  }
+
+  bool toBool() const {
+      return convertTo(BOOL).value;
+  }
+
+  double toDouble() const {
+      return convertTo(DOUBLE).fValue;
+  }
+
+  Ast::Function *toFunction() const {
+      return convertTo(FUNCTION).func;
+  }
+
+  const char *toString() const {
+      return convertTo(STRING).str;
+  }
+
   AVal convertTo(Type t) const {
       switch (type) {
       case INT:
