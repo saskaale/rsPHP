@@ -86,7 +86,9 @@ static AVal binaryOp_impl(Ast::BinaryOperator::Op op, T a, T b)
 
 static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
 {
-    if (a.type() == AVal::STRING || b.type() == AVal::STRING) {
+    if (a.type() == AVal::UNDEFINED || b.type() == AVal::UNDEFINED) {
+        return AVal();
+    } else if (a.type() == AVal::STRING || b.type() == AVal::STRING) {
         return binaryOp_impl(op, a.toString(), b.toString());
     } else if (a.type() == AVal::DOUBLE || b.type() == AVal::DOUBLE) {
         return binaryOp_impl(op, a.toDouble(), b.toDouble());
@@ -113,18 +115,11 @@ static AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir)
     int ret = -1;
 
     switch (printV.type()) {
-    case AVal::BOOL:
-        ret = printf("%s\n", printV.toBool() ? "true" : "false");
-        break;
-    case AVal::DOUBLE:
-        ret = printf("%lf\n", printV.toDouble());
-        break;
     case AVal::STRING:
-    case AVal::FUNCTION:
         ret = printf("\"%s\"\n", printV.toString());
         break;
     default:
-        ret = printf("%d\n", printV.toInt());
+        ret = printf("%s\n", printV.toString());
         break;
     }
 
@@ -179,9 +174,6 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::VariableT: {
         Ast::Variable *v = p->as<Ast::Variable*>();
-        if(!envir->has(v)){
-            THROW("SYMBOL %s LOOKUP ERROR", v->name.c_str())
-        }
         return envir->get(v);
     }
 
@@ -230,7 +222,7 @@ AVal ex(Ast::Node *p, Environment* envir)
             }
          }
 
-         return AVal(0);
+         return AVal();
     }
 
     case Ast::Node::UnaryOperatorT: {

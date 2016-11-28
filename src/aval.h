@@ -10,6 +10,7 @@ class AVal
 {
 public:
     enum Type {
+        UNDEFINED,
         INT,
         BOOL,
         DOUBLE,

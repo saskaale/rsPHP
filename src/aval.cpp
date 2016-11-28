@@ -2,6 +2,8 @@
 #include "common.h"
 #include "memorypool.h"
 
+#include <cmath>
+
 AVal::AVal()
 {
 }
@@ -51,7 +53,7 @@ AVal::AVal(Ast::Function *value)
 
 AVal::Type AVal::type() const
 {
-    return data->type;
+    return data ? data->type : UNDEFINED;
 }
 
 int AVal::toInt() const
@@ -81,11 +83,31 @@ const char *AVal::toString() const
 
 AVal AVal::convertTo(Type t) const
 {
-    if (data->type == t) {
+    if (type() == t) {
         return *this;
     }
 
-    switch (data->type) {
+    if (t == UNDEFINED) {
+        return AVal();
+    }
+
+    switch (type()) {
+    case UNDEFINED:
+        switch (t) {
+        case BOOL:
+            return false;
+        case DOUBLE:
+            return NAN;
+        case FUNCTION:
+            return static_cast<Ast::Function*>(nullptr);
+        case STRING:
+            return "[undefined]";
+        case ARRAY:
+            return AVal(nullptr, 0);
+        default:
+            X_UNREACHABLE();
+        }
+
     case INT:
         switch (t) {
         case BOOL:

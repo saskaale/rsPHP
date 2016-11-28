@@ -45,8 +45,8 @@ AVal Environment::get(const std::string& key)
 {
     if(keys.find(key) != keys.end())
       return values[keys[key]];
-    X_ASSERT(false && "symbol lookup error in global scope");
-    return parent->get(key);
+    return AVal();
+    // return parent->get(key);
 }
 
 bool Environment::has(const std::string& key) const
