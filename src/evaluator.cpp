@@ -2,6 +2,7 @@
 #include "common.h"
 #include "parser.h"
 #include "environment.h"
+#include "memorypool.h"
 
 #include <iostream>
 
@@ -318,6 +319,16 @@ AVal ex(Ast::Node *p, Environment* envir)
 
 namespace Evaluator
 {
+
+void init()
+{
+}
+
+void exit()
+{
+    MemoryPool::cleanup();
+    ::exit(0);
+}
 
 void eval(Ast::Node *p)
 {

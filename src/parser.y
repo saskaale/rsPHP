@@ -1,8 +1,6 @@
 %{
 #include "ast.h"
-#include "environment.h"
 #include "evaluator.h"
-#include "memorypool.h"
 
 #include <iostream>
 #include <stdio.h>
@@ -48,7 +46,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %%
 
 program:
-        function                { MemoryPool::cleanup(); exit(0); }
+        function                { Evaluator::exit(); }
         ;
 
 function:

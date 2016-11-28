@@ -1,9 +1,9 @@
-#include <iostream>
 #include "parser.h"
+#include "evaluator.h"
 
 int main(int argc, char *argv[])
 {
-    std::cout << "rsphp" << std::endl;
+    Evaluator::init();
     yyparse();
     return 0;
 }
