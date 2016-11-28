@@ -5,6 +5,9 @@
 #include "memorypool.h"
 
 #include <iostream>
+#include <algorithm>
+
+std::vector<Environment*> envirs;
 
 // Operators
 static AVal binaryOp_impl(Ast::BinaryOperator::Op op, const char *a, const char *b)
@@ -125,8 +128,9 @@ static AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir)
 
 static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environment *envir)
 {
-    //create environment for this function
-    Environment funcEnvironment(envir);
+    // Create environment for this function
+    Environment *funcEnvironment = new Environment(envir);
+    envirs.push_back(funcEnvironment);
 
     Ast::VariableList *parameters = func->parameters;
     Ast::ExpressionList *exprs    = v->arguments;
@@ -138,17 +142,17 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
 
     int argslen = exprs->expressions.size();
     for(int i = 0; i < argslen; i++){
-      funcEnvironment.set(parameters->variables[i], ex(exprs->expressions[i], envir));
+        funcEnvironment->set(parameters->variables[i], ex(exprs->expressions[i], envir));
     }
 
-    //execute statement list of function
-    ex(func->statements,&funcEnvironment);
+    // Execute statement list of function
+    ex(func->statements, funcEnvironment);
+
+    envirs.erase(std::remove(envirs.begin(), envirs.end(), funcEnvironment), envirs.end());
+    delete funcEnvironment;
 
     return AVal();
 }
-
-
-Environment globalenvir;
 
 AVal ex(Ast::Node *p, Environment* envir)
 {
@@ -318,17 +322,23 @@ namespace Evaluator
 
 void init()
 {
+    Environment *global = new Environment;
+    envirs.push_back(global);
 }
 
 void exit()
 {
+    for (Environment *e : envirs) {
+        delete e;
+    }
+
     MemoryPool::cleanup();
     ::exit(0);
 }
 
 void eval(Ast::Node *p)
 {
-    ex(p, &globalenvir);
+    ex(p, envirs[0]);
 }
 
 void cleanup(Ast::Node *p)
@@ -343,6 +353,11 @@ void cleanup(Ast::Node *p)
     }
 
     delete p;
+}
+
+std::vector<Environment*> environments()
+{
+    return envirs;
 }
 
 } // namespace Evaluator
