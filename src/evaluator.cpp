@@ -1,8 +1,7 @@
-#include "common.h"
-#include "ast.h"
-#include "parser.hpp"
-#include "environment.h"
 #include "evaluator.h"
+#include "common.h"
+#include "parser.h"
+#include "environment.h"
 
 #include <iostream>
 

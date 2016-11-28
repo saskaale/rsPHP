@@ -1,7 +1,7 @@
 %{
 #include <stdlib.h>
-#include "ast.h"
-#include "parser.hpp"
+
+#include "parser.h"
 
 void yyerror(const char *);
 %}

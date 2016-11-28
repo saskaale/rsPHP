@@ -1,10 +1,12 @@
 %{
+#include "ast.h"
+#include "environment.h"
+#include "evaluator.h"
+#include <iostream>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "ast.h"
-#include "environment.h"
-#include <iostream>
 
 int yylex(void);
 void yyerror(const char *s);
