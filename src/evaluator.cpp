@@ -6,11 +6,6 @@
 
 #include <iostream>
 
-#define THROW(name, descr) \
-    (fprintf(stderr, name, descr), fprintf(stderr, "\n"), X_ASSERT(false && name)); \
-    return AVal(0);\
-
-
 // Operators
 static AVal binaryOp_impl(Ast::BinaryOperator::Op op, const char *a, const char *b)
 {
@@ -24,7 +19,8 @@ static AVal binaryOp_impl(Ast::BinaryOperator::Op op, const char *a, const char 
     case Ast::BinaryOperator::Times:
     case Ast::BinaryOperator::Div:
     case Ast::BinaryOperator::Mod:
-        THROW("Invalid operator for string %d", op);
+        // Invalid operator for string
+        return AVal();
     case Ast::BinaryOperator::Equal:
         return a == b;
     case Ast::BinaryOperator::NotEqual:
@@ -45,7 +41,7 @@ static AVal binaryOp_impl(Ast::BinaryOperator::Op op, const char *a, const char 
         X_UNREACHABLE();
     }
 
-    return 0;
+    return AVal();
 }
 
 template<typename T>
@@ -82,7 +78,7 @@ static AVal binaryOp_impl(Ast::BinaryOperator::Op op, T a, T b)
         X_UNREACHABLE();
     }
 
-    return 0;
+    return AVal();
 }
 
 static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
@@ -98,12 +94,12 @@ static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
     } else if (a.type() == AVal::BOOL || b.type() == AVal::BOOL) {
         return binaryOp_impl(op, a.toBool(), b.toBool());
     } else if (a.type() == AVal::FUNCTION || b.type() == AVal::FUNCTION) {
-        THROW("Cannot evaluate binary operator %d for functions", op);
+        // Cannot evaluate binary operator for functions
     } else {
         X_UNREACHABLE();
     }
 
-    return 0;
+    return AVal();
 }
 
 AVal ex(Ast::Node *p, Environment* envir);
@@ -124,7 +120,7 @@ static AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir)
         break;
     }
 
-    return AVal(ret);
+    return ret;
 }
 
 static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environment *envir)
@@ -134,8 +130,9 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
 
     Ast::VariableList *parameters = func->parameters;
     Ast::ExpressionList *exprs    = v->arguments;
-    if(parameters->variables.size() != exprs->expressions.size()){
-      THROW("PARAMETERS MISMATCH FOR FUNCTION %s", v->functionName.c_str())
+    if (parameters->variables.size() != exprs->expressions.size()) {
+        // PARAMETERS MISMATCH FOR FUNCTION
+        return AVal();
     }
 
 
@@ -147,7 +144,7 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
     //execute statement list of function
     ex(func->statements,&funcEnvironment);
 
-    return AVal(0);
+    return AVal();
 }
 
 
@@ -156,7 +153,7 @@ Environment globalenvir;
 AVal ex(Ast::Node *p, Environment* envir)
 {
     if (!p) {
-        return AVal(0);
+        return AVal();
     }
 
     switch (p->type()) {
@@ -262,7 +259,7 @@ AVal ex(Ast::Node *p, Environment* envir)
         }
         default:
             X_UNREACHABLE();
-        };
+        }
         break;
     }
 
@@ -298,7 +295,7 @@ AVal ex(Ast::Node *p, Environment* envir)
         while (ex(v->condition, envir).toBool()) {
             ex(v->statement, envir);
         }
-        return AVal(false);
+        return AVal();
     }
 
     case Ast::Node::ForT: {
@@ -306,15 +303,14 @@ AVal ex(Ast::Node *p, Environment* envir)
         for (ex(v->init, envir); ex(v->cond, envir).toBool(); ex(v->after, envir)) {
             ex(v->statement, envir);
         }
-        return AVal(false);
+        return AVal();
     }
 
     default:
         X_UNREACHABLE();
-        break;
     }
 
-    return AVal(false);
+    return AVal();
 }
 
 namespace Evaluator
