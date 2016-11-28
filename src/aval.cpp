@@ -69,11 +69,13 @@ const char *AVal::toString() const
 
 AVal AVal::convertTo(Type t) const
 {
+    if (type == t) {
+        return *this;
+    }
+
     switch (type) {
     case INT:
         switch (t) {
-        case INT:
-            return intValue;
         case BOOL:
             return bool(intValue);
         case DOUBLE:
@@ -100,8 +102,6 @@ AVal AVal::convertTo(Type t) const
             return int(doubleValue);
         case BOOL:
             return bool(doubleValue);
-        case DOUBLE:
-            return double(doubleValue);
         case FUNCTION:
             return static_cast<Ast::Function*>(nullptr);
         case STRING: {
@@ -121,8 +121,6 @@ AVal AVal::convertTo(Type t) const
         case BOOL:
         case DOUBLE:
             return AVal(functionValue ? true : false).convertTo(t);
-        case FUNCTION:
-            return functionValue;
         case STRING:
             return "[function]";
         case ARRAY:
@@ -141,8 +139,6 @@ AVal AVal::convertTo(Type t) const
             return atof(stringValue);
         case FUNCTION:
             return static_cast<Ast::Function*>(nullptr);
-        case STRING:
-            return stringValue;
         case ARRAY:
             return AVal(nullptr, 0);
         default:
@@ -158,8 +154,6 @@ AVal AVal::convertTo(Type t) const
             return AVal(0).convertTo(t);
         case STRING:
             return "[array]";
-        case ARRAY:
-            return AVal(arr, arrsize);
         default:
             X_UNREACHABLE();
         }
