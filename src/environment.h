@@ -22,13 +22,13 @@ public:
     bool hasFunction(const std::string &key) const;
     void setFunction(const std::string &key, const AVal &val);
 
+    Environment *parent;
+    std::vector<AVal> values;
+    std::unordered_map<std::string, int> keys;
+
 private:
     AVal get(const std::string &key);
     bool has(const std::string &key) const;
     void set(const std::string &key, const AVal &val);
-
-    Environment *parent;
-    std::vector<AVal> values;
-    std::unordered_map<std::string, int> keys;
 };
 

@@ -126,6 +126,12 @@ static AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir)
     return ret;
 }
 
+static AVal doBuiltInGC(Ast::FunctionCall *, Environment *)
+{
+    MemoryPool::collectGarbage();
+    return AVal();
+}
+
 static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environment *envir)
 {
     // Create environment for this function
@@ -212,9 +218,11 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::FunctionCallT: {
          Ast::FunctionCall *v = p->as<Ast::FunctionCall*>();
 
-         //handle built-in functions
+         // Handle built-in functions
          if (v->functionName == "print") {
              return doBuiltInPrint(v, envir);
+         } else if (v->functionName == "gc") {
+             return doBuiltInGC(v, envir);
          }
 
          if(envir->hasFunction(v->functionName)){
