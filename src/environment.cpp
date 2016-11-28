@@ -45,15 +45,16 @@ AVal Environment::get(const std::string& key)
 {
     if(keys.find(key) != keys.end())
       return values[keys[key]];
+    if(parent)
+      return parent->get(key);
     return AVal();
-    // return parent->get(key);
 }
 
 bool Environment::has(const std::string& key) const
 {
     if(keys.find(key) != keys.end())
       return true;
-    if(parent != nullptr)
+    if(parent)
       return parent->has(key);
     return false;
 }
