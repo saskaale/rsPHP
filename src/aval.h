@@ -18,13 +18,13 @@ public:
         FUNCTION
     };
 
-    AVal() {};
-    AVal(int value): type(INT), value(value){};
-    AVal(bool value): type(BOOL), value(value) {};
-    AVal(double value): type(DOUBLE), fValue(value){};
-    AVal(const char *value): type(STRING), str(strdup(value)) {};
-    AVal(AVal *arr, size_t size): type(ARRAY), arr(arr), arrsize(size) {};
-    AVal(Ast::Function* func): type(FUNCTION), func(func){};
+    AVal();
+    AVal(int value);
+    AVal(bool value);
+    AVal(double value);
+    AVal(const char *value);
+    AVal(AVal *arr, size_t size);
+    AVal(Ast::Function *value);
 
     int toInt() const;
     bool toBool() const;
@@ -38,10 +38,11 @@ public:
 
     Type type;
     union {
-        double fValue;
-        int value;
-        Ast::Function *func;
-        char *str;
+        int intValue;
+        bool boolValue;
+        double doubleValue;
+        Ast::Function *functionValue;
+        char *stringValue;
         struct {
             AVal *arr;
             size_t arrsize;

@@ -226,7 +226,7 @@ AVal ex(Ast::Node *p, Environment* envir)
          if(envir->hasFunction(v->functionName)){
             AVal func = envir->getFunction(v->functionName);
             if (func.type == AVal::FUNCTION) {
-                return doUserdefFunction(v, func.func, envir);
+                return doUserdefFunction(v, func.toFunction(), envir);
             }
          }
 

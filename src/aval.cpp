@@ -1,29 +1,70 @@
 #include "aval.h"
 #include "common.h"
 
+AVal::AVal()
+{
+}
+
+AVal::AVal(int value)
+    : type(INT)
+    , intValue(value)
+{
+}
+
+AVal::AVal(bool value)
+    : type(BOOL)
+    , boolValue(value)
+{
+}
+
+AVal::AVal(double value)
+    : type(DOUBLE)
+    , doubleValue(value)
+{
+}
+
+AVal::AVal(const char *value)
+    : type(STRING)
+    , stringValue(strdup(value))
+{
+}
+
+AVal::AVal(AVal *arr, size_t size)
+    : type(ARRAY)
+    , arr(arr)
+    , arrsize(size)
+{
+}
+
+AVal::AVal(Ast::Function *value)
+    : type(FUNCTION)
+    , functionValue(value)
+{
+}
+
 int AVal::toInt() const
 {
-    return convertTo(INT).value;
+    return convertTo(INT).intValue;
 }
 
 bool AVal::toBool() const
 {
-    return convertTo(BOOL).value;
+    return convertTo(BOOL).boolValue;
 }
 
 double AVal::toDouble() const
 {
-    return convertTo(DOUBLE).fValue;
+    return convertTo(DOUBLE).doubleValue;
 }
 
 Ast::Function *AVal::toFunction() const
 {
-    return convertTo(FUNCTION).func;
+    return convertTo(FUNCTION).functionValue;
 }
 
 const char *AVal::toString() const
 {
-    return convertTo(STRING).str;
+    return convertTo(STRING).stringValue;
 }
 
 AVal AVal::convertTo(Type t) const
@@ -32,16 +73,16 @@ AVal AVal::convertTo(Type t) const
     case INT:
         switch (t) {
         case INT:
-            return value;
+            return intValue;
         case BOOL:
-            return bool(value);
+            return bool(intValue);
         case DOUBLE:
-            return double(value);
+            return double(intValue);
         case FUNCTION:
             return static_cast<Ast::Function*>(nullptr);
         case STRING: {
             std::stringstream ss;
-            ss << value;
+            ss << intValue;
             return ss.str().c_str();
         }
         case ARRAY:
@@ -51,21 +92,21 @@ AVal AVal::convertTo(Type t) const
         }
 
     case BOOL:
-        return AVal(value).convertTo(t);
+        return AVal(int(boolValue)).convertTo(t);
 
     case DOUBLE:
         switch (t) {
         case INT:
-            return int(fValue);
+            return int(doubleValue);
         case BOOL:
-            return bool(fValue);
+            return bool(doubleValue);
         case DOUBLE:
-            return double(fValue);
+            return double(doubleValue);
         case FUNCTION:
             return static_cast<Ast::Function*>(nullptr);
         case STRING: {
             std::stringstream ss;
-            ss << fValue;
+            ss << doubleValue;
             return ss.str().c_str();
         }
         case ARRAY:
@@ -79,9 +120,9 @@ AVal AVal::convertTo(Type t) const
         case INT:
         case BOOL:
         case DOUBLE:
-            return AVal(func ? true : false).convertTo(t);
+            return AVal(functionValue ? true : false).convertTo(t);
         case FUNCTION:
-            return func;
+            return functionValue;
         case STRING:
             return "[function]";
         case ARRAY:
@@ -93,15 +134,15 @@ AVal AVal::convertTo(Type t) const
     case STRING:
         switch (t) {
         case INT:
-            return atoi(str);
+            return atoi(stringValue);
         case BOOL:
-            return strlen(str) > 0;
+            return strlen(stringValue) > 0;
         case DOUBLE:
-            return atof(str);
+            return atof(stringValue);
         case FUNCTION:
             return static_cast<Ast::Function*>(nullptr);
         case STRING:
-            return str;
+            return stringValue;
         case ARRAY:
             return AVal(nullptr, 0);
         default:
@@ -133,9 +174,9 @@ AVal AVal::convertTo(Type t) const
 void AVal::cleanup()
 {
     if (type == FUNCTION) {
-        delete func;
+        delete functionValue;
     } else if (type == STRING) {
-        free(str);
+        free(stringValue);
     } else if (type == ARRAY) {
         delete [] arr;
     }
