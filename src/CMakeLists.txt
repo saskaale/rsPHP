@@ -4,6 +4,7 @@ set(rsphp_SRCS
     environment.cpp
     ast.cpp
     aval.cpp
+    memorypool.cpp
 )
 
 BISON_TARGET(phpParser parser.y ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp)

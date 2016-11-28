@@ -9,9 +9,6 @@ Environment::Environment(Environment* parent)
 
 Environment::~Environment()
 {
-    for (AVal &v : values) {
-        v.cleanup();
-    }
 }
 
 AVal Environment::get(Ast::Variable *v)

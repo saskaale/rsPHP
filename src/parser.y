@@ -2,8 +2,9 @@
 #include "ast.h"
 #include "environment.h"
 #include "evaluator.h"
-#include <iostream>
+#include "memorypool.h"
 
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -47,7 +48,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %%
 
 program:
-        function                { exit(0); }
+        function                { MemoryPool::cleanup(); exit(0); }
         ;
 
 function:

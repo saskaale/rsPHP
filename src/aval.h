@@ -26,6 +26,8 @@ public:
     AVal(AVal *arr, size_t size);
     AVal(Ast::Function *value);
 
+    Type type() const;
+
     int toInt() const;
     bool toBool() const;
     double toDouble() const;
@@ -34,18 +36,28 @@ public:
 
     AVal convertTo(Type t) const;
 
-    void cleanup();
-
-    Type type;
-    union {
-        int intValue;
-        bool boolValue;
-        double doubleValue;
-        Ast::Function *functionValue;
-        char *stringValue;
-        struct {
-            AVal *arr;
-            size_t arrsize;
+    struct Data {
+        Type type;
+        union {
+            int intValue;
+            bool boolValue;
+            double doubleValue;
+            Ast::Function *functionValue;
+            char *stringValue;
+            struct {
+                AVal *arr;
+                size_t arrsize;
+            };
         };
-    };
+
+        ~Data() {
+            if (type == FUNCTION) {
+                delete functionValue;
+            } else if (type == STRING) {
+                free(stringValue);
+            } else if (type == ARRAY) {
+                delete []arr;
+            }
+        }
+    } *data = nullptr;
 };

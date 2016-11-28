@@ -86,15 +86,15 @@ static AVal binaryOp_impl(Ast::BinaryOperator::Op op, T a, T b)
 
 static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
 {
-    if (a.type == AVal::STRING || b.type == AVal::STRING) {
+    if (a.type() == AVal::STRING || b.type() == AVal::STRING) {
         return binaryOp_impl(op, a.toString(), b.toString());
-    } else if (a.type == AVal::DOUBLE || b.type == AVal::DOUBLE) {
+    } else if (a.type() == AVal::DOUBLE || b.type() == AVal::DOUBLE) {
         return binaryOp_impl(op, a.toDouble(), b.toDouble());
-    } else if (a.type == AVal::INT || b.type == AVal::INT) {
+    } else if (a.type() == AVal::INT || b.type() == AVal::INT) {
         return binaryOp_impl(op, a.toInt(), b.toInt());
-    } else if (a.type == AVal::BOOL || b.type == AVal::BOOL) {
+    } else if (a.type() == AVal::BOOL || b.type() == AVal::BOOL) {
         return binaryOp_impl(op, a.toBool(), b.toBool());
-    } else if (a.type == AVal::FUNCTION || b.type == AVal::FUNCTION) {
+    } else if (a.type() == AVal::FUNCTION || b.type() == AVal::FUNCTION) {
         THROW("Cannot evaluate binary operator %d for functions", op);
     } else {
         X_UNREACHABLE();
@@ -112,7 +112,7 @@ static AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir)
 
     int ret = -1;
 
-    switch (printV.type) {
+    switch (printV.type()) {
     case AVal::BOOL:
         ret = printf("%s\n", printV.toBool() ? "true" : "false");
         break;
@@ -189,7 +189,7 @@ AVal ex(Ast::Node *p, Environment* envir)
         Ast::ArraySubscript *v = p->as<Ast::ArraySubscript*>();
         const int index = ex(v->expression, envir).toInt();
         AVal arr = envir->get(v);
-        return arr.arr[index];
+        return arr.data->arr[index];
     }
 
     case Ast::Node::AssignmentT: {
@@ -201,7 +201,7 @@ AVal ex(Ast::Node *p, Environment* envir)
                 envir->set(as, AVal(new AVal[100], 100));
             }
             AVal arr = envir->get(as);
-            arr.arr[index] = r;
+            arr.data->arr[index] = r;
         } else {
             envir->set(v->variable, r);
         }
@@ -225,7 +225,7 @@ AVal ex(Ast::Node *p, Environment* envir)
 
          if(envir->hasFunction(v->functionName)){
             AVal func = envir->getFunction(v->functionName);
-            if (func.type == AVal::FUNCTION) {
+            if (func.type() == AVal::FUNCTION) {
                 return doUserdefFunction(v, func.toFunction(), envir);
             }
          }

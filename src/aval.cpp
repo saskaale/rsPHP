@@ -1,90 +1,102 @@
 #include "aval.h"
 #include "common.h"
+#include "memorypool.h"
 
 AVal::AVal()
 {
 }
 
 AVal::AVal(int value)
-    : type(INT)
-    , intValue(value)
+    : data(MemoryPool::alloc())
 {
+    data->type = INT;
+    data->intValue = value;
 }
 
 AVal::AVal(bool value)
-    : type(BOOL)
-    , boolValue(value)
+    : data(MemoryPool::alloc())
 {
+    data->type = BOOL;
+    data->boolValue = value;
 }
 
 AVal::AVal(double value)
-    : type(DOUBLE)
-    , doubleValue(value)
+    : data(MemoryPool::alloc())
 {
+    data->type = DOUBLE;
+    data->doubleValue = value;
 }
 
 AVal::AVal(const char *value)
-    : type(STRING)
-    , stringValue(strdup(value))
+    : data(MemoryPool::alloc())
 {
+    data->type = STRING;
+    data->stringValue = strdup(value);
 }
 
 AVal::AVal(AVal *arr, size_t size)
-    : type(ARRAY)
-    , arr(arr)
-    , arrsize(size)
+    : data(MemoryPool::alloc())
 {
+    data->type = ARRAY;
+    data->arr = arr;
+    data->arrsize = size;
 }
 
 AVal::AVal(Ast::Function *value)
-    : type(FUNCTION)
-    , functionValue(value)
+    : data(MemoryPool::alloc())
 {
+    data->type = FUNCTION;
+    data->functionValue = value;
+}
+
+AVal::Type AVal::type() const
+{
+    return data->type;
 }
 
 int AVal::toInt() const
 {
-    return convertTo(INT).intValue;
+    return convertTo(INT).data->intValue;
 }
 
 bool AVal::toBool() const
 {
-    return convertTo(BOOL).boolValue;
+    return convertTo(BOOL).data->boolValue;
 }
 
 double AVal::toDouble() const
 {
-    return convertTo(DOUBLE).doubleValue;
+    return convertTo(DOUBLE).data->doubleValue;
 }
 
 Ast::Function *AVal::toFunction() const
 {
-    return convertTo(FUNCTION).functionValue;
+    return convertTo(FUNCTION).data->functionValue;
 }
 
 const char *AVal::toString() const
 {
-    return convertTo(STRING).stringValue;
+    return convertTo(STRING).data->stringValue;
 }
 
 AVal AVal::convertTo(Type t) const
 {
-    if (type == t) {
+    if (data->type == t) {
         return *this;
     }
 
-    switch (type) {
+    switch (data->type) {
     case INT:
         switch (t) {
         case BOOL:
-            return bool(intValue);
+            return bool(data->intValue);
         case DOUBLE:
-            return double(intValue);
+            return double(data->intValue);
         case FUNCTION:
             return static_cast<Ast::Function*>(nullptr);
         case STRING: {
             std::stringstream ss;
-            ss << intValue;
+            ss << data->intValue;
             return ss.str().c_str();
         }
         case ARRAY:
@@ -94,19 +106,19 @@ AVal AVal::convertTo(Type t) const
         }
 
     case BOOL:
-        return AVal(int(boolValue)).convertTo(t);
+        return AVal(int(data->boolValue)).convertTo(t);
 
     case DOUBLE:
         switch (t) {
         case INT:
-            return int(doubleValue);
+            return int(data->doubleValue);
         case BOOL:
-            return bool(doubleValue);
+            return bool(data->doubleValue);
         case FUNCTION:
             return static_cast<Ast::Function*>(nullptr);
         case STRING: {
             std::stringstream ss;
-            ss << doubleValue;
+            ss << data->doubleValue;
             return ss.str().c_str();
         }
         case ARRAY:
@@ -120,7 +132,7 @@ AVal AVal::convertTo(Type t) const
         case INT:
         case BOOL:
         case DOUBLE:
-            return AVal(functionValue ? true : false).convertTo(t);
+            return AVal(data->functionValue ? true : false).convertTo(t);
         case STRING:
             return "[function]";
         case ARRAY:
@@ -132,11 +144,11 @@ AVal AVal::convertTo(Type t) const
     case STRING:
         switch (t) {
         case INT:
-            return atoi(stringValue);
+            return atoi(data->stringValue);
         case BOOL:
-            return strlen(stringValue) > 0;
+            return strlen(data->stringValue) > 0;
         case DOUBLE:
-            return atof(stringValue);
+            return atof(data->stringValue);
         case FUNCTION:
             return static_cast<Ast::Function*>(nullptr);
         case ARRAY:
@@ -163,15 +175,4 @@ AVal AVal::convertTo(Type t) const
     }
 
     return 0;
-}
-
-void AVal::cleanup()
-{
-    if (type == FUNCTION) {
-        delete functionValue;
-    } else if (type == STRING) {
-        free(stringValue);
-    } else if (type == ARRAY) {
-        delete [] arr;
-    }
 }
