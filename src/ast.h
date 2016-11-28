@@ -255,9 +255,11 @@ public:
 class Return : public Statement
 {
 public:
-    explicit Return();
+    explicit Return(Expression *expr);
 
     Type type() const;
+
+    Expression *expression;
 };
 
 class Break : public Statement

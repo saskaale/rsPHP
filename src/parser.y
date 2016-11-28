@@ -57,7 +57,7 @@ function:
 stmt2:
           expr                                    { $$ = $1; }
         | PRINT expr                              { $$ = new Ast::FunctionCall("print", $2); }
-        | RETURN                                  { $$ = new Ast::Return(); }
+        | RETURN expr                             { $$ = new Ast::Return($2); }
         | BREAK                                   { $$ = new Ast::Break(); }
         | CONTINUE                                { $$ = new Ast::Continue(); }
         | VARIABLE '(' ')'                        { $$ = new Ast::FunctionCall($1); free($1); }

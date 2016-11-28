@@ -154,10 +154,12 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
     // Execute statement list of function
     ex(func->statements, funcEnvironment);
 
+    AVal ret = funcEnvironment->returnValue;
+
     envirs.erase(std::remove(envirs.begin(), envirs.end(), funcEnvironment), envirs.end());
     delete funcEnvironment;
 
-    return AVal();
+    return ret;
 }
 
 AVal ex(Ast::Node *p, Environment* envir)
@@ -280,42 +282,80 @@ AVal ex(Ast::Node *p, Environment* envir)
         return binaryOp(v->op, ex(v->left, envir), ex(v->right, envir));
     }
 
+    case Ast::Node::ReturnT: {
+        Ast::Return *v = p->as<Ast::Return*>();
+        if (envir->parent) { // Only process return in functions
+            envir->returnValue = ex(v->expression, envir);
+            envir->state = Environment::ReturnCalled;
+        }
+        return envir->returnValue;
+    }
+
+    case Ast::Node::BreakT: {
+        envir->state = Environment::BreakCalled;
+        break;
+    }
+
+    case Ast::Node::ContinueT: {
+        envir->state = Environment::ContinueCalled;
+        break;
+    }
+
     case Ast::Node::StatementListT: {
         Ast::StatementList *v = p->as<Ast::StatementList*>();
-
-        AVal ret = AVal(false);
         for (Ast::Statement *s : v->statements) {
-            ret = ex(s, envir);
+            ex(s, envir);
+            if (envir->state & Environment::FlowInterrupted) {
+                break;
+            }
         }
-        return ret;
+        break;
     }
 
     case Ast::Node::IfT: {
         Ast::If *v = p->as<Ast::If*>();
-
         AVal cond = ex(v->condition, envir);
         if (cond.toBool()) {
             ex(v->thenStatement, envir);
         } else {
             ex(v->elseStatement, envir);
         }
-        return cond;
+        break;
     }
 
     case Ast::Node::WhileT: {
         Ast::While *v = p->as<Ast::While*>();
         while (ex(v->condition, envir).toBool()) {
             ex(v->statement, envir);
+            if (envir->state == Environment::BreakCalled) {
+                printf("Break\n");
+                envir->state = Environment::Normal;
+                break;
+            } else if (envir->state == Environment::ContinueCalled) {
+                envir->state = Environment::Normal;
+                continue;
+            } else if (envir->state == Environment::ReturnCalled) {
+                break;
+            }
         }
-        return AVal();
+        break;
     }
 
     case Ast::Node::ForT: {
         Ast::For *v = p->as<Ast::For*>();
         for (ex(v->init, envir); ex(v->cond, envir).toBool(); ex(v->after, envir)) {
             ex(v->statement, envir);
+            if (envir->state == Environment::BreakCalled) {
+                envir->state = Environment::Normal;
+                break;
+            } else if (envir->state == Environment::ContinueCalled) {
+                envir->state = Environment::Normal;
+                continue;
+            } else if (envir->state == Environment::ReturnCalled) {
+                break;
+            }
         }
-        return AVal();
+        break;
     }
 
     default:

@@ -11,6 +11,14 @@ class Environment;
 class Environment
 {
 public:
+    enum State {
+        Normal = 1,
+        ReturnCalled = 2,
+        BreakCalled = 4,
+        ContinueCalled = 8,
+        FlowInterrupted = ReturnCalled | BreakCalled | ContinueCalled
+    };
+
     explicit Environment(Environment *parent = nullptr);
     ~Environment();
 
@@ -25,6 +33,9 @@ public:
     Environment *parent;
     std::vector<AVal> values;
     std::unordered_map<std::string, int> keys;
+
+    AVal returnValue;
+    State state = Normal;
 
 private:
     AVal get(const std::string &key);

@@ -179,6 +179,7 @@ ExpressionList::ExpressionList(Expression *expr, ExpressionList *lst)
 {
     if (lst) {
         expressions = lst->expressions;
+        lst->expressions.clear();
         delete lst;
     }
     expressions.push_back(expr);
@@ -292,7 +293,8 @@ Node::Type For::type() const
 }
 
 
-Return::Return()
+Return::Return(Expression *expr)
+    : expression(expr)
 {
 }
 
@@ -326,6 +328,7 @@ StatementList::StatementList(Statement *stm, StatementList *lst)
 {
     if (lst) {
         statements = lst->statements;
+        lst->statements.clear();
         delete lst;
     }
     statements.push_back(stm);
@@ -352,6 +355,7 @@ VariableList::VariableList(Variable *var, VariableList *lst)
 {
     if (lst) {
         variables = lst->variables;
+        lst->variables.clear();
         delete lst;
     }
     variables.push_back(var);
