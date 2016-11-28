@@ -328,7 +328,6 @@ AVal ex(Ast::Node *p, Environment* envir)
         while (ex(v->condition, envir).toBool()) {
             ex(v->statement, envir);
             if (envir->state == Environment::BreakCalled) {
-                printf("Break\n");
                 envir->state = Environment::Normal;
                 break;
             } else if (envir->state == Environment::ContinueCalled) {
