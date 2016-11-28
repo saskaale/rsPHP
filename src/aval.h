@@ -2,10 +2,6 @@
 
 #include "parser.h"
 
-#include <cstring>
-#include <cstdlib>
-#include <sstream>
-
 class AVal
 {
 public:
@@ -38,6 +34,7 @@ public:
     AVal convertTo(Type t) const;
 
     struct Data {
+        ~Data();
         Type type;
         union {
             int intValue;
@@ -50,15 +47,5 @@ public:
                 size_t arrsize;
             };
         };
-
-        ~Data() {
-            if (type == FUNCTION) {
-                delete functionValue;
-            } else if (type == STRING) {
-                free(stringValue);
-            } else if (type == ARRAY) {
-                delete []arr;
-            }
-        }
     } *data = nullptr;
 };

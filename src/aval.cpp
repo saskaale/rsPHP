@@ -3,6 +3,9 @@
 #include "memorypool.h"
 
 #include <cmath>
+#include <cstring>
+#include <cstdlib>
+#include <sstream>
 
 AVal::AVal()
 {
@@ -33,7 +36,7 @@ AVal::AVal(const char *value)
     : data(MemoryPool::alloc())
 {
     data->type = STRING;
-    data->stringValue = strdup(value);
+    data->stringValue = MemoryPool::strdup(value);
 }
 
 AVal::AVal(AVal *arr, size_t size)
@@ -197,4 +200,15 @@ AVal AVal::convertTo(Type t) const
     }
 
     return 0;
+}
+
+AVal::Data::~Data()
+{
+    if (type == FUNCTION) {
+        delete functionValue;
+    } else if (type == STRING) {
+        MemoryPool::strfree(stringValue);
+    } else if (type == ARRAY) {
+        delete []arr;
+    }
 }
