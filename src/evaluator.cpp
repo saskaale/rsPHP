@@ -7,6 +7,14 @@
 #include <iostream>
 #include <algorithm>
 
+#define THROW2(name, descr) \
+    (fprintf(stderr, name, descr), fprintf(stderr, "\n"), X_ASSERT(false && name)); \
+    return AVal();
+
+#define THROW(name) \
+    (fprintf(stderr, name), fprintf(stderr, "\n"), X_ASSERT(false && name)); \
+    return AVal();
+
 std::vector<Environment*> envirs;
 
 // Operators
@@ -96,7 +104,11 @@ static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
         return binaryOp_impl(op, a.toInt(), b.toInt());
     } else if (a.type() == AVal::BOOL || b.type() == AVal::BOOL) {
         return binaryOp_impl(op, a.toBool(), b.toBool());
-    } else if (a.type() == AVal::FUNCTION || b.type() == AVal::FUNCTION) {
+    } else if (
+        a.type() == AVal::FUNCTION || b.type() == AVal::FUNCTION
+        ||
+        a.type() == AVal::FUNCTION_BUILTIN || b.type() == AVal::FUNCTION_BUILTIN
+    ) {
         // Cannot evaluate binary operator for functions
     } else {
         X_UNREACHABLE();
@@ -108,9 +120,9 @@ static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
 AVal ex(Ast::Node *p, Environment* envir);
 
 // Functions
-static AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir)
+static AVal doBuiltInPrint(Ast::ExpressionList *v, Environment* envir)
 {
-    AVal printV = ex(v->arguments->expressions.front(), envir);
+    AVal printV = ex(v->expressions.front(), envir);
 
     int ret = -1;
 
@@ -126,8 +138,9 @@ static AVal doBuiltInPrint(Ast::FunctionCall *v, Environment* envir)
     return ret;
 }
 
-static AVal doBuiltInGC(Ast::FunctionCall *, Environment *)
+static AVal doBuiltInGC(Ast::ExpressionList *, Environment *)
 {
+    printf("MemoryPool::collectGarbage()\n");
     MemoryPool::collectGarbage();
     return AVal();
 }
@@ -220,19 +233,16 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::FunctionCallT: {
          Ast::FunctionCall *v = p->as<Ast::FunctionCall*>();
 
-         // Handle built-in functions
-         if (v->functionName == "print") {
-             return doBuiltInPrint(v, envir);
-         } else if (v->functionName == "gc") {
-             return doBuiltInGC(v, envir);
+         AVal func = ex(v->function, envir);
+         if (func.type() == AVal::FUNCTION) {
+              return doUserdefFunction(v, func.toFunction(), envir);
+         }else if (func.type() == AVal::FUNCTION_BUILTIN) {
+              BuiltinCall call = func.toBuiltinFunction();
+              if(call)
+                  return (*call)(v->arguments, envir);
          }
 
-         if(envir->hasFunction(v->functionName)){
-            AVal func = envir->getFunction(v->functionName);
-            if (func.type() == AVal::FUNCTION) {
-                return doUserdefFunction(v, func.toFunction(), envir);
-            }
-         }
+         THROW("Call of argument which is not function")
 
          return AVal();
     }
@@ -366,10 +376,16 @@ AVal ex(Ast::Node *p, Environment* envir)
 
 namespace Evaluator
 {
+  
+AVal builtInPrint(){
+  return 0;
+}
 
 void init()
 {
     Environment *global = new Environment;
+    global->setFunction("print", &doBuiltInPrint);
+    global->setFunction("gc", &doBuiltInGC);
     envirs.push_back(global);
 }
 

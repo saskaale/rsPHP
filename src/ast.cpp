@@ -148,8 +148,8 @@ Node::Type BinaryOperator::type() const
 }
 
 
-FunctionCall::FunctionCall(const std::string &name, Expression *args)
-    : functionName(name)
+FunctionCall::FunctionCall(Expression* function, Expression *args)
+    : function(function)
 {
     if (!args) {
         arguments = new ExpressionList();

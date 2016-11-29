@@ -2,6 +2,12 @@
 
 #include "parser.h"
 
+class AVal;
+
+class Environment;
+
+typedef AVal (*BuiltinCall)(Ast::ExpressionList *v, Environment* envir);
+
 class AVal
 {
 public:
@@ -12,7 +18,8 @@ public:
         DOUBLE,
         STRING,
         ARRAY,
-        FUNCTION
+        FUNCTION,
+        FUNCTION_BUILTIN
     };
 
     AVal();
@@ -20,6 +27,7 @@ public:
     AVal(bool value);
     AVal(double value);
     AVal(const char *value);
+    AVal(BuiltinCall builtin);
     AVal(AVal *arr, size_t size);
     AVal(Ast::Function *value);
 
@@ -29,6 +37,7 @@ public:
     bool toBool() const;
     double toDouble() const;
     Ast::Function *toFunction() const;
+    BuiltinCall toBuiltinFunction() const;
     const char *toString() const;
 
     AVal convertTo(Type t) const;
@@ -41,6 +50,7 @@ public:
             bool boolValue;
             double doubleValue;
             Ast::Function *functionValue;
+            BuiltinCall builtinFunction;
             char *stringValue;
             struct {
                 AVal *arr;

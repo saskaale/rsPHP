@@ -176,12 +176,12 @@ public:
 class FunctionCall : public Expression
 {
 public:
-    explicit FunctionCall(const std::string &name, Expression *args = nullptr);
+    explicit FunctionCall(Expression* function, Expression *args = nullptr);
     ~FunctionCall();
 
     Type type() const;
 
-    std::string functionName;
+    Expression* function;
     ExpressionList *arguments;
 };
 

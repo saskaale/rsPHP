@@ -56,12 +56,10 @@ function:
 
 stmt2:
           expr                                    { $$ = $1; }
-        | PRINT expr                              { $$ = new Ast::FunctionCall("print", $2); }
+        | PRINT expr                              { $$ = new Ast::FunctionCall(new Ast::Variable("print"), $2); }
         | RETURN expr                             { $$ = new Ast::Return($2); }
         | BREAK                                   { $$ = new Ast::Break(); }
         | CONTINUE                                { $$ = new Ast::Continue(); }
-        | VARIABLE '(' ')'                        { $$ = new Ast::FunctionCall($1); free($1); }
-        | VARIABLE '(' expr_list ')'              { $$ = new Ast::FunctionCall($1, $3->as<Ast::ExpressionList*>()); free($1); }
         |                                         { $$ = new Ast::BoolLiteral(true); }
         ;
 
@@ -106,6 +104,8 @@ stmt_list:
 
 expr:
           expr2                    { $$ = $1; }
+        | expr2 '(' ')'            { $$ = new Ast::FunctionCall($1); }
+        | expr2 '(' expr_list ')'  { $$ = new Ast::FunctionCall($1, $3->as<Ast::ExpressionList*>()); }
         | variable ASSIGN expr2    { $$ = new Ast::Assignment($1->as<Ast::Variable*>(), $3); }
         | variable AS_PLUS expr2   { $$ = create_assign(Ast::BinaryOperator::Plus, $1->as<Ast::Variable*>(), $3); }
         | variable AS_MINUS expr2  { $$ = create_assign(Ast::BinaryOperator::Minus, $1->as<Ast::Variable*>(), $3); }
