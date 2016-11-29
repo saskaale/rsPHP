@@ -41,7 +41,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %nonassoc UMINUS
 %nonassoc UPREDECRE
 
-%type <nPtr> stmt stmt2 expr expr2 stmt_list value fundecl fun_list fun_list2 expr_list variable
+%type <nPtr> stmt stmt2 expr expr2 stmt_list value fundecl var_list var_list2 expr_list variable
 
 %%
 
@@ -79,11 +79,11 @@ stmt:
         ;
 
 fundecl:
-        FUNCTION VARIABLE '(' fun_list ')' '{' stmt_list '}'   { $$ = new Ast::Function($2, $4->as<Ast::VariableList*>(), $7->as<Ast::StatementList*>()); free($2); }
+        FUNCTION VARIABLE '(' var_list ')' '{' stmt_list '}'   { $$ = new Ast::Function($2, $4->as<Ast::VariableList*>(), $7->as<Ast::StatementList*>()); free($2); }
         ;
 
-fun_list:
-          fun_list2               { $$ = $1; }
+var_list:
+          var_list2               { $$ = $1; }
         |                         { $$ = new Ast::VariableList(); }
         ;
 
@@ -92,9 +92,9 @@ variable:
         | VARIABLE '[' expr ']'   { $$ = new Ast::ArraySubscript($1, $3); free($1); }
         ;
 
-fun_list2:
+var_list2:
           variable                 { $$ = new Ast::VariableList($1->as<Ast::Variable*>()); }
-        | fun_list2 ',' variable   { $$ = new Ast::VariableList($3->as<Ast::Variable*>(), $1->as<Ast::VariableList*>()); }
+        | var_list2 ',' variable   { $$ = new Ast::VariableList($3->as<Ast::Variable*>(), $1->as<Ast::VariableList*>()); }
         ;
 
 stmt_list:

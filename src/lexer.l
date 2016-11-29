@@ -26,6 +26,7 @@ void yyerror(const char *);
 
 ("[")    { return '['; }
 ("]")    { return ']'; }
+(",")    { return ','; }
 [();{}.] { return *yytext; }
 
 "="             return ASSIGN;
