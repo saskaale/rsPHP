@@ -11,6 +11,16 @@ Environment::~Environment()
 {
 }
 
+Environment *Environment::copy() const
+{
+    Environment *c = new Environment(parent);
+    c->values = values;
+    c->keys = keys;
+    c->returnValue = returnValue;
+    c->state = state;
+    return c;
+}
+
 AVal Environment::get(Ast::Variable *v)
 {
     return get(v->name);

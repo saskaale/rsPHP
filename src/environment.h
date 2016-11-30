@@ -22,6 +22,8 @@ public:
     explicit Environment(Environment *parent = nullptr);
     ~Environment();
 
+    Environment *copy() const;
+
     AVal get(Ast::Variable *v);
     bool has(Ast::Variable *v) const;
     void set(Ast::Variable *v, const AVal &val);
