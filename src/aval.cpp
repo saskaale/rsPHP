@@ -148,7 +148,21 @@ AVal AVal::convertTo(Type t) const
         }
 
     case BOOL:
-        return AVal(int(toBool())).convertTo(t);
+        switch (t) {
+        case INT:
+            return int(toBool());
+        case DOUBLE:
+            return double(toBool());
+        case FUNCTION:
+        case FUNCTION_BUILTIN:
+            return static_cast<Ast::Function*>(nullptr);
+        case STRING:
+            return toBool() ? "true" : "false";
+        case ARRAY:
+            return AVal(nullptr, 0);
+        default:
+            X_UNREACHABLE();
+        }
 
     case DOUBLE:
         switch (t) {
