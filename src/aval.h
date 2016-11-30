@@ -27,7 +27,7 @@ public:
     AVal(bool value);
     AVal(double value);
     AVal(const char *value);
-    AVal(BuiltinCall builtin);
+    AVal(BuiltinCall value);
     AVal(AVal *arr, size_t size);
     AVal(Ast::Function *value);
 
@@ -42,6 +42,7 @@ public:
 
     AVal convertTo(Type t) const;
 
+    Type _type;
     struct Data {
         ~Data();
         Type type;

@@ -162,6 +162,7 @@ FunctionCall::FunctionCall(Expression* function, Expression *args)
 
 FunctionCall::~FunctionCall()
 {
+    delete function;
     delete arguments;
 }
 
