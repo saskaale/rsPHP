@@ -38,6 +38,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %left PLUS MINUS
 %left TIMES DIV MOD
 %left INCREMENT DECREMENT
+%left AND OR
 %nonassoc UMINUS
 %nonassoc UPREDECRE
 
@@ -133,6 +134,8 @@ expr2:
         | expr2 LE expr2              { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::LessThanEqual, $1, $3); }
         | expr2 NE expr2              { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::NotEqual, $1, $3); }
         | expr2 EQ expr2              { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Equal, $1, $3); }
+        | expr2 AND expr2             { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::And, $1, $3); }
+        | expr2 OR expr2              { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Or, $1, $3); }
         | '(' expr ')'                { $$ = $2; }
         | lambda                      { $$ = $1; }
         ;
