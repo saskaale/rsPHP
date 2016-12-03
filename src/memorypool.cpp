@@ -144,8 +144,8 @@ void collectGarbage()
     size_t collected = 0;
 
     for (Environment *e : Evaluator::environments()) {
-        for (const AVal &val : e->values) {
-          DFSMark(val);
+        for (auto it : e->keys) {
+          DFSMark(it.second);
         }
     }
 
