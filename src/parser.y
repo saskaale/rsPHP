@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 
 extern "C" FILE *yyin;
 
@@ -166,24 +167,23 @@ void yyerror(const char *s)
     fprintf(stdout, "%s\n", s);
 }
 
-typedef struct yy_buffer_state * YY_BUFFER_STATE;
-extern YY_BUFFER_STATE yy_scan_string(const char * str);
-extern void yy_delete_buffer(YY_BUFFER_STATE buffer);
+extern void yyrestart(FILE *f);
 
 namespace Parser
 {
 
 void parseFile(FILE *file)
 {
+    yyrestart(file);
     yyin = file;
     yyparse();
 }
 
 void parseString(const char *str)
 {
-    YY_BUFFER_STATE buffer = yy_scan_string(str);
-    yyparse();
-    yy_delete_buffer(buffer);
+    FILE *file = fmemopen((char*)str, strlen(str), "r");
+    parseFile(file);
+    fclose(yyin);
 }
 
 } // namespace Parser
