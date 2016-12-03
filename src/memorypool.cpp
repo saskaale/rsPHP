@@ -6,17 +6,77 @@
 #include <cstring>
 #include <iostream>
 #include <algorithm>
+#include <list>
 
 namespace MemoryPool
 {
+  
+  
+#define MASKUNSET(t, mask) ((t)&=(~0 ^ mask))
+#define MASKSET(t, mask) ((t)|=(mask))
+#define HASMASK(t, mask) ((t)&(mask))
 
-std::vector<AVal::Data*> allocd;
+
+std::list<MemChunk*> allocd;
+
+MemChunk::MemChunk():
+  freeCnt(MEMCHUNK_SIZE)
+{
+};
+
+MemChunk::Data::Data()
+{
+    d = nullptr;
+    flags = 0;
+};
+  
+
+
+AVal PRINTVAL(const AVal& printV){
+    switch (printV.type()) {
+    case AVal::STRING:
+        return printf("\"%s\"\n", printV.toString());
+    default:
+        return printf("%s\n", printV.toString());
+    }
+};
+
+
+
+
 
 AVal::Data *alloc()
 {
-    AVal::Data *a = new AVal::Data;
-    allocd.push_back(a);
-    return a;
+    printf("MemoryPool::alloc()\n");
+  
+    //find free chunk
+    MemChunk* freechunk = nullptr; 
+    for(auto m : allocd){
+        if(m->freeCnt<=0)
+          continue;
+        freechunk = m;
+        break;
+    }
+    if(freechunk==nullptr){
+      allocd.push_back(freechunk = new MemChunk());
+    }
+    
+    
+    //find free position in chunk
+    int freepos = -1;
+    for(int i = 0; i < MEMCHUNK_SIZE; i++){
+      if(freechunk->d[i].d == nullptr){
+        freepos = i;
+        break;
+      }
+    }
+    
+    freechunk->freeCnt--;
+    
+    AVal::Data* d = new AVal::Data(&freechunk->d[freepos]);
+    freechunk->d[freepos].d = d;
+    freechunk->d[freepos].flags = MemChunk::FREE;
+    return d;
 }
 
 char *strdup(const char *s)
@@ -31,50 +91,88 @@ void strfree(char *s)
 
 void cleanup()
 {
-    for (AVal::Data *a : allocd) {
-        delete a;
+    for (MemChunk *m : allocd) {
+        for(int i = 0; i < MEMCHUNK_SIZE; i++){
+            delete m->d[i].d;
+        }
+        delete m;
+    }
+    allocd.clear();
+}
+
+int poolSize(){
+    int s = 0;
+    for(auto m: allocd){
+      s+= MEMCHUNK_SIZE - m->freeCnt;
+    }
+    return s;
+}
+
+
+inline static void DFSMark(const AVal& val){
+    if(val.type() == AVal::Type::FUNCTION_BUILTIN || val.type() == AVal::Type::BOOL || val.type() == AVal::Type::INT)
+      return;
+  
+    if(val.data == nullptr)
+      return;
+    MemChunk::Data* s = (MemChunk::Data*)val.data->memmgr;
+    if(s == nullptr)
+      return;
+    printf("MARK ");
+    PRINTVAL(val);
+    
+    if(HASMASK(s->flags, MemChunk::MARKED))
+      return;
+    
+    MASKSET(s->flags, MemChunk::MARKED);
+    
+    
+    //deep recursion to mark each elements of array
+    if(val.type() == AVal::Type::ARRAY){
+      for(int i = 0; i < val.data->arrsize; i++){
+        DFSMark(val.data->arr[i]);
+      }
     }
 }
 
 void collectGarbage()
 {
+
+    int size = poolSize();
+  
     // Mark & Sweep
     size_t collected = 0;
-    std::vector<bool> used(allocd.size(), false);
 
     for (Environment *e : Evaluator::environments()) {
         for (const AVal &val : e->values) {
-            auto it = std::find_if(allocd.begin(), allocd.end(), [&](AVal::Data *v) {
-                return v == val.data;
-            });
-            if (it != allocd.end()) {
-                used[std::distance(allocd.begin(), it)] = true;
-            }
+          DFSMark(val);
         }
     }
 
-    for (size_t i = 0; i < used.size(); ++i) {
-        if (!used[i]) {
-            delete allocd[i];
-            allocd[i] = nullptr;
-            collected++;
+    for(auto m: allocd){
+      
+      for(int i = 0; i < MEMCHUNK_SIZE; i++){
+        if(m->d[i].d == nullptr)
+          continue;
+        
+        if(!HASMASK(m->d[i].flags, MemChunk::MARKED)){
+          m->d[i].flags = MemChunk::FREE;
+          delete m->d[i].d;
+          m->d[i].d = nullptr;
+          
+          m->freeCnt++;
+          collected++;
+        }else{
+          MASKUNSET(m->d[i].flags, MemChunk::MARKED);
         }
+      }
     }
 
     std::cout << "------ GARBAGE COLLECTOR ------" << std::endl;
-    std::cout << "   Objects before:    " << allocd.size() << std::endl;
+    std::cout << "   Objects before:    " << size << std::endl;
     std::cout << "   Objects collected: " << collected << std::endl;
-    std::cout << "   Objects after:     " << allocd.size() - collected << std::endl;
+    std::cout << "   Objects after:     " << size - collected << std::endl;
     std::cout << "-------------------------------" << std::endl;
-
-    std::vector<AVal::Data*> condensed;
-    condensed.reserve(allocd.size() - collected);
-    for (AVal::Data *d : allocd) {
-        if (d) {
-            condensed.push_back(d);
-        }
-    }
-    allocd = condensed;
 }
 
 } // namespace MemoryPool

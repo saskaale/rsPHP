@@ -262,3 +262,14 @@ AVal::Data::~Data()
         delete []arr;
     }
 }
+
+
+AVal::Data::Data(void* memmgr) :
+  memmgr(memmgr)
+{  
+}
+
+AVal::Data::Data() :
+  memmgr(nullptr)
+{  
+}

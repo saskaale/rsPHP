@@ -43,9 +43,14 @@ public:
     AVal convertTo(Type t) const;
 
     Type _type;
+    void* rawdata;
+
     struct Data {
+        Data();
+        Data(void* memmgr);
         ~Data();
         Type type;
+        void* memmgr;
         union {
             int intValue;
             bool boolValue;
