@@ -75,7 +75,7 @@ AVal doBuiltInReadBool(Ast::ExpressionList *v, Environment* envir)
 AVal doBuiltInGC(Ast::ExpressionList *, Environment *)
 {
     printf("MemoryPool::collectGarbage()\n");
-    MemoryPool::collectGarbage();
+    MemoryPool::collectGarbage(false);
     return AVal();
 }
 

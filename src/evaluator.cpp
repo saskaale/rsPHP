@@ -317,6 +317,7 @@ AVal ex(Ast::Node *p, Environment* envir)
         Ast::StatementList *v = p->as<Ast::StatementList*>();
         for (Ast::Statement *s : v->statements) {
             ex(s, envir);
+            MemoryPool::checkCollectGarbage();
             if (envir->state & Environment::FlowInterrupted) {
                 break;
             }
@@ -339,6 +340,7 @@ AVal ex(Ast::Node *p, Environment* envir)
         Ast::While *v = p->as<Ast::While*>();
         while (ex(v->condition, envir).toBool()) {
             ex(v->statement, envir);
+            MemoryPool::checkCollectGarbage();
             if (envir->state == Environment::BreakCalled) {
                 envir->state = Environment::Normal;
                 break;
@@ -356,6 +358,7 @@ AVal ex(Ast::Node *p, Environment* envir)
         Ast::For *v = p->as<Ast::For*>();
         for (ex(v->init, envir); ex(v->cond, envir).toBool(); ex(v->after, envir)) {
             ex(v->statement, envir);
+            MemoryPool::checkCollectGarbage();
             if (envir->state == Environment::BreakCalled) {
                 envir->state = Environment::Normal;
                 break;
@@ -396,6 +399,7 @@ void exit()
 void eval(Ast::Node *p)
 {
     ex(p, envirs[0]);
+    MemoryPool::checkCollectGarbage();
 }
 
 void cleanup(Ast::Node *p)

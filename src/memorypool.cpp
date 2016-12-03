@@ -61,10 +61,10 @@ AVal::Data *alloc()
     int cnt = 0;
 
     auto it = allocd.begin();
-    int totalfree = 0;
+    int chunks = 1;
     for(; it != allocd.end(); ++it){
         auto m = *it;
-        totalfree += m->freeCnt;
+        chunks++;
         if(m->freeCnt<=0)
           continue;
         freechunk = m;
@@ -84,8 +84,14 @@ AVal::Data *alloc()
       auto nextit = it;
       ++nextit;
       if(nextit == allocd.end()){
-        if((*it)->freeCnt <= 10){
-          memDirty = true;
+        if(chunks < 5){
+          if((*it)->freeCnt <= 10){
+            memDirty = true;
+          }
+        }else{
+          if((*it)->freeCnt <= MEMCHUNK_SIZE/2){
+            memDirty = true;
+          }
         }
       }
 
