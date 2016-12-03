@@ -1,0 +1,6 @@
+test1 = function() { print 20; };
+test1();
+test2 = function(in) { print in; };
+test2("hello lambda");
+test1 = test2;
+test1("=");

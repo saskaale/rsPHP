@@ -393,7 +393,7 @@ void cleanup(Ast::Node *p)
 
     // We keep the parsed function in Environment, so don't delete it
     if (p->type() == Ast::Node::FunctionT) {
-        p = nullptr;
+        return;
     }
 
     // Same for lambdas
