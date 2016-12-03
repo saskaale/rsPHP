@@ -32,19 +32,15 @@ const char* Node::typeStr() const
 
 
 
-Variable::Variable(const std::string &name)
+Variable::Variable(const std::string &name, bool ref)
     : name(name)
+    , ref(ref)
 {
 }
 
 Node::Type Variable::type() const
 {
     return VariableT;
-}
-
-void Variable::print() const
-{
-    printf("Variable %s", name.c_str());
 }
 
 

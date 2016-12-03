@@ -13,6 +13,7 @@ class AVal
 public:
     enum Type {
         UNDEFINED,
+        REFERENCE,
         INT,
         BOOL,
         DOUBLE,
@@ -23,6 +24,7 @@ public:
     };
 
     AVal();
+    AVal(AVal *value);
     AVal(int value);
     AVal(bool value);
     AVal(double value);
@@ -32,8 +34,10 @@ public:
     AVal(Ast::Function *value);
 
     Type type() const;
+    bool isValid() const;
     const char* typeStr() const;
 
+    AVal *toReference() const;
     int toInt() const;
     bool toBool() const;
     double toDouble() const;

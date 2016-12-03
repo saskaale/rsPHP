@@ -2,6 +2,8 @@
 #include "environment.h"
 #include "ast.h"
 
+AVal undefined;
+
 Environment::Environment(Environment* parent)
     : parent(parent)
 {
@@ -14,14 +16,13 @@ Environment::~Environment()
 Environment *Environment::copy() const
 {
     Environment *c = new Environment(parent);
-//    c->values = values;
     c->keys = keys;
     c->returnValue = returnValue;
     c->state = state;
     return c;
 }
 
-AVal Environment::get(Ast::Variable *v)
+AVal &Environment::get(Ast::Variable *v)
 {
     return get(v->name);
 }
@@ -36,7 +37,7 @@ void Environment::set(Ast::Variable *v, const AVal &val)
     set(v->name, val);
 }
 
-AVal Environment::getFunction(const std::string &key)
+AVal &Environment::getFunction(const std::string &key)
 {
     return get(key);
 }
@@ -51,13 +52,13 @@ void Environment::setFunction(const std::string &key, const AVal &val)
     set(key, val);
 }
 
-AVal Environment::get(const std::string& key)
+AVal &Environment::get(const std::string& key)
 {
     if(keys.find(key) != keys.end())
       return keys[key];
     if(parent)
       return parent->get(key);
-    return AVal();
+    return undefined;
 }
 
 bool Environment::has(const std::string& key) const

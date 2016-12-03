@@ -79,12 +79,12 @@ class Statement : public Node
 class Variable : public Expression
 {
 public:
-    explicit Variable(const std::string &name);
+    explicit Variable(const std::string &name, bool ref = false);
 
     Type type() const;
-    void print() const;
 
     std::string name;
+    bool ref;
 };
 
 class ArraySubscript : public Variable

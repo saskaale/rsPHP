@@ -30,7 +30,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %token <str> VARIABLE
 %token <str> STRING
 %token FOR WHILE IF PRINT TRUE FALSE FUNCTION RETURN BREAK CONTINUE
-%token ASSIGN AS_PLUS AS_MINUS AS_TIMES AS_DIV AS_MOD
+%token ASSIGN AS_PLUS AS_MINUS AS_TIMES AS_DIV AS_MOD REFERENCE
 %nonassoc IFX
 %nonassoc ELSE
 
@@ -40,7 +40,6 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %left INCREMENT DECREMENT
 %left AND OR
 %nonassoc UMINUS
-%nonassoc UPREDECRE
 
 %type <nPtr> stmt stmt2 expr expr2 stmt_list value fundecl var_list var_list2 expr_list variable lambda
 
@@ -90,6 +89,7 @@ var_list:
 
 variable:
           VARIABLE                { $$ = new Ast::Variable($1); free($1); }
+        | REFERENCE VARIABLE      { $$ = new Ast::Variable($2, true); free($2); }
         | VARIABLE '[' expr ']'   { $$ = new Ast::ArraySubscript($1, $3); free($1); }
         ;
 

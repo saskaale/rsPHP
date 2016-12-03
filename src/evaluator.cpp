@@ -86,6 +86,18 @@ static AVal binaryOp_impl(Ast::BinaryOperator::Op op, T a, T b)
 
 static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
 {
+    if (a.type() == AVal::REFERENCE || b.type() == AVal::REFERENCE) {
+        AVal ar = a;
+        AVal br = b;
+        if (a.type() == AVal::REFERENCE) {
+            ar = *a.toReference();
+        }
+        if (b.type() == AVal::REFERENCE) {
+            br = *b.toReference();
+        }
+        return binaryOp(op, ar, br);
+    }
+
     if (a.type() == AVal::UNDEFINED || b.type() == AVal::UNDEFINED) {
         return AVal();
     } else if (a.type() == AVal::STRING || b.type() == AVal::STRING) {
@@ -142,14 +154,24 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
     Ast::VariableList *parameters = func->parameters;
     Ast::ExpressionList *exprs    = v->arguments;
     if (parameters->variables.size() != exprs->expressions.size()) {
-        // PARAMETERS MISMATCH FOR FUNCTION
-        return AVal();
+        THROW("PARAMETERS MISMATCH FOR FUNCTION");
     }
 
 
-    int argslen = exprs->expressions.size();
-    for(int i = 0; i < argslen; i++){
-        funcEnvironment->set(parameters->variables[i], ex(exprs->expressions[i], envir));
+    for (int i = 0; i < exprs->expressions.size(); i++) {
+        Ast::Variable *v = parameters->variables[i];
+        Ast::Expression *e = exprs->expressions[i];
+        AVal r;
+        if (v->ref) {
+            if (e->type() != Ast::Node::VariableT) {
+                THROW2("Argument %d expects reference!", i);
+            }
+            Ast::Variable *ev = e->as<Ast::Variable*>();
+            r = &envir->get(ev);
+        } else {
+            r = ex(e, envir);
+        }
+        funcEnvironment->set(v, r);
     }
 
     // Execute statement list of function
@@ -206,6 +228,10 @@ AVal ex(Ast::Node *p, Environment* envir)
             AVal arr = envir->get(as);
             arr.data->arr[index] = r;
         } else {
+            AVal stored = envir->get(v->variable);
+            if (stored.type() == AVal::REFERENCE) {
+                *stored.toReference() = r;
+            }
             envir->set(v->variable, r);
         }
         return r;

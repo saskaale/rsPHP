@@ -13,6 +13,12 @@ AVal::AVal()
 {
 }
 
+AVal::AVal(AVal *value)
+    : _type(REFERENCE)
+{
+    data = reinterpret_cast<Data*>(value);
+}
+
 AVal::AVal(int value)
     : _type(INT)
 {
@@ -69,6 +75,11 @@ AVal::Type AVal::type() const
     return _type;
 }
 
+bool AVal::isValid() const
+{
+    return _type != UNDEFINED;
+}
+
 const char* AVal::typeStr() const
 {
     static const char* const tNames[] = {
@@ -82,6 +93,11 @@ const char* AVal::typeStr() const
         "function" //FUNCTION_BUILTIN
     };
     return tNames[(int)type()];
+}
+
+AVal *AVal::toReference() const
+{
+    return reinterpret_cast<AVal*>(convertTo(REFERENCE).data);
 }
 
 int AVal::toInt() const

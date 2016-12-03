@@ -24,11 +24,11 @@ public:
 
     Environment *copy() const;
 
-    AVal get(Ast::Variable *v);
+    AVal &get(Ast::Variable *v);
     bool has(Ast::Variable *v) const;
     void set(Ast::Variable *v, const AVal &val);
 
-    AVal getFunction(const std::string &key);
+    AVal &getFunction(const std::string &key);
     bool hasFunction(const std::string &key) const;
     void setFunction(const std::string &key, const AVal &val);
 
@@ -39,7 +39,7 @@ public:
     State state = Normal;
 
 private:
-    AVal get(const std::string &key);
+    AVal &get(const std::string &key);
     bool has(const std::string &key) const;
     void set(const std::string &key, const AVal &val);
 };

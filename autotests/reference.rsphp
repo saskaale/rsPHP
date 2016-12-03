@@ -1,0 +1,10 @@
+function test(&n)
+{
+    n = n + 1;
+    print n;
+}
+
+a = 23;
+test(a);
+test(a);
+print a;
