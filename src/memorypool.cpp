@@ -47,8 +47,8 @@ AVal PRINTVAL(const AVal& printV){
 
 AVal::Data *alloc()
 {
-    printf("MemoryPool::alloc()\n");
-  
+    // printf("MemoryPool::alloc()\n");
+
     //find free chunk
     MemChunk* freechunk = nullptr; 
     for(auto m : allocd){
@@ -60,8 +60,8 @@ AVal::Data *alloc()
     if(freechunk==nullptr){
       allocd.push_back(freechunk = new MemChunk());
     }
-    
-    
+
+
     //find free position in chunk
     int freepos = -1;
     for(int i = 0; i < MEMCHUNK_SIZE; i++){
@@ -118,8 +118,8 @@ inline static void DFSMark(const AVal& val){
     MemChunk::Data* s = (MemChunk::Data*)val.data->memmgr;
     if(s == nullptr)
       return;
-    printf("MARK ");
-    PRINTVAL(val);
+    // printf("MARK ");
+    // PRINTVAL(val);
     
     if(HASMASK(s->flags, MemChunk::MARKED))
       return;
