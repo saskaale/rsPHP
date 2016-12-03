@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <cstring>
 
 
 namespace Evaluator
@@ -23,15 +24,52 @@ AVal doBuiltInPrint(Ast::ExpressionList *v, Environment* envir)
     return printf("%s\n", printV.toString());
 }
 
-// Functions
-AVal doBuiltInScan(Ast::ExpressionList *v, Environment* envir)
+AVal doBuiltInTypeof(Ast::ExpressionList *v, Environment* envir)
 {
     if(v->expressions.empty())
       THROW("Print function expects at least one parameter.")
 
     AVal printV = ex(v->expressions.front(), envir);
 
-    return printf("%s\n", printV.toString());
+    return printV.typeStr();
+}
+
+
+AVal doBuiltInReadInt(Ast::ExpressionList *v, Environment* envir)
+{
+    int val;
+    if(!scanf("%d\n", &val))
+        return AVal();
+    return val;
+}
+
+AVal doBuiltInReadDouble(Ast::ExpressionList *v, Environment* envir)
+{
+    double val;
+    if(!scanf("%lf\n", &val))
+        return AVal();
+    return val;
+}
+
+AVal doBuiltInReadString(Ast::ExpressionList *v, Environment* envir)
+{
+    char str[100];
+    if(!scanf("%99s\n", str))
+        return AVal();
+    str[99] = '\0';
+    return str;
+}
+
+AVal doBuiltInReadBool(Ast::ExpressionList *v, Environment* envir)
+{
+    AVal val = doBuiltInReadString(v, envir);
+    if(val.type() == AVal::Type::STRING){
+        if(strcmp(val.toString(), "true"))
+            return true;
+        if(strcmp(val.toString(), "false"))
+            return true;
+    }
+    return AVal();
 }
 
 AVal doBuiltInGC(Ast::ExpressionList *, Environment *)
@@ -267,7 +305,10 @@ AVal doBuiltInDumpAST(Ast::ExpressionList *v, Environment *envir){
 
 
 void registerBuiltins(Environment* e){
-    e->setFunction("scan", &doBuiltInScan);
+    e->setFunction("typeof", &doBuiltInTypeof);
+    e->setFunction("readInt", &doBuiltInReadInt);
+    e->setFunction("readDouble", &doBuiltInReadDouble);
+    e->setFunction("readString", &doBuiltInReadString);
     e->setFunction("print", &doBuiltInPrint);
     e->setFunction("dumpAST", &doBuiltInDumpAST);
     e->setFunction("gc", &doBuiltInGC);

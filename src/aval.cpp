@@ -69,6 +69,21 @@ AVal::Type AVal::type() const
     return _type;
 }
 
+const char* AVal::typeStr() const
+{
+    static const char* const tNames[] = {
+        "undefined",
+        "int",
+        "bool",
+        "double",
+        "string",
+        "array",
+        "function",
+        "function" //FUNCTION_BUILTIN
+    };
+    return tNames[(int)type()];
+}
+
 int AVal::toInt() const
 {
     return reinterpret_cast<std::ptrdiff_t>(convertTo(INT).data);

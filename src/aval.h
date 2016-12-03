@@ -32,6 +32,7 @@ public:
     AVal(Ast::Function *value);
 
     Type type() const;
+    const char* typeStr() const;
 
     int toInt() const;
     bool toBool() const;
