@@ -34,8 +34,17 @@ public:
     AVal(Ast::Function *value);
 
     Type type() const;
-    bool isValid() const;
     const char* typeStr() const;
+
+    bool isUndefined() const;
+    bool isReference() const;
+    bool isInt() const;
+    bool isBool() const;
+    bool isDouble() const;
+    bool isString() const;
+    bool isArray() const;
+    bool isFunction() const;
+    bool isBuiltinFunction() const;
 
     AVal *toReference() const;
     int toInt() const;

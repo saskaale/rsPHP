@@ -63,7 +63,7 @@ AVal doBuiltInReadString(Ast::ExpressionList *v, Environment* envir)
 AVal doBuiltInReadBool(Ast::ExpressionList *v, Environment* envir)
 {
     AVal val = doBuiltInReadString(v, envir);
-    if(val.type() == AVal::Type::STRING){
+    if(val.isString()){
         if(strcmp(val.toString(), "true"))
             return true;
         if(strcmp(val.toString(), "false"))

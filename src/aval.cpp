@@ -75,15 +75,11 @@ AVal::Type AVal::type() const
     return _type;
 }
 
-bool AVal::isValid() const
-{
-    return _type != UNDEFINED;
-}
-
 const char* AVal::typeStr() const
 {
     static const char* const tNames[] = {
         "undefined",
+        "reference",
         "int",
         "bool",
         "double",
@@ -93,6 +89,51 @@ const char* AVal::typeStr() const
         "function" //FUNCTION_BUILTIN
     };
     return tNames[(int)type()];
+}
+
+bool AVal::isUndefined() const
+{
+    return _type == UNDEFINED;
+}
+
+bool AVal::isReference() const
+{
+    return _type == REFERENCE;
+}
+
+bool AVal::isInt() const
+{
+    return _type == INT;
+}
+
+bool AVal::isBool() const
+{
+    return _type == BOOL;
+}
+
+bool AVal::isDouble() const
+{
+    return _type == DOUBLE;
+}
+
+bool AVal::isString() const
+{
+    return _type == STRING;
+}
+
+bool AVal::isArray() const
+{
+    return _type == ARRAY;
+}
+
+bool AVal::isFunction() const
+{
+    return _type == FUNCTION;
+}
+
+bool AVal::isBuiltinFunction() const
+{
+    return _type == FUNCTION_BUILTIN;
 }
 
 AVal *AVal::toReference() const

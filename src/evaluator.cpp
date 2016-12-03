@@ -86,32 +86,29 @@ static AVal binaryOp_impl(Ast::BinaryOperator::Op op, T a, T b)
 
 static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
 {
-    if (a.type() == AVal::REFERENCE || b.type() == AVal::REFERENCE) {
+    if (a.isReference() || b.isReference()) {
         AVal ar = a;
         AVal br = b;
-        if (a.type() == AVal::REFERENCE) {
+        if (a.isReference()) {
             ar = *a.toReference();
         }
-        if (b.type() == AVal::REFERENCE) {
+        if (b.isReference()) {
             br = *b.toReference();
         }
         return binaryOp(op, ar, br);
     }
 
-    if (a.type() == AVal::UNDEFINED || b.type() == AVal::UNDEFINED) {
+    if (a.isUndefined() || b.isUndefined()) {
         return AVal();
-    } else if (a.type() == AVal::STRING || b.type() == AVal::STRING) {
+    } else if (a.isString() || b.isString()) {
         return binaryOp_impl(op, a.toString(), b.toString());
-    } else if (a.type() == AVal::DOUBLE || b.type() == AVal::DOUBLE) {
+    } else if (a.isDouble() || b.isDouble()) {
         return binaryOp_impl(op, a.toDouble(), b.toDouble());
-    } else if (a.type() == AVal::INT || b.type() == AVal::INT) {
+    } else if (a.isInt() || b.isInt()) {
         return binaryOp_impl(op, a.toInt(), b.toInt());
-    } else if (a.type() == AVal::BOOL || b.type() == AVal::BOOL) {
+    } else if (a.isBool() || b.isBool()) {
         return binaryOp_impl(op, a.toBool(), b.toBool());
-    } else if (
-        a.type() == AVal::FUNCTION || b.type() == AVal::FUNCTION
-        ||
-        a.type() == AVal::FUNCTION_BUILTIN || b.type() == AVal::FUNCTION_BUILTIN
+    } else if (a.isFunction() || b.isFunction() || a.isBuiltinFunction() || b.isBuiltinFunction()
     ) {
         // Cannot evaluate binary operator for functions
     } else {
@@ -201,7 +198,7 @@ AVal ex(Ast::Node *p, Environment* envir)
             arr.data->arr[index] = value;
         } else {
             AVal stored = envir->get(v);
-            if (stored.type() == AVal::REFERENCE) {
+            if (stored.isReference()) {
                 *stored.toReference() = value;
             } else {
                 envir->set(v, value);
@@ -253,9 +250,9 @@ AVal ex(Ast::Node *p, Environment* envir)
          Ast::FunctionCall *v = p->as<Ast::FunctionCall*>();
 
          AVal func = ex(v->function, envir);
-         if (func.type() == AVal::FUNCTION) {
+         if (func.isFunction()) {
               return doUserdefFunction(v, func.toFunction(), envir);
-         }else if (func.type() == AVal::FUNCTION_BUILTIN) {
+         }else if (func.isBuiltinFunction()) {
               BuiltinCall call = func.toBuiltinFunction();
               if(call)
                   return (*call)(v->arguments, envir);
