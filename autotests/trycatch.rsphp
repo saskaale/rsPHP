@@ -3,3 +3,33 @@ try{
 }catch(e){
     print "CATCHED";
 }
+
+
+function throwing(){
+    v=1+2;
+    throw 13;
+    return v;
+}
+
+try{
+    //this should not print nothing and instead jump directly into catch
+    print throwing();
+}catch(e){
+    print "CATCHED >>"+e+"<<";
+}
+
+
+function inc(a){
+    if(a>5)
+        throw "ERROR";
+    return a+1;
+}
+
+
+try{
+    for(i=0; i < 10; i=inc(i)){
+        print i;
+    }
+}catch(e){
+    print "CATCHED2 >>"+e+"<<";
+}
