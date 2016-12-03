@@ -387,6 +387,12 @@ Node::Type VariableList::type() const
 }
 
 
+Function::Function(VariableList *params, StatementList *stm)
+    : parameters(params)
+    , statements(stm)
+{
+}
+
 Function::Function(const std::string &name, VariableList *params, StatementList *stm)
     : name(name)
     , parameters(params)
@@ -403,6 +409,11 @@ Function::~Function()
 Node::Type Function::type() const
 {
     return FunctionT;
+}
+
+bool Function::isLambda() const
+{
+    return name.empty();
 }
 
 

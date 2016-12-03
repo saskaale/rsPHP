@@ -41,7 +41,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %nonassoc UMINUS
 %nonassoc UPREDECRE
 
-%type <nPtr> stmt stmt2 expr expr2 stmt_list value fundecl var_list var_list2 expr_list variable
+%type <nPtr> stmt stmt2 expr expr2 stmt_list value fundecl var_list var_list2 expr_list variable lambda
 
 %%
 
@@ -134,7 +134,11 @@ expr2:
         | expr2 NE expr2              { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::NotEqual, $1, $3); }
         | expr2 EQ expr2              { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Equal, $1, $3); }
         | '(' expr ')'                { $$ = $2; }
+        | lambda                      { $$ = $1; }
         ;
+
+lambda:
+        FUNCTION '(' var_list ')' '{' stmt_list '}'   { $$ = new Ast::Function($3->as<Ast::VariableList*>(), $6->as<Ast::StatementList*>()); }
 
 value:
           INTEGER                 { $$ = new Ast::IntegerLiteral($1); }

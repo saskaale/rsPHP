@@ -309,10 +309,12 @@ public:
 class Function : public Node
 {
 public:
+    explicit Function(VariableList *params, StatementList *stm = nullptr);
     explicit Function(const std::string &name, VariableList *params, StatementList *stm = nullptr);
     ~Function();
 
     Type type() const;
+    bool isLambda() const;
 
     std::string name;
     VariableList *parameters;
