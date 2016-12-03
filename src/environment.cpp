@@ -14,7 +14,7 @@ Environment::~Environment()
 Environment *Environment::copy() const
 {
     Environment *c = new Environment(parent);
-    c->values = values;
+//    c->values = values;
     c->keys = keys;
     c->returnValue = returnValue;
     c->state = state;
@@ -54,7 +54,7 @@ void Environment::setFunction(const std::string &key, const AVal &val)
 AVal Environment::get(const std::string& key)
 {
     if(keys.find(key) != keys.end())
-      return values[keys[key]];
+      return keys[key];
     if(parent)
       return parent->get(key);
     return AVal();
@@ -71,7 +71,8 @@ bool Environment::has(const std::string& key) const
 
 void Environment::set(const std::string& key, const AVal &val)
 {
-    int nextidx = values.size();
-    keys[key] = nextidx;
-    values.push_back(val);
+//    int nextidx = values.size();
+//    keys[key] = nextidx;
+//    values.push_back(val);
+    keys[key] = val;
 }

@@ -33,8 +33,7 @@ public:
     void setFunction(const std::string &key, const AVal &val);
 
     Environment *parent;
-    std::vector<AVal> values;
-    std::unordered_map<std::string, int> keys;
+    std::unordered_map<std::string, AVal> keys;
 
     AVal returnValue;
     State state = Normal;
