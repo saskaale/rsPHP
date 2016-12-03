@@ -167,6 +167,7 @@ public:
     ~BinaryOperator();
 
     Type type() const;
+    const char* opStr() const;
 
     Op op;
     Expression *left;

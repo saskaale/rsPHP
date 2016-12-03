@@ -1,6 +1,7 @@
 set(rsphp_SRCS
     main.cpp
     evaluator.cpp
+    builtins.cpp
     environment.cpp
     ast.cpp
     aval.cpp

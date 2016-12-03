@@ -147,6 +147,18 @@ Node::Type BinaryOperator::type() const
     return BinaryOperatorT;
 }
 
+const char* BinaryOperator::opStr() const
+{
+    static const char* const opNames[] = {
+        "Plus", "Minus", "Times", "Equal", "NotEqual",
+        "LessThan", "GreaterThan", "LessThanEqual", "GreaterThanEqual",
+        "Div", "Mod", "And", "Or"
+    };
+        
+    return opNames[(int)this->op];
+}
+
+
 
 FunctionCall::FunctionCall(Expression* function, Expression *args)
     : function(function)

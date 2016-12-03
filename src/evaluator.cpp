@@ -7,14 +7,6 @@
 #include <iostream>
 #include <algorithm>
 
-#define THROW2(name, descr) \
-    (fprintf(stderr, name, descr), fprintf(stderr, "\n"), X_ASSERT(false && name)); \
-    return AVal();
-
-#define THROW(name) \
-    (fprintf(stderr, name), fprintf(stderr, "\n"), X_ASSERT(false && name)); \
-    return AVal();
-
 std::vector<Environment*> envirs;
 
 // Operators
@@ -92,7 +84,7 @@ static AVal binaryOp_impl(Ast::BinaryOperator::Op op, T a, T b)
     return AVal();
 }
 
-static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
+static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
 {
     if (a.type() == AVal::UNDEFINED || b.type() == AVal::UNDEFINED) {
         return AVal();
@@ -117,33 +109,12 @@ static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
     return AVal();
 }
 
-AVal ex(Ast::Node *p, Environment* envir);
 
-// Functions
-static AVal doBuiltInPrint(Ast::ExpressionList *v, Environment* envir)
+
+namespace Evaluator
 {
-    AVal printV = ex(v->expressions.front(), envir);
-
-    int ret = -1;
-
-    switch (printV.type()) {
-    case AVal::STRING:
-        ret = printf("\"%s\"\n", printV.toString());
-        break;
-    default:
-        ret = printf("%s\n", printV.toString());
-        break;
-    }
-
-    return ret;
-}
-
-static AVal doBuiltInGC(Ast::ExpressionList *, Environment *)
-{
-    printf("MemoryPool::collectGarbage()\n");
-    MemoryPool::collectGarbage();
-    return AVal();
-}
+  
+  
 
 static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environment *envir)
 {
@@ -374,17 +345,12 @@ AVal ex(Ast::Node *p, Environment* envir)
     return AVal();
 }
 
-namespace Evaluator
-{
   
-AVal builtInPrint(){
-  return 0;
-}
-
 void init()
 {
     Environment *global = new Environment;
     global->setFunction("print", &doBuiltInPrint);
+    global->setFunction("dumpAST", &doBuiltInDumpAST);
     global->setFunction("gc", &doBuiltInGC);
     envirs.push_back(global);
 }
