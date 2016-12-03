@@ -21,8 +21,7 @@ struct MemChunk{
       Data();
       AVal::Data* d;
       char flags;
-    };
-    Data d[MEMCHUNK_SIZE];
+    } d[MEMCHUNK_SIZE];
 };
 
 AVal::Data *alloc();
