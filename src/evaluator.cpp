@@ -113,8 +113,25 @@ static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVa
 
 namespace Evaluator
 {
-  
-  
+
+
+
+StackFrame::StackFrame(Stack* s) :
+    cnt(0)
+{
+};
+
+StackFrame::~StackFrame()
+{
+    for(int i = 0; i < cnt; i++){
+        stack->pop_back();
+    }
+};
+
+void StackFrame::push(const AVal& v)
+{
+    stack->push_back(v);
+};
 
 static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environment *envir)
 {
@@ -349,9 +366,7 @@ AVal ex(Ast::Node *p, Environment* envir)
 void init()
 {
     Environment *global = new Environment;
-    global->setFunction("print", &doBuiltInPrint);
-    global->setFunction("dumpAST", &doBuiltInDumpAST);
-    global->setFunction("gc", &doBuiltInGC);
+    registerBuiltins(global);
     envirs.push_back(global);
 }
 
