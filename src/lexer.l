@@ -4,7 +4,11 @@
 #include "parser.h"
 
 void yyerror(const char *);
+void comment();
 %}
+
+%x C_COMMENT
+%x CPP_COMMENT
 
 %%
 
@@ -73,12 +77,21 @@ void yyerror(const char *);
                 return VARIABLE;
             }
 
-[ \t\n]+        ;       /* ignore whitespace */
+"/*"              { BEGIN(C_COMMENT); }
+<C_COMMENT>"*/"   { BEGIN(INITIAL); }
+<C_COMMENT>"\n" { }
+<C_COMMENT>.      { }
+"//"              { BEGIN(CPP_COMMENT); }
+<CPP_COMMENT>"\n" { BEGIN(INITIAL); }
+<CPP_COMMENT>.    { }
+
+[ \t\n]+        { }
 
 .               yyerror("Unknown character");
 
 %%
 
-int yywrap(void) {
+int yywrap()
+{
     return 1;
 }

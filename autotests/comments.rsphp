@@ -1,0 +1,10 @@
+print "c-comment-single";
+/* test comment */
+print "c-comment-multi";
+/* test
+ * test 2
+ * test 3
+ */
+print "//";
+// test test
+print "end";
