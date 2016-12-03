@@ -1,4 +1,5 @@
-"--MULT LASSOC--"
+--MULT LASSOC--
+
 BinaryOperatorT Times
  LEFT:
   BinaryOperatorT Times
@@ -12,7 +13,9 @@ BinaryOperatorT Times
     IntegerLiteralT 3
  RIGHT:
   IntegerLiteralT 4
-"--EXPR1--"
+
+--EXPR1--
+
 BinaryOperatorT Minus
  LEFT:
   BinaryOperatorT Plus
@@ -26,7 +29,9 @@ BinaryOperatorT Minus
       IntegerLiteralT 3
  RIGHT:
   IntegerLiteralT 4
-"--EXPR3--"
+
+--EXPR3--
+
 BinaryOperatorT GreaterThanEqual
  LEFT:
   BinaryOperatorT Minus

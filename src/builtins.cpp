@@ -12,15 +12,6 @@
 namespace Evaluator
 {
 
-static AVal PRINTVAL(const AVal& printV){
-    switch (printV.type()) {
-    case AVal::STRING:
-        return printf("\"%s\"\n", printV.toString());
-    default:
-        return printf("%s\n", printV.toString());
-    }
-}
-
 // Functions
 AVal doBuiltInPrint(Ast::ExpressionList *v, Environment* envir)
 {
@@ -29,7 +20,7 @@ AVal doBuiltInPrint(Ast::ExpressionList *v, Environment* envir)
 
     AVal printV = ex(v->expressions.front(), envir);
 
-    return PRINTVAL(printV);
+    return printf("%s\n", printV.toString());
 }
 
 AVal doBuiltInGC(Ast::ExpressionList *, Environment *)
@@ -49,23 +40,23 @@ void astDump(Ast::Node* p, int lvl = 0){
     }
 
     PADDEDOUT(lvl); printf("%s ", p->typeStr());
-    
+
     switch (p->type()) {
 
     case Ast::Node::IntegerLiteralT:
-        printf("%d\n", p->as<Ast::IntegerLiteral*>()->value); 
+        printf("%d\n", p->as<Ast::IntegerLiteral*>()->value);
         break;
 
     case Ast::Node::BoolLiteralT:
-        printf("%s\n", p->as<Ast::BoolLiteral*>()->value ? "true":"false"); 
+        printf("%s\n", p->as<Ast::BoolLiteral*>()->value ? "true":"false");
         break;
 
     case Ast::Node::DoubleLiteralT:
-        printf("%lf\n", p->as<Ast::DoubleLiteral*>()->value); 
+        printf("%lf\n", p->as<Ast::DoubleLiteral*>()->value);
         break;
 
     case Ast::Node::StringLiteralT:
-        printf(">>%s<<\n", p->as<Ast::StringLiteral*>()->value.c_str()); 
+        printf(">>%s<<\n", p->as<Ast::StringLiteral*>()->value.c_str());
         break;
 
     case Ast::Node::VariableT: {
@@ -93,7 +84,7 @@ void astDump(Ast::Node* p, int lvl = 0){
             PADDEDOUT(lvl+1); printf("ARRAYSUBSCRIPT:\n");
               astDump(v->variable, lvl+2);
         }
-        
+
         break;
     }
 
@@ -120,7 +111,7 @@ void astDump(Ast::Node* p, int lvl = 0){
 
     case Ast::Node::UnaryOperatorT: {
         Ast::UnaryOperator *v = p->as<Ast::UnaryOperator*>();
-        
+
         switch (v->op) {
           case Ast::UnaryOperator::Minus:
             printf("MINUS:\n");
@@ -144,13 +135,13 @@ void astDump(Ast::Node* p, int lvl = 0){
 
     case Ast::Node::BinaryOperatorT: {
         Ast::BinaryOperator *v = p->as<Ast::BinaryOperator*>();
-        
+
         printf("%s\n", v->opStr());
         PADDEDOUT(lvl+1); printf("LEFT:\n");
           astDump(v->left, lvl+2);
         PADDEDOUT(lvl+1); printf("RIGHT:\n");
           astDump(v->right, lvl+2);
-        
+
         break;
     }
 
@@ -190,8 +181,8 @@ void astDump(Ast::Node* p, int lvl = 0){
             astDump(s, lvl+2);
         }
         break;
-    }    
-    
+    }
+
     case Ast::Node::VariableListT: {
         printf("\n");
         Ast::VariableList *v = p->as<Ast::VariableList*>();
