@@ -1,0 +1,46 @@
+"--MULT LASSOC--"
+BinaryOperatorT Times
+ LEFT:
+  BinaryOperatorT Times
+   LEFT:
+    BinaryOperatorT Times
+     LEFT:
+      IntegerLiteralT 1
+     RIGHT:
+      IntegerLiteralT 2
+   RIGHT:
+    IntegerLiteralT 3
+ RIGHT:
+  IntegerLiteralT 4
+"--EXPR1--"
+BinaryOperatorT Minus
+ LEFT:
+  BinaryOperatorT Plus
+   LEFT:
+    IntegerLiteralT 1
+   RIGHT:
+    BinaryOperatorT Times
+     LEFT:
+      IntegerLiteralT 2
+     RIGHT:
+      IntegerLiteralT 3
+ RIGHT:
+  IntegerLiteralT 4
+"--EXPR3--"
+BinaryOperatorT GreaterThanEqual
+ LEFT:
+  BinaryOperatorT Minus
+   LEFT:
+    IntegerLiteralT 1
+   RIGHT:
+    BinaryOperatorT Div
+     LEFT:
+      BinaryOperatorT Times
+       LEFT:
+        IntegerLiteralT 2
+       RIGHT:
+        IntegerLiteralT 3
+     RIGHT:
+      IntegerLiteralT 4
+ RIGHT:
+  IntegerLiteralT 10

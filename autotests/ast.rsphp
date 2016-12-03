@@ -1,0 +1,12 @@
+print "--MULT LASSOC--";
+dumpAST(1*2*3*4);
+
+
+print "--EXPR1--";
+dumpAST(1+2*3-4);
+
+
+print "--EXPR3--";
+dumpAST(1-2*3/4 >= 10);
+
+
