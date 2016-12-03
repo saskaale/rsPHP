@@ -4,7 +4,7 @@
 static void interpretFile(FILE *file)
 {
     Evaluator::init();
-    parseFile(file);
+    Parser::parseFile(file);
     Evaluator::exit();
 }
 

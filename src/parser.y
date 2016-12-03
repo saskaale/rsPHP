@@ -160,13 +160,29 @@ value:
         ;
 %%
 
+void yyerror(const char *s)
+{
+    fprintf(stdout, "%s\n", s);
+}
+
+typedef struct yy_buffer_state * YY_BUFFER_STATE;
+extern YY_BUFFER_STATE yy_scan_string(const char * str);
+extern void yy_delete_buffer(YY_BUFFER_STATE buffer);
+
+namespace Parser
+{
+
 void parseFile(FILE *file)
 {
     yyin = file;
     yyparse();
 }
 
-void yyerror(const char *s)
+void parseString(const char *str)
 {
-    fprintf(stdout, "%s\n", s);
+    YY_BUFFER_STATE buffer = yy_scan_string(str);
+    yyparse();
+    yy_delete_buffer(buffer);
 }
+
+} // namespace Parser
