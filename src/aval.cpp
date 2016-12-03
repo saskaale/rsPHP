@@ -155,9 +155,9 @@ bool AVal::isThrown() const
     return thrown;
 }
 
-void AVal::markThrown()
+void AVal::markThrown(bool is)
 {
-    thrown = true;
+    thrown = is;
 }
 
 AVal *AVal::toReference() const

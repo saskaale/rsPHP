@@ -48,7 +48,7 @@ public:
     bool isBuiltinFunction() const;
     bool isThrown() const;
     
-    void markThrown();
+    void markThrown(bool is = true);
 
     AVal *toReference() const;
     int toInt() const;

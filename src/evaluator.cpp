@@ -261,7 +261,9 @@ AVal ex(Ast::Node *p, Environment* envir)
         AVal r = ex(v->body, envir);
         
         if(r.isThrown()){
-          assignToVariable(v->variables->variables[0], r, envir);
+          AVal catched = r;
+          catched.markThrown(false);
+          assignToVariable(v->variables->variables[0], catched, envir);
           
           AVal catchP = ex(v->catchPart, envir);
           CHECKTHROWN(catchP)
@@ -418,6 +420,9 @@ AVal ex(Ast::Node *p, Environment* envir)
             CHECKTHROWN(cond)
             if(!cond.toBool())
                 break;
+            
+            CHECKTHROWN(ex(v->statement, envir))
+
             MemoryPool::checkCollectGarbage();
             if (envir->state == Environment::BreakCalled) {
                 envir->state = Environment::Normal;
