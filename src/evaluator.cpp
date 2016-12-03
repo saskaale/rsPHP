@@ -3,6 +3,7 @@
 #include "parser.h"
 #include "environment.h"
 #include "memorypool.h"
+#include "bootstrap.h"
 
 #include <iostream>
 #include <algorithm>
@@ -89,7 +90,7 @@ static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVa
 {
     CHECKTHROWN(a)
     CHECKTHROWN(b)
-  
+
     if (a.isReference() || b.isReference()) {
         AVal ar = a;
         AVal br = b;
@@ -171,7 +172,7 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
             r = &envir->get(ev);
         } else {
             r = ex(e, envir);
-            CHECKTHROWN(r)            
+            CHECKTHROWN(r)
         }
         funcEnvironment->set(v, r);
     }
@@ -206,11 +207,11 @@ AVal ex(Ast::Node *p, Environment* envir)
         } else {
             AVal &stored = envir->get(v);
             if (stored.isReference()) {
-                *stored.toReference() = value;
+                *stored.toReference() = value.dereference();
             } else if (stored.isWritable()) {
-                stored = value;
+                stored = value.dereference();
             } else {
-                envir->set(v, value);
+                envir->set(v, value.dereference());
             }
         }
     };
@@ -257,14 +258,14 @@ AVal ex(Ast::Node *p, Environment* envir)
         if(v->variables->variables.empty()){
           THROW("Try expects one name of variable to catch")
         }
-        
+
         AVal r = ex(v->body, envir);
-        
+
         if(r.isThrown()){
           AVal catched = r;
           catched.markThrown(false);
           assignToVariable(v->variables->variables[0], catched, envir);
-          
+
           AVal catchP = ex(v->catchPart, envir);
           CHECKTHROWN(catchP)
         }
@@ -395,7 +396,7 @@ AVal ex(Ast::Node *p, Environment* envir)
             CHECKTHROWN(cond)
             if(!cond.toBool())
               break;
-            
+
             CHECKTHROWN(ex(v->statement, envir))
             MemoryPool::checkCollectGarbage();
             if (envir->state == Environment::BreakCalled) {
@@ -413,14 +414,14 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::ForT: {
         Ast::For *v = p->as<Ast::For*>();
-        
+
         CHECKTHROWN(ex(v->init, envir));
         while(1){
             AVal cond = ex(v->cond, envir);
             CHECKTHROWN(cond)
             if(!cond.toBool())
                 break;
-            
+
             CHECKTHROWN(ex(v->statement, envir))
 
             MemoryPool::checkCollectGarbage();
@@ -433,7 +434,7 @@ AVal ex(Ast::Node *p, Environment* envir)
             } else if (envir->state == Environment::ReturnCalled) {
                 break;
             }
-            
+
             CHECKTHROWN(ex(v->after, envir))
         }
         break;
@@ -452,6 +453,7 @@ void init()
     Environment *global = new Environment;
     registerBuiltins(global);
     envirs.push_back(global);
+    Parser::parseString(RSPHP_BOOTSTRAP);
 }
 
 void exit()

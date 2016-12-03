@@ -53,13 +53,13 @@ AVal::AVal(const char *value, bool thrown)
     data->stringValue = MemoryPool::strdup(value);
 }
 
-AVal::AVal(AVal *arr, int size, bool thrown)
+AVal::AVal(AVal *value, int size, bool thrown)
     : _type(ARRAY)
     , thrown(thrown)
     , data(MemoryPool::alloc())
 {
     data->type = _type;
-    data->arr = arr;
+    data->arr = value;
     data->arrsize = size;
 }
 
@@ -103,6 +103,14 @@ const char* AVal::typeStr() const
         "function" //FUNCTION_BUILTIN
     };
     return tNames[(int)type()];
+}
+
+AVal AVal::dereference() const
+{
+    if (isReference()) {
+        return *toReference();
+    }
+    return *this;
 }
 
 bool AVal::isUndefined() const

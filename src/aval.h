@@ -30,12 +30,13 @@ public:
     AVal(double value, bool isThrown = false);
     AVal(const char *value, bool isThrown = false);
     AVal(BuiltinCall value);
-    AVal(AVal *arr, int size, bool isThrown = false);
+    AVal(AVal *value, int size, bool isThrown = false);
     AVal(Ast::Function *value, bool isThrown = false);
 
     Type type() const;
     bool isWritable() const;
     const char* typeStr() const;
+    AVal dereference() const;
 
     bool isUndefined() const;
     bool isReference() const;
