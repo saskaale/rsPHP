@@ -51,11 +51,21 @@ AVal::Data *alloc()
 
     //find free chunk
     MemChunk* freechunk = nullptr; 
-    for(auto m : allocd){
-        if(m->freeCnt<=0)
-          continue;
-        freechunk = m;
-        break;
+
+    //first step to check if there is free chunk, then try run garbage collector, and then second run to find if there is any free chunk
+    for(int i = 0; freechunk == nullptr ; i++){
+        for(auto m : allocd){
+            if(m->freeCnt<=0)
+              continue;
+            freechunk = m;
+            break;
+        }
+        if(freechunk != nullptr)
+            break;
+        if(i>=1)
+            break;
+
+        collectGarbage();
     }
     if(freechunk==nullptr){
       allocd.push_back(freechunk = new MemChunk());
