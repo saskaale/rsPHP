@@ -65,7 +65,7 @@ AVal::Data *alloc()
         if(i>=1)
             break;
 
-        collectGarbage();
+        collectGarbage(true);
     }
     if(freechunk==nullptr){
       allocd.push_back(freechunk = new MemChunk());
@@ -128,9 +128,7 @@ inline static void DFSMark(const AVal& val){
     MemChunk::Data* s = (MemChunk::Data*)val.data->memmgr;
     if(s == nullptr)
       return;
-    // printf("MARK ");
-    // PRINTVAL(val);
-    
+
     if(HASMASK(s->flags, MemChunk::MARKED))
       return;
     
@@ -145,10 +143,12 @@ inline static void DFSMark(const AVal& val){
     }
 }
 
-void collectGarbage()
+void collectGarbage( bool silent )
 {
 
-    int size = poolSize();
+    int size;
+    if(!silent)
+        size = poolSize();
   
     // Mark & Sweep
     size_t collected = 0;
@@ -178,11 +178,13 @@ void collectGarbage()
       }
     }
 
-    std::cout << "------ GARBAGE COLLECTOR ------" << std::endl;
-    std::cout << "   Objects before:    " << size << std::endl;
-    std::cout << "   Objects collected: " << collected << std::endl;
-    std::cout << "   Objects after:     " << size - collected << std::endl;
-    std::cout << "-------------------------------" << std::endl;
+    if(!silent){
+        std::cout << "------ GARBAGE COLLECTOR ------" << std::endl;
+        std::cout << "   Objects before:    " << size << std::endl;
+        std::cout << "   Objects collected: " << collected << std::endl;
+        std::cout << "   Objects after:     " << size - collected << std::endl;
+        std::cout << "-------------------------------" << std::endl;
+    }
 }
 
 } // namespace MemoryPool
