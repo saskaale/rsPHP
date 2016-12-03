@@ -4,3 +4,14 @@ test2 = function(in) { print in; };
 test2("hello lambda");
 test1 = test2;
 test1("=");
+
+function tst()
+{
+    a = 23;
+    b = function() {
+        print a++;
+    };
+    b();
+    print a;
+}
+tst();

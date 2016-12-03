@@ -34,6 +34,6 @@ namespace Evaluator
     void cleanup(Ast::Node *p);
 
     AVal ex(Ast::Node *p, Environment* envir);
-    
+
     std::vector<Environment*> environments();
 }

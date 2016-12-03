@@ -7,6 +7,7 @@ function fib(n)
     return fib(n - 1) + fib(n - 2);
 }
 
+/*
 print fib(0);
 print fib(1);
 print fib(2);
@@ -18,3 +19,4 @@ print fib(20);
 print "a = fib";
 a = fib;
 print a(10);
+*/

@@ -1,6 +1,7 @@
 #include "common.h"
 #include "environment.h"
 #include "ast.h"
+#include <iostream>
 
 Environment::Environment(Environment* parent)
     : parent(parent)
@@ -71,8 +72,9 @@ bool Environment::has(const std::string& key) const
 
 void Environment::set(const std::string& key, const AVal &val)
 {
-//    int nextidx = values.size();
-//    keys[key] = nextidx;
-//    values.push_back(val);
-    keys[key] = val;
+    if (parent && parent->has(key)) {
+        parent->set(key, val);
+    } else {
+        keys[key] = val;
+    }
 }
