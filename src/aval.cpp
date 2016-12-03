@@ -140,7 +140,7 @@ AVal AVal::convertTo(Type t) const
         return AVal();
     }
 
-    if (type() == REFERENCE || t == REFERENCE) {
+    if (t == REFERENCE) {
         // Cannot convert references
         X_UNREACHABLE();
     }
@@ -162,6 +162,9 @@ AVal AVal::convertTo(Type t) const
         default:
             X_UNREACHABLE();
         }
+
+    case REFERENCE:
+        return toReference()->convertTo(t);
 
     case INT:
         switch (t) {

@@ -203,8 +203,9 @@ AVal ex(Ast::Node *p, Environment* envir)
             AVal stored = envir->get(v);
             if (stored.type() == AVal::REFERENCE) {
                 *stored.toReference() = value;
+            } else {
+                envir->set(v, value);
             }
-            envir->set(v, value);
         }
     };
 

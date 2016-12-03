@@ -9,6 +9,12 @@ function test2(&n)
     print ++n;
 }
 
+function test3(&n)
+{
+    n += 1;
+    n = n + 2;
+}
+
 a = 23;
 test(a);
 test(a);
@@ -20,3 +26,9 @@ b = 23;
 test2(b);
 test2(b);
 print b;
+
+print "C";
+
+c = 23;
+test3(c);
+print c;
