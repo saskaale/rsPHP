@@ -7,7 +7,7 @@ succeeded=0
 for file in *.rsphp; do
     echo "Running $file"
     expected=$(cat "$file".out);
-    out=$($EXE < $file);
+    out=$($EXE $file);
     if [ "$expected" != "$out" ]; then
         echo "FAIL!"
         echo "Expected:"

@@ -408,9 +408,9 @@ void exit()
     for (Environment *e : envirs) {
         delete e;
     }
+    envirs.clear();
 
     MemoryPool::cleanup();
-    ::exit(0);
 }
 
 void eval(Ast::Node *p)

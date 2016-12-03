@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+extern "C" FILE *yyin;
+
 int yylex(void);
 void yyerror(const char *s);
 
@@ -46,7 +48,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %%
 
 program:
-        function                { Evaluator::exit(); }
+        function                { }
         ;
 
 function:
@@ -152,7 +154,13 @@ value:
         ;
 %%
 
+void parseFile(FILE *file)
+{
+    yyin = file;
+    yyparse();
+}
 
-void yyerror(const char *s) {
+void yyerror(const char *s)
+{
     fprintf(stdout, "%s\n", s);
 }
