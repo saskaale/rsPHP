@@ -4,7 +4,19 @@ function test(&n)
     print n;
 }
 
+function test2(&n)
+{
+    print ++n;
+}
+
 a = 23;
 test(a);
 test(a);
 print a;
+
+print "B";
+
+b = 23;
+test2(b);
+test2(b);
+print b;

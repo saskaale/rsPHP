@@ -191,6 +191,23 @@ AVal ex(Ast::Node *p, Environment* envir)
         return AVal();
     }
 
+    auto assignToVariable = [](Ast::Variable *v, const AVal &value, Environment *envir) {
+        if (Ast::ArraySubscript *as = v->as<Ast::ArraySubscript*>()) {
+            const int index = ex(as->expression, envir).toInt();
+            if (!envir->has(as)) {
+                envir->set(as, AVal(new AVal[100], 100));
+            }
+            AVal arr = envir->get(as);
+            arr.data->arr[index] = value;
+        } else {
+            AVal stored = envir->get(v);
+            if (stored.type() == AVal::REFERENCE) {
+                *stored.toReference() = value;
+            }
+            envir->set(v, value);
+        }
+    };
+
     switch (p->type()) {
 
     case Ast::Node::IntegerLiteralT:
@@ -220,20 +237,7 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::AssignmentT: {
         Ast::Assignment *v = p->as<Ast::Assignment*>();
         AVal r = ex(v->expression, envir);
-        if (Ast::ArraySubscript *as = v->variable->as<Ast::ArraySubscript*>()) {
-            const int index = ex(as->expression, envir).toInt();
-            if (!envir->has(as)) {
-                envir->set(as, AVal(new AVal[100], 100));
-            }
-            AVal arr = envir->get(as);
-            arr.data->arr[index] = r;
-        } else {
-            AVal stored = envir->get(v->variable);
-            if (stored.type() == AVal::REFERENCE) {
-                *stored.toReference() = r;
-            }
-            envir->set(v->variable, r);
-        }
+        assignToVariable(v->variable, r, envir);
         return r;
     }
 
@@ -270,28 +274,28 @@ AVal ex(Ast::Node *p, Environment* envir)
         case Ast::UnaryOperator::PreIncrement: {
             AVal val = binaryOp(Ast::BinaryOperator::Plus, ex(v->expr, envir), 1);
             if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
-                envir->set(var, val);
+                assignToVariable(var, val, envir);
             }
             return val;
         }
         case Ast::UnaryOperator::PreDecrement: {
             AVal val = binaryOp(Ast::BinaryOperator::Minus, ex(v->expr, envir), 1);
             if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
-                envir->set(var, val);
+                assignToVariable(var, val, envir);
             }
             return val;
         }
         case Ast::UnaryOperator::PostIncrement: {
             AVal val = ex(v->expr, envir);
             if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
-                envir->set(var, binaryOp(Ast::BinaryOperator::Plus, val, 1));
+                assignToVariable(var, binaryOp(Ast::BinaryOperator::Plus, val, 1), envir);
             }
             return val;
         }
         case Ast::UnaryOperator::PostDecrement: {
             AVal val = ex(v->expr, envir);
             if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
-                envir->set(var, binaryOp(Ast::BinaryOperator::Minus, val, 1));
+                assignToVariable(var, binaryOp(Ast::BinaryOperator::Minus, val, 1), envir);
             }
             return val;
         }
@@ -391,7 +395,7 @@ AVal ex(Ast::Node *p, Environment* envir)
     return AVal();
 }
 
-  
+
 void init()
 {
     Environment *global = new Environment;

@@ -140,6 +140,11 @@ AVal AVal::convertTo(Type t) const
         return AVal();
     }
 
+    if (type() == REFERENCE || t == REFERENCE) {
+        // Cannot convert references
+        X_UNREACHABLE();
+    }
+
     switch (type()) {
     case UNDEFINED:
         switch (t) {
@@ -297,10 +302,10 @@ AVal::Data::~Data()
 
 AVal::Data::Data(void* memmgr) :
   memmgr(memmgr)
-{  
+{
 }
 
 AVal::Data::Data() :
   memmgr(nullptr)
-{  
+{
 }
