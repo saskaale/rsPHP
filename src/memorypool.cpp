@@ -18,6 +18,7 @@ namespace MemoryPool
 
 
 std::list<MemChunk*> allocd;
+bool memDirty = false;
 
 MemChunk::MemChunk():
   freeCnt(MEMCHUNK_SIZE)
@@ -43,7 +44,11 @@ AVal PRINTVAL(const AVal& printV){
 
 
 
-
+void checkCollectGarbage(){
+    if(memDirty){
+      collectGarbage();
+    }
+}
 
 AVal::Data *alloc()
 {
@@ -53,22 +58,37 @@ AVal::Data *alloc()
     MemChunk* freechunk = nullptr; 
 
     //first step to check if there is free chunk, then try run garbage collector, and then second run to find if there is any free chunk
-    for(int i = 0; freechunk == nullptr ; i++){
-        for(auto m : allocd){
-            if(m->freeCnt<=0)
-              continue;
-            freechunk = m;
-            break;
-        }
-        if(freechunk != nullptr)
-            break;
-        if(i>=1)
-            break;
-
-        collectGarbage(true);
+    int cnt = 0;
+    
+    auto it = allocd.begin();
+    int totalfree = 0;
+    for(; it != allocd.end(); ++it){
+        auto m = *it;
+        totalfree += m->freeCnt;
+        if(m->freeCnt<=0)
+          continue;
+        freechunk = m;
+        break;
     }
+    
+    
     if(freechunk==nullptr){
+      
+      //mark memory as dirty and allocate new chunk
+      memDirty = true;
       allocd.push_back(freechunk = new MemChunk());
+
+    }else{
+
+      //mark memory as dirty, when there is less than 10 empty values in the last memory chunk    
+      auto nextit = it;
+      ++nextit;
+      if(nextit == allocd.end()){
+        if((*it)->freeCnt <= 10){
+          memDirty = true;
+        }
+      }
+
     }
 
 
@@ -177,6 +197,8 @@ void collectGarbage( bool silent )
         }
       }
     }
+    
+    memDirty = false;
 
     if(!silent){
         std::cout << "------ GARBAGE COLLECTOR ------" << std::endl;
