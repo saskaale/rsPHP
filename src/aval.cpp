@@ -271,7 +271,7 @@ AVal AVal::convertTo(Type t) const
 AVal::Data::~Data()
 {
     if (type == FUNCTION) {
-        // delete functionValue.function;
+        delete functionValue.function;
     } else if (type == STRING) {
         MemoryPool::strfree(stringValue);
     } else if (type == ARRAY) {

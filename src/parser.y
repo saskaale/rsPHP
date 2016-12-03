@@ -115,8 +115,8 @@ expr:
 expr2:
           value                       { $$ = $1; }
         | variable                    { $$ = $1->as<Ast::Variable*>(); }
-        | VARIABLE '(' ')'            { $$ = new Ast::FunctionCall(new Ast::Variable($1)); }
-        | VARIABLE '(' expr_list ')'  { $$ = new Ast::FunctionCall(new Ast::Variable($1), $3->as<Ast::ExpressionList*>()); }
+        | VARIABLE '(' ')'            { $$ = new Ast::FunctionCall(new Ast::Variable($1)); free($1); }
+        | VARIABLE '(' expr_list ')'  { $$ = new Ast::FunctionCall(new Ast::Variable($1), $3->as<Ast::ExpressionList*>()); free($1); }
         | MINUS expr2 %prec UMINUS    { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::Minus, $2); }
         | INCREMENT expr2             { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::PreIncrement, $2); }
         | DECREMENT expr2             { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::PreDecrement, $2); }

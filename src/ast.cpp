@@ -350,6 +350,11 @@ StatementList::StatementList(Statement *stm, StatementList *lst)
 StatementList::~StatementList()
 {
     for (Statement *s : statements) {
+        if (Assignment *a = s->as<Assignment*>()) {
+            if (a->expression->type() == FunctionT) {
+                continue;
+            }
+        }
         delete s;
     }
 }
