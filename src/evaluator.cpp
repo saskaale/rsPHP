@@ -241,6 +241,13 @@ AVal ex(Ast::Node *p, Environment* envir)
         return r;
     }
 
+    case Ast::Node::TryT: {
+        Ast::Try *v = p->as<Ast::Try*>();
+        AVal r = ex(v->body, envir);
+//        assignToVariable(v->variable, r, envir);
+        return r;
+    }
+
     case Ast::Node::FunctionT: {
          Ast::Function *v = p->as<Ast::Function*>();
          AVal fun = AVal(v);

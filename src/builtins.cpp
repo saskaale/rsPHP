@@ -137,6 +137,20 @@ void astDump(Ast::Node* p, int lvl = 0){
         break;
     }
 
+
+    case Ast::Node::TryT: {
+        Ast::Try *v = p->as<Ast::Try*>();
+        printf("\n");
+        PADDEDOUT(lvl+1); printf("BODY\n");
+          astDump(v->body, lvl+2);
+        PADDEDOUT(lvl+1); printf("VARIABLES\n");
+          astDump(v->variables, lvl+2);
+        PADDEDOUT(lvl+1); printf("CATCH\n");
+          astDump(v->catchPart, lvl+2);
+        break;
+    }
+    
+    
     case Ast::Node::FunctionT: {
         Ast::Function *v = p->as<Ast::Function*>();
         printf("\n");

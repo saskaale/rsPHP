@@ -21,7 +21,7 @@ const char* Node::typeStr() const
 {
     static const char* const tNames[] = {
         "VariableT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolLiteralT", "StringLiteralT",
-        "UnaryOperatorT", "BinaryOperatorT", "FunctionCallT", "ExpressionListT", "AssignmentT",
+        "UnaryOperatorT", "BinaryOperatorT", "FunctionCallT", "ExpressionListT", "AssignmentT", "TryT",
         "IfT", "WhileT", "ForT", "ReturnT", "BreakT", "ContinueT",
         "StatementListT", "VariableListT", "FunctionT"
     };
@@ -207,6 +207,27 @@ Node::Type ExpressionList::type() const
 }
 
 
+Try::Try(StatementList *body, VariableList* variables, StatementList *catchPart)
+    : body(body)
+    , variables(variables)
+    , catchPart(catchPart)
+{
+}
+
+Try::~Try()
+{
+    delete body;
+    delete variables;
+    delete catchPart;
+}
+
+Node::Type Try::type() const
+{
+    return TryT;
+}
+
+
+
 Assignment::Assignment(Variable *var, Expression *expr)
     : variable(var)
     , expression(expr)
@@ -340,7 +361,9 @@ StatementList::StatementList(Statement *stm, StatementList *lst)
         lst->statements.clear();
         delete lst;
     }
-    statements.push_back(stm);
+    if(stm){
+        statements.push_back(stm);
+    }
 }
 
 StatementList::~StatementList()
@@ -361,10 +384,6 @@ Node::Type StatementList::type() const
 }
 
 
-VariableList::VariableList()
-{
-}
-
 VariableList::VariableList(Variable *var, VariableList *lst)
 {
     if (lst) {
@@ -372,7 +391,9 @@ VariableList::VariableList(Variable *var, VariableList *lst)
         lst->variables.clear();
         delete lst;
     }
-    variables.push_back(var);
+    if(var) {
+        variables.push_back(var);
+    }
 }
 
 VariableList::~VariableList()

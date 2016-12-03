@@ -31,7 +31,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %token <iValue> INTEGER
 %token <str> VARIABLE
 %token <str> STRING
-%token FOR WHILE IF PRINT TRUE FALSE FUNCTION RETURN BREAK CONTINUE
+%token FOR WHILE IF PRINT TRUE FALSE FUNCTION RETURN BREAK CONTINUE TRY CATCH
 %token ASSIGN AS_PLUS AS_MINUS AS_TIMES AS_DIV AS_MOD REFERENCE
 %nonassoc IFX
 %nonassoc ELSE
@@ -43,7 +43,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %left AND OR
 %nonassoc UMINUS
 
-%type <nPtr> stmt stmt2 expr expr2 stmt_list value fundecl var_list var_list2 expr_list variable lambda
+%type <nPtr> stmt stmt2 expr expr2 stmt_list empty_stmt_list value fundecl var_list var_list2 expr_list variable lambda 
 
 %%
 
@@ -71,13 +71,14 @@ expr_list:
         ;
 
 stmt:
-          stmt2 ';'                                   { $$ = $1; }
-        | fundecl                                     { $$ = $1; }
-        | WHILE '(' expr ')' stmt                     { $$ = new Ast::While($3, $5); }
-        | IF '(' expr ')' stmt %prec IFX              { $$ = new Ast::If($3, $5, nullptr); }
-        | IF '(' expr ')' stmt ELSE stmt              { $$ = new Ast::If($3, $5, $7); }
-        | FOR '(' stmt2 ';' stmt2 ';' stmt2 ')' stmt  { $$ = new Ast::For($3, $5, $7, $9); }
-        | '{' stmt_list '}'                           { $$ = $2; }
+          stmt2 ';'                                               { $$ = $1; }
+        | fundecl                                                 { $$ = $1; }
+        | TRY '{' stmt_list '}' CATCH '(' var_list ')' '{' empty_stmt_list '}'   { $$ = new Ast::Try($3->as<Ast::StatementList*>(), $7->as<Ast::VariableList*>(), $10->as<Ast::StatementList*>()); }
+        | WHILE '(' expr ')' stmt                                 { $$ = new Ast::While($3, $5); }
+        | IF '(' expr ')' stmt %prec IFX                          { $$ = new Ast::If($3, $5, nullptr); }
+        | IF '(' expr ')' stmt ELSE stmt                          { $$ = new Ast::If($3, $5, $7); }
+        | FOR '(' stmt2 ';' stmt2 ';' stmt2 ')' stmt              { $$ = new Ast::For($3, $5, $7, $9); }
+        | '{' stmt_list '}'                                       { $$ = $2; }
         ;
 
 fundecl:
@@ -98,6 +99,11 @@ variable:
 var_list2:
           variable                 { $$ = new Ast::VariableList($1->as<Ast::Variable*>()); }
         | var_list2 ',' variable   { $$ = new Ast::VariableList($3->as<Ast::Variable*>(), $1->as<Ast::VariableList*>()); }
+        ;
+        
+empty_stmt_list:
+          stmt_list               { $$ = $1; }
+        |                         { $$ = new Ast::StatementList(); }
         ;
 
 stmt_list:

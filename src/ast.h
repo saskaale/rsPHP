@@ -44,7 +44,7 @@ class Node
 public:
     enum Type {
         VariableT, ArraySubscriptT, IntegerLiteralT, DoubleLiteralT, BoolLiteralT, StringLiteralT,
-        UnaryOperatorT, BinaryOperatorT, FunctionCallT, ExpressionListT, AssignmentT,
+        UnaryOperatorT, BinaryOperatorT, FunctionCallT, ExpressionListT, AssignmentT, TryT,
         IfT, WhileT, ForT, ReturnT, BreakT, ContinueT,
         StatementListT, VariableListT, FunctionT
     };
@@ -202,6 +202,20 @@ public:
 
 
 // public Statement
+
+class Try : public Statement
+{
+public:
+    explicit Try(StatementList *body, VariableList* variables, StatementList *catchPart);
+    ~Try();
+
+    Type type() const;
+
+    StatementList *body;
+    VariableList  *variables;
+    StatementList *catchPart;
+};
+
 class Assignment : public Statement
 {
 public:
@@ -282,7 +296,7 @@ public:
 class StatementList : public Statement
 {
 public:
-    explicit StatementList(Statement *stm, StatementList *lst = nullptr);
+    explicit StatementList(Statement *stm = nullptr, StatementList *lst = nullptr);
     ~StatementList();
 
     Type type() const;
@@ -297,8 +311,7 @@ public:
 class VariableList : public Node
 {
 public:
-    explicit VariableList();
-    explicit VariableList(Variable *var, VariableList *lst = nullptr);
+    explicit VariableList(Variable *var = nullptr, VariableList *lst = nullptr);
     ~VariableList();
 
     Type type() const;
