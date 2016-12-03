@@ -34,6 +34,7 @@ public:
     AVal(Ast::Function *value);
 
     Type type() const;
+    bool isWritable() const;
     const char* typeStr() const;
 
     bool isUndefined() const;

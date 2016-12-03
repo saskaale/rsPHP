@@ -75,6 +75,11 @@ AVal::Type AVal::type() const
     return _type;
 }
 
+bool AVal::isWritable() const
+{
+    return !isUndefined();
+}
+
 const char* AVal::typeStr() const
 {
     static const char* const tNames[] = {

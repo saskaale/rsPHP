@@ -197,9 +197,11 @@ AVal ex(Ast::Node *p, Environment* envir)
             AVal arr = envir->get(as);
             arr.data->arr[index] = value;
         } else {
-            AVal stored = envir->get(v);
+            AVal &stored = envir->get(v);
             if (stored.isReference()) {
                 *stored.toReference() = value;
+            } else if (stored.isWritable()) {
+                stored = value;
             } else {
                 envir->set(v, value);
             }
