@@ -1,17 +1,4 @@
-function inc(a){return a+1;}
+function add(a,b){return 3;}
 
-function add(a,b){return a+b;}
-
-function saxpy(a,x,y){return a*x+y;}
-
-
-print inc(4);
-print add(1,2);
-
-print saxpy(3,4,1000);
-
-a=3;
-print a;
-a=add(inc(a),10);
-print a;
+v = add(2,10);
 
