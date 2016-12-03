@@ -22,11 +22,6 @@ public:
         FUNCTION_BUILTIN
     };
 
-    struct Function {
-        Ast::Function *function;
-        Environment *environment;
-    };
-
     AVal();
     AVal(int value);
     AVal(bool value);
@@ -34,7 +29,7 @@ public:
     AVal(const char *value);
     AVal(BuiltinCall value);
     AVal(AVal *arr, size_t size);
-    AVal(Ast::Function *value, Environment *environment = nullptr);
+    AVal(Ast::Function *value);
 
     Type type() const;
     const char* typeStr() const;
@@ -42,7 +37,7 @@ public:
     int toInt() const;
     bool toBool() const;
     double toDouble() const;
-    Function toFunction() const;
+    Ast::Function *toFunction() const;
     BuiltinCall toBuiltinFunction() const;
     const char *toString() const;
 
@@ -61,7 +56,7 @@ public:
             int intValue;
             bool boolValue;
             double doubleValue;
-            Function functionValue;
+            Ast::Function *functionValue;
             BuiltinCall builtinFunction;
             char *stringValue;
             struct {

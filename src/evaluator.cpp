@@ -114,37 +114,32 @@ static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVa
 namespace Evaluator
 {
 
+
+
 StackFrame::StackFrame(Stack* s) :
     cnt(0)
 {
-}
+};
 
 StackFrame::~StackFrame()
 {
     for(int i = 0; i < cnt; i++){
         stack->pop_back();
     }
-}
+};
 
 void StackFrame::push(const AVal& v)
 {
     stack->push_back(v);
 };
 
-static AVal doUserdefFunction(Ast::FunctionCall *v, const AVal::Function &func, Environment *envir)
+static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environment *envir)
 {
     // Create environment for this function
     Environment *funcEnvironment = new Environment(envir);
     envirs.push_back(funcEnvironment);
 
-    Environment *oldEnvir = nullptr;
-    if (func.environment && func.environment != envir) {
-        funcEnvironment->parent = func.environment;
-        oldEnvir = func.environment->parent;
-        func.environment->parent = envir;
-    }
-
-    Ast::VariableList *parameters = func.function->parameters;
+    Ast::VariableList *parameters = func->parameters;
     Ast::ExpressionList *exprs    = v->arguments;
     if (parameters->variables.size() != exprs->expressions.size()) {
         // PARAMETERS MISMATCH FOR FUNCTION
@@ -158,13 +153,9 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, const AVal::Function &func, 
     }
 
     // Execute statement list of function
-    ex(func.function->statements, funcEnvironment);
+    ex(func->statements, funcEnvironment);
 
     AVal ret = funcEnvironment->returnValue;
-
-    if (oldEnvir) {
-        func.environment->parent = oldEnvir;
-    }
 
     envirs.erase(std::remove(envirs.begin(), envirs.end(), funcEnvironment), envirs.end());
     delete funcEnvironment;
@@ -207,9 +198,6 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::AssignmentT: {
         Ast::Assignment *v = p->as<Ast::Assignment*>();
         AVal r = ex(v->expression, envir);
-        if (r.type() == AVal::FUNCTION && r.toFunction().function->isLambda()) {
-            r.data->functionValue.environment = envir;
-        }
         if (Ast::ArraySubscript *as = v->variable->as<Ast::ArraySubscript*>()) {
             const int index = ex(as->expression, envir).toInt();
             if (!envir->has(as)) {
@@ -226,9 +214,7 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::FunctionT: {
          Ast::Function *v = p->as<Ast::Function*>();
          AVal fun = AVal(v);
-         if (!v->isLambda()) {
-             envir->setFunction(v->name, fun);
-         }
+         envir->setFunction(v->name, fun);
          return fun;
     }
 
@@ -379,6 +365,7 @@ AVal ex(Ast::Node *p, Environment* envir)
     return AVal();
 }
 
+  
 void init()
 {
     Environment *global = new Environment;
@@ -416,7 +403,7 @@ void cleanup(Ast::Node *p)
     // Same for lambdas
     if (p->type() == Ast::Node::AssignmentT) {
         Ast::Assignment *a = p->as<Ast::Assignment*>();
-        if (a->expression->type() == Ast::Node::FunctionT) {
+        if (a->expression && a->expression->type() == Ast::Node::FunctionT) {
             a->expression = nullptr;
         }
     }
