@@ -31,7 +31,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %token <iValue> INTEGER
 %token <str> VARIABLE
 %token <str> STRING
-%token FOR WHILE IF PRINT TRUE FALSE FUNCTION RETURN BREAK CONTINUE TRY CATCH
+%token FOR WHILE IF PRINT THROW TRUE FALSE FUNCTION RETURN BREAK CONTINUE TRY CATCH
 %token ASSIGN AS_PLUS AS_MINUS AS_TIMES AS_DIV AS_MOD REFERENCE
 %nonassoc IFX
 %nonassoc ELSE
@@ -59,6 +59,7 @@ function:
 stmt2:
           expr                                    { $$ = $1; }
         | PRINT expr                              { $$ = new Ast::FunctionCall(new Ast::Variable("print"), $2); }
+        | THROW expr                              { $$ = new Ast::FunctionCall(new Ast::Variable("throw"), $2); }
         | RETURN expr                             { $$ = new Ast::Return($2); }
         | BREAK                                   { $$ = new Ast::Break(); }
         | CONTINUE                                { $$ = new Ast::Continue(); }

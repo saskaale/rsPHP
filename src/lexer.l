@@ -59,6 +59,7 @@ void comment();
 "function"      return FUNCTION;
 "while"         return WHILE;
 "if"            return IF;
+"throw"         return THROW;
 "try"           return TRY;
 "catch"         return CATCH;
 "else"          return ELSE;

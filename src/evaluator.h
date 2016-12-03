@@ -5,9 +5,9 @@
 #include "builtins.h"
 
 
-#define THROW2(name, descr) {(fprintf(stderr, name, descr), fprintf(stderr, "\n"), X_ASSERT(false && name)); return AVal();};
-
-#define THROW(name) { (fprintf(stderr, name), fprintf(stderr, "\n"), X_ASSERT(false && name)); return AVal();}
+#define THROW2(name, descr) {(fprintf(stderr, name, descr), fprintf(stderr, "\n"), X_ASSERT(false && name)); return AVal(name, true);};
+#define THROW(name) { (fprintf(stderr, name), fprintf(stderr, "\n"), X_ASSERT(false && name)); return AVal(name, true);}
+#define CHECKTHROWN(v) {if((v).isThrown()) return v;}
 
 
 

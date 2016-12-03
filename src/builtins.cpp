@@ -20,6 +20,7 @@ AVal doBuiltInPrint(Ast::ExpressionList *v, Environment* envir)
       THROW("Print function expects at least one parameter.")
 
     AVal printV = ex(v->expressions.front(), envir);
+    CHECKTHROWN(printV)
 
     return printf("%s\n", printV.toString());
 }
@@ -30,6 +31,7 @@ AVal doBuiltInTypeof(Ast::ExpressionList *v, Environment* envir)
       THROW("Print function expects at least one parameter.")
 
     AVal printV = ex(v->expressions.front(), envir);
+    CHECKTHROWN(printV)
 
     return printV.typeStr();
 }
@@ -63,6 +65,7 @@ AVal doBuiltInReadString(Ast::ExpressionList *v, Environment* envir)
 AVal doBuiltInReadBool(Ast::ExpressionList *v, Environment* envir)
 {
     AVal val = doBuiltInReadString(v, envir);
+    CHECKTHROWN(val)
     if(val.isString()){
         if(strcmp(val.toString(), "true"))
             return true;
@@ -77,6 +80,19 @@ AVal doBuiltInGC(Ast::ExpressionList *, Environment *)
     printf("MemoryPool::collectGarbage()\n");
     MemoryPool::collectGarbage(false);
     return AVal();
+}
+
+AVal doBuiltInThrow(Ast::ExpressionList * v, Environment * envir)
+{
+    if(v->expressions.empty())
+      THROW("Throw function expects at least one parameter.")
+
+    AVal val = ex(v->expressions.front(), envir);
+    CHECKTHROWN(val)
+
+    val.markThrown();
+
+    return val;
 }
 
 
@@ -324,6 +340,7 @@ void registerBuiltins(Environment* e){
     e->setFunction("readDouble", &doBuiltInReadDouble);
     e->setFunction("readString", &doBuiltInReadString);
     e->setFunction("print", &doBuiltInPrint);
+    e->setFunction("throw", &doBuiltInThrow);
     e->setFunction("dumpAST", &doBuiltInDumpAST);
     e->setFunction("gc", &doBuiltInGC);
 }

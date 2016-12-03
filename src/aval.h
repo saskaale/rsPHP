@@ -24,14 +24,14 @@ public:
     };
 
     AVal();
-    AVal(AVal *value);
-    AVal(int value);
-    AVal(bool value);
-    AVal(double value);
-    AVal(const char *value);
+    AVal(AVal *value, bool isThrown = false);
+    AVal(int value, bool isThrown = false);
+    AVal(bool value, bool isThrown = false);
+    AVal(double value, bool isThrown = false);
+    AVal(const char *value, bool isThrown = false);
     AVal(BuiltinCall value);
-    AVal(AVal *arr, size_t size);
-    AVal(Ast::Function *value);
+    AVal(AVal *arr, int size, bool isThrown = false);
+    AVal(Ast::Function *value, bool isThrown = false);
 
     Type type() const;
     bool isWritable() const;
@@ -46,6 +46,9 @@ public:
     bool isArray() const;
     bool isFunction() const;
     bool isBuiltinFunction() const;
+    bool isThrown() const;
+    
+    void markThrown();
 
     AVal *toReference() const;
     int toInt() const;
@@ -58,6 +61,7 @@ public:
     AVal convertTo(Type t) const;
 
     Type _type;
+    bool thrown;
     void* rawdata;
 
     struct Data {

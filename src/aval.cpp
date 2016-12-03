@@ -10,45 +10,52 @@
 
 AVal::AVal()
     : _type(UNDEFINED)
+    , thrown(false)
 {
 }
 
-AVal::AVal(AVal *value)
+AVal::AVal(AVal *value, bool thrown)
     : _type(REFERENCE)
+    , thrown(thrown)
 {
     data = reinterpret_cast<Data*>(value);
 }
 
-AVal::AVal(int value)
+AVal::AVal(int value, bool thrown)
     : _type(INT)
+    , thrown(thrown)
 {
     data = reinterpret_cast<Data*>(value);
 }
 
-AVal::AVal(bool value)
+AVal::AVal(bool value, bool thrown)
     : _type(BOOL)
+    , thrown(thrown)
 {
     data = reinterpret_cast<Data*>(value);
 }
 
-AVal::AVal(double value)
+AVal::AVal(double value, bool thrown)
     : _type(DOUBLE)
+    , thrown(thrown)
     , data(MemoryPool::alloc())
 {
     data->type = _type;
     data->doubleValue = value;
 }
 
-AVal::AVal(const char *value)
+AVal::AVal(const char *value, bool thrown)
     : _type(STRING)
+    , thrown(thrown)
     , data(MemoryPool::alloc())
 {
     data->type = _type;
     data->stringValue = MemoryPool::strdup(value);
 }
 
-AVal::AVal(AVal *arr, size_t size)
+AVal::AVal(AVal *arr, int size, bool thrown)
     : _type(ARRAY)
+    , thrown(thrown)
     , data(MemoryPool::alloc())
 {
     data->type = _type;
@@ -56,8 +63,9 @@ AVal::AVal(AVal *arr, size_t size)
     data->arrsize = size;
 }
 
-AVal::AVal(Ast::Function *value)
+AVal::AVal(Ast::Function *value, bool thrown)
     : _type(FUNCTION)
+    , thrown(thrown)
     , data(MemoryPool::alloc())
 {
     data->type = _type;
@@ -66,6 +74,7 @@ AVal::AVal(Ast::Function *value)
 
 AVal::AVal(BuiltinCall value)
     : _type(FUNCTION_BUILTIN)
+    , thrown(false)
 {
     data = reinterpret_cast<Data*>(value);
 }
@@ -139,6 +148,16 @@ bool AVal::isFunction() const
 bool AVal::isBuiltinFunction() const
 {
     return _type == FUNCTION_BUILTIN;
+}
+
+bool AVal::isThrown() const
+{
+    return thrown;
+}
+
+void AVal::markThrown()
+{
+    thrown = true;
 }
 
 AVal *AVal::toReference() const
