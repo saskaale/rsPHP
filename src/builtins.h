@@ -17,4 +17,9 @@ namespace Evaluator
     AVal doBuiltInGC(Ast::ExpressionList *, Environment *);
     AVal doBuiltInDumpAST(Ast::ExpressionList *, Environment *);
 
+    // Arrays
+    AVal doBuiltInArray(Ast::ExpressionList *, Environment *);
+    AVal doBuiltInCount(Ast::ExpressionList *, Environment *);
+    AVal doBuiltInPush(Ast::ExpressionList *, Environment *);
+
 }

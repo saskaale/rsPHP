@@ -163,8 +163,8 @@ inline static void DFSMark(const AVal& val){
     
     //deep recursion to mark each elements of array
     if(val.isArray()){
-      for(int i = 0; i < val.data->arrsize; i++){
-        DFSMark(val.data->arr[i]);
+      for(int i = 0; i < val.toArray().allocd; i++){
+        DFSMark(val.toArray().array[i]);
       }
     }
 }

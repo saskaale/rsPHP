@@ -25,6 +25,12 @@ public:
         FUNCTION_BUILTIN
     };
 
+    struct Array {
+        AVal *array = nullptr;
+        size_t count = 0;
+        size_t allocd = 0;
+    };
+
     AVal();
     AVal(AVal *value, bool isThrown = false);
     AVal(int value, bool isThrown = false);
@@ -32,7 +38,7 @@ public:
     AVal(double value, bool isThrown = false);
     AVal(const char *value, bool isThrown = false);
     AVal(BuiltinCall value);
-    AVal(AVal *value, int size, bool isThrown = false);
+    AVal(Array value, bool isThrown = false);
     AVal(Ast::Function *value, bool isThrown = false);
 
     Type type() const;
@@ -50,7 +56,7 @@ public:
     bool isFunction() const;
     bool isBuiltinFunction() const;
     bool isThrown() const;
-    
+
     void markThrown(bool is = true);
 
     AVal *toReference() const;
@@ -60,6 +66,7 @@ public:
     Ast::Function *toFunction() const;
     BuiltinCall toBuiltinFunction() const;
     const char *toString() const;
+    Array toArray() const;
 
     AVal convertTo(Type t) const;
 
@@ -80,10 +87,7 @@ public:
             Ast::Function *functionValue;
             BuiltinCall builtinFunction;
             char *stringValue;
-            struct {
-                AVal *arr;
-                size_t arrsize;
-            };
+            Array arrayValue;
         };
     } *data = nullptr;
 };

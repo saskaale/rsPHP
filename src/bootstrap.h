@@ -20,4 +20,12 @@ function swap(&a, &b)
     b = tmp;
 }
 
+function forEach(&a, f)
+{
+    c = count(a);
+    for (i = 0; i < c; ++i) {
+        f(a[i]);
+    }
+}
+
 )";

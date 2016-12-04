@@ -169,7 +169,12 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
                 THROW2("Argument %d expects reference!", i);
             }
             Ast::Variable *ev = e->as<Ast::Variable*>();
-            r = &envir->get(ev);
+            AVal &stored = envir->get(ev);
+            if (stored.isReference()) {
+                r = stored;
+            } else {
+                r = &stored;
+            }
         } else {
             r = ex(e, envir);
             CHECKTHROWN(r)
@@ -199,11 +204,15 @@ AVal ex(Ast::Node *p, Environment* envir)
             AVal ind = ex(as->expression, envir);
             CHECKTHROWN(ind)
             const int index = ind.toInt();
-            if (!envir->has(as)) {
-                envir->set(as, AVal(new AVal[100], 100));
+            AVal &arr = envir->get(v);
+            if (!arr.isArray() && (!arr.isReference() || !arr.toReference()->isArray())) {
+                THROW("Variable is not array");
             }
-            AVal arr = envir->get(as);
-            arr.data->arr[index] = value;
+            const AVal::Array &a = arr.toArray();
+            if (index < 0 || index >= a.count) {
+                THROW("Index out of bounds");
+            }
+            a.array[index] = value.dereference();
         } else {
             AVal &stored = envir->get(v);
             if (stored.isReference()) {
@@ -245,7 +254,14 @@ AVal ex(Ast::Node *p, Environment* envir)
         CHECKTHROWN(ind)
         const int index = ind.toInt();
         AVal arr = envir->get(v);
-        return arr.data->arr[index];
+        if (!arr.isArray() && (!arr.isReference() || !arr.toReference()->isArray())) {
+            THROW("Variable is not array");
+        }
+        const AVal::Array &a = arr.toArray();
+        if (index < 0 || index >= a.count) {
+            THROW("Index out of bounds");
+        }
+        return a.array[index];
     }
 
     case Ast::Node::AssignmentT: {

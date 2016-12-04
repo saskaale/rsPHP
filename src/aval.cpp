@@ -53,14 +53,13 @@ AVal::AVal(const char *value, bool thrown)
     data->stringValue = MemoryPool::strdup(value);
 }
 
-AVal::AVal(AVal *value, int size, bool thrown)
+AVal::AVal(Array value, bool thrown)
     : _type(ARRAY)
     , thrown(thrown)
     , data(MemoryPool::alloc())
 {
     data->type = _type;
-    data->arr = value;
-    data->arrsize = size;
+    data->arrayValue = value;
 }
 
 AVal::AVal(Ast::Function *value, bool thrown)
@@ -198,6 +197,11 @@ const char *AVal::toString() const
     return convertTo(STRING).data->stringValue;
 }
 
+AVal::Array AVal::toArray() const
+{
+    return convertTo(ARRAY).data->arrayValue;
+}
+
 BuiltinCall AVal::toBuiltinFunction() const
 {
     return reinterpret_cast<BuiltinCall>(convertTo(FUNCTION_BUILTIN).data);
@@ -231,7 +235,7 @@ AVal AVal::convertTo(Type t) const
         case STRING:
             return "[undefined]";
         case ARRAY:
-            return AVal(nullptr, 0);
+            return Array();
         default:
             X_UNREACHABLE();
         }
@@ -254,7 +258,7 @@ AVal AVal::convertTo(Type t) const
             return ss.str().c_str();
         }
         case ARRAY:
-            return AVal(nullptr, 0);
+            return Array();
         default:
             X_UNREACHABLE();
         }
@@ -271,7 +275,7 @@ AVal AVal::convertTo(Type t) const
         case STRING:
             return toBool() ? "true" : "false";
         case ARRAY:
-            return AVal(nullptr, 0);
+            return Array();
         default:
             X_UNREACHABLE();
         }
@@ -291,7 +295,7 @@ AVal AVal::convertTo(Type t) const
             return ss.str().c_str();
         }
         case ARRAY:
-            return AVal(nullptr, 0);
+            return Array();
         default:
             X_UNREACHABLE();
         }
@@ -306,7 +310,7 @@ AVal AVal::convertTo(Type t) const
         case STRING:
             return "[function]";
         case ARRAY:
-            return AVal(nullptr, 0);
+            return Array();
         default:
             X_UNREACHABLE();
         }
@@ -321,7 +325,7 @@ AVal AVal::convertTo(Type t) const
         case STRING:
             return "[builtin function]";
         case ARRAY:
-            return AVal(nullptr, 0);
+            return Array();
         default:
             X_UNREACHABLE();
         }
@@ -338,7 +342,7 @@ AVal AVal::convertTo(Type t) const
         case FUNCTION_BUILTIN:
             return static_cast<Ast::Function*>(nullptr);
         case ARRAY:
-            return AVal(nullptr, 0);
+            return Array();
         default:
             X_UNREACHABLE();
         }
@@ -371,7 +375,7 @@ AVal::Data::~Data()
     } else if (type == STRING) {
         MemoryPool::strfree(stringValue);
     } else if (type == ARRAY) {
-        delete []arr;
+        delete []arrayValue.array;
     }
 }
 

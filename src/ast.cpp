@@ -215,6 +215,9 @@ ExpressionList::ExpressionList(Expression *expr, ExpressionList *lst)
 ExpressionList::~ExpressionList()
 {
     for (Expression *e : expressions) {
+        if (e->type() == FunctionT) {
+            continue;
+        }
         delete e;
     }
 }
@@ -389,7 +392,7 @@ StatementList::~StatementList()
     for (Statement *s : statements) {
         if (Assignment *a = s->as<Assignment*>()) {
             if (a->expression->type() == FunctionT) {
-                continue;
+                a->expression = nullptr;
             }
         }
         delete s;

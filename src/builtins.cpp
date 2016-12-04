@@ -337,6 +337,66 @@ AVal doBuiltInDumpAST(Ast::ExpressionList *v, Environment *envir){
     return AVal();
 }
 
+AVal doBuiltInArray(Ast::ExpressionList *v, Environment *envir)
+{
+    if (v->expressions.size() > 1) {
+        THROW("Array() takes one or zero arguments.");
+    }
+
+    const int size = v->expressions.empty() ? 0 : ex(v->expressions[0], envir).toInt();
+    if (size < 0) {
+        THROW("Array size cannot be negative.");
+    }
+
+    AVal *arr = size == 0 ? nullptr : new AVal[size];
+    AVal::Array a;
+    a.array = arr;
+    a.count = 0;
+    a.allocd = size;
+    return a;
+}
+
+AVal doBuiltInCount(Ast::ExpressionList *v, Environment *envir)
+{
+    if (v->expressions.size() != 1) {
+        THROW("count() takes one argument.");
+    }
+
+    AVal arr = ex(v->expressions[0], envir);
+    if (!arr.isArray() && (!arr.isReference() || !arr.toReference()->isArray())) {
+        THROW("count() argument must be of type Array.");
+    }
+
+    return int(arr.toArray().count);
+}
+
+AVal doBuiltInPush(Ast::ExpressionList *v, Environment *envir)
+{
+    if (v->expressions.size() != 2) {
+        THROW("push() takes two arguments.");
+    }
+
+    AVal arr = ex(v->expressions[0], envir);
+    if (!arr.isArray()) {
+        THROW("push() argument 1 must be of type Array.");
+    }
+
+    AVal value = ex(v->expressions[1], envir);
+
+    if (arr.data->arrayValue.count >= arr.data->arrayValue.allocd) {
+        const int newallocd = (arr.data->arrayValue.count + 1) * 2;
+        AVal *tmp = new AVal[newallocd];
+        for (size_t i = 0; i < arr.data->arrayValue.count; ++i) {
+            tmp[i] = arr.data->arrayValue.array[i];
+        }
+        delete [] arr.data->arrayValue.array;
+        arr.data->arrayValue.array = tmp;
+        arr.data->arrayValue.allocd = newallocd;
+    }
+
+    arr.data->arrayValue.array[arr.data->arrayValue.count++] = value.dereference();
+    return AVal();
+}
 
 void registerBuiltins(Environment* e){
     e->setFunction("typeof", &doBuiltInTypeof);
@@ -348,6 +408,9 @@ void registerBuiltins(Environment* e){
     e->setFunction("throw", &doBuiltInThrow);
     e->setFunction("dumpAST", &doBuiltInDumpAST);
     e->setFunction("gc", &doBuiltInGC);
+    e->setFunction("Array", &doBuiltInArray);
+    e->setFunction("count", &doBuiltInCount);
+    e->setFunction("push", &doBuiltInPush);
 }
 
 
