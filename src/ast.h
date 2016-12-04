@@ -43,7 +43,7 @@ class Node
 {
 public:
     enum Type {
-        VariableT, ArraySubscriptT, IntegerLiteralT, DoubleLiteralT, BoolLiteralT, StringLiteralT,
+        VariableT, ArraySubscriptT, IntegerLiteralT, DoubleLiteralT, BoolLiteralT, StringLiteralT, AValLiteralT,
         UnaryOperatorT, BinaryOperatorT, FunctionCallT, ExpressionListT, AssignmentT, TryT,
         IfT, WhileT, ForT, ReturnT, BreakT, ContinueT,
         StatementListT, VariableListT, FunctionT
@@ -97,6 +97,17 @@ public:
 
     Expression *expression;
 };
+
+class AValLiteral : public Expression
+{
+public:
+    explicit AValLiteral(const void* value);
+
+    Type type() const;
+
+    const void* value;
+};
+
 
 class IntegerLiteral : public Expression
 {
@@ -190,6 +201,7 @@ class ExpressionList : public Expression
 {
 public:
     explicit ExpressionList();
+    explicit ExpressionList(const std::vector<Expression*>& expr);
     explicit ExpressionList(Expression *expr, ExpressionList *lst = nullptr);
     ~ExpressionList();
 

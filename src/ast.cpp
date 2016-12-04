@@ -1,5 +1,6 @@
 #include "ast.h"
 #include "common.h"
+#include "aval.h"
 
 #include <cstdio>
 #include <cstring>
@@ -20,7 +21,7 @@ Node::~Node()
 const char* Node::typeStr() const
 {
     static const char* const tNames[] = {
-        "VariableT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolLiteralT", "StringLiteralT",
+        "VariableT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolLiteralT", "StringLiteralT", "AValLiteralT",
         "UnaryOperatorT", "BinaryOperatorT", "FunctionCallT", "ExpressionListT", "AssignmentT", "TryT",
         "IfT", "WhileT", "ForT", "ReturnT", "BreakT", "ContinueT",
         "StatementListT", "VariableListT", "FunctionT"
@@ -71,6 +72,18 @@ Node::Type IntegerLiteral::type() const
 {
     return IntegerLiteralT;
 }
+
+AValLiteral::AValLiteral(const void* value)
+    : value(value)
+{
+}
+
+
+Node::Type AValLiteral::type() const
+{
+    return AValLiteralT;
+}
+
 
 
 DoubleLiteral::DoubleLiteral(double value)
@@ -181,6 +194,11 @@ Node::Type FunctionCall::type() const
 
 
 ExpressionList::ExpressionList()
+{
+}
+
+ExpressionList::ExpressionList(const std::vector<Expression*>& expressions)
+  : expressions(expressions)
 {
 }
 

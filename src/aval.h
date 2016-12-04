@@ -1,10 +1,12 @@
 #pragma once
 
-#include "parser.h"
 
 class AVal;
 
 class Environment;
+
+
+#include "parser.h"
 
 typedef AVal (*BuiltinCall)(Ast::ExpressionList *v, Environment* envir);
 

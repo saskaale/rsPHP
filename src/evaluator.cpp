@@ -234,6 +234,10 @@ AVal ex(Ast::Node *p, Environment* envir)
         Ast::Variable *v = p->as<Ast::Variable*>();
         return envir->get(v);
     }
+    
+    case Ast::Node::AValLiteralT: {
+        return *((AVal*)p->as<Ast::AValLiteral*>()->value);
+    }
 
     case Ast::Node::ArraySubscriptT: {
         Ast::ArraySubscript *v = p->as<Ast::ArraySubscript*>();
@@ -269,7 +273,8 @@ AVal ex(Ast::Node *p, Environment* envir)
           AVal catchP = ex(v->catchPart, envir);
           CHECKTHROWN(catchP)
         }
-//        assignToVariable(v->variable, r, envir);
+        
+        r.markThrown(false);
         return r;
     }
 
@@ -448,6 +453,33 @@ AVal ex(Ast::Node *p, Environment* envir)
 }
 
 
+AVal INVOKE_INTERNAL( const char* name, Environment* envir, std::initializer_list<AVal> list )
+{
+    std::vector<Ast::Expression*> exprs;
+    for(const AVal& v: list)
+    {
+        exprs.push_back(new Ast::AValLiteral(&v));
+    }
+  
+    Ast::Node* call = new Ast::FunctionCall(new Ast::Variable(name), new Ast::ExpressionList(exprs));
+    AVal r = ex(call, envir);
+    delete call;
+    CHECKTHROWN(r);
+    return r;
+}
+
+
+
+static void defaultExceptionHandler(Environment* envir, AVal toPrint){
+  toPrint.markThrown(false);
+  printf("An uncaught exception occured\n");
+  printf("Catched: "); 
+  INVOKE_INTERNAL("dump", envir, { toPrint });
+  printf("Sorry, Bye :(\n");
+  ::exit(EXIT_FAILURE);
+}
+
+
 void init()
 {
     Environment *global = new Environment;
@@ -468,7 +500,12 @@ void exit()
 
 void eval(Ast::Node *p)
 {
-    ex(p, envirs[0]);
+    Environment* global = envirs[0];
+    AVal ret = ex(p, global);
+    if(ret.isThrown()){
+      defaultExceptionHandler(global, ret);
+    }
+    
     MemoryPool::checkCollectGarbage();
 }
 

@@ -98,7 +98,7 @@ AVal doBuiltInThrow(Ast::ExpressionList * v, Environment * envir)
 
 #define PADDEDOUT(lvl) for(int i = 0; i < lvl; i++) printf(" ");
 
-void astDump(Ast::Node* p, int lvl = 0){
+void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
     if (!p) {
       PADDEDOUT(lvl); printf("???\n");
       return;
@@ -130,12 +130,16 @@ void astDump(Ast::Node* p, int lvl = 0){
         break;
     }
 
+    case Ast::Node::AValLiteralT:
+        Evaluator::INVOKE_INTERNAL( "print", envir, { *((AVal*)p->as<Ast::AValLiteral*>()->value) } );
+        break;
+    
     case Ast::Node::ArraySubscriptT: {
         printf("\n");
         PADDEDOUT(lvl+1); printf("NAME >>%s<<:\n", p->as<Ast::Variable*>()->name.c_str());
 
         PADDEDOUT(lvl+1); printf("INDEX:\n");
-          astDump(p->as<Ast::ArraySubscript*>()->expression, lvl+2);
+          astDump(p->as<Ast::ArraySubscript*>()->expression, envir, lvl+2);
         break;
     }
 
@@ -143,11 +147,11 @@ void astDump(Ast::Node* p, int lvl = 0){
         Ast::Assignment *v = p->as<Ast::Assignment*>();
         printf("\n");
         PADDEDOUT(lvl+1); printf("EXPR:\n");
-          astDump(v->expression, lvl+2);
+          astDump(v->expression, envir, lvl+2);
 
         if (Ast::ArraySubscript *as = v->variable->as<Ast::ArraySubscript*>()) {
             PADDEDOUT(lvl+1); printf("ARRAYSUBSCRIPT:\n");
-              astDump(v->variable, lvl+2);
+              astDump(v->variable, envir, lvl+2);
         }
 
         break;
@@ -158,11 +162,11 @@ void astDump(Ast::Node* p, int lvl = 0){
         Ast::Try *v = p->as<Ast::Try*>();
         printf("\n");
         PADDEDOUT(lvl+1); printf("BODY\n");
-          astDump(v->body, lvl+2);
+          astDump(v->body, envir, lvl+2);
         PADDEDOUT(lvl+1); printf("VARIABLES\n");
-          astDump(v->variables, lvl+2);
+          astDump(v->variables, envir, lvl+2);
         PADDEDOUT(lvl+1); printf("CATCH\n");
-          astDump(v->catchPart, lvl+2);
+          astDump(v->catchPart, envir, lvl+2);
         break;
     }
     
@@ -172,9 +176,9 @@ void astDump(Ast::Node* p, int lvl = 0){
         printf("\n");
         PADDEDOUT(lvl+1); printf("NAME: >>%s<<", v->name.c_str());
         PADDEDOUT(lvl+1);  printf("PARAMETERS:\n");
-          astDump(v->parameters, lvl+2);
+          astDump(v->parameters, envir, lvl+2);
         PADDEDOUT(lvl+1);  printf("STATEMENTS:\n");
-          astDump(v->statements, lvl+2);
+          astDump(v->statements, envir, lvl+2);
         break;
     }
 
@@ -182,9 +186,9 @@ void astDump(Ast::Node* p, int lvl = 0){
         Ast::FunctionCall *v = p->as<Ast::FunctionCall*>();
         printf("\n");
         PADDEDOUT(lvl+1); printf("FUNCTION:\n");
-          astDump(v->function, lvl+2);
+          astDump(v->function, envir, lvl+2);
         PADDEDOUT(lvl+1); printf("ARGUMENTS:\n");
-          astDump(v->arguments, lvl+2);
+          astDump(v->arguments, envir, lvl+2);
         break;
     }
 
@@ -208,7 +212,7 @@ void astDump(Ast::Node* p, int lvl = 0){
             printf("PostDecrement:\n");
             break;
         }
-        astDump(v->expr, lvl+1);
+        astDump(v->expr, envir, lvl+1);
         break;
     }
 
@@ -217,16 +221,16 @@ void astDump(Ast::Node* p, int lvl = 0){
 
         printf("%s\n", v->opStr());
         PADDEDOUT(lvl+1); printf("LEFT:\n");
-          astDump(v->left, lvl+2);
+          astDump(v->left, envir, lvl+2);
         PADDEDOUT(lvl+1); printf("RIGHT:\n");
-          astDump(v->right, lvl+2);
+          astDump(v->right, envir, lvl+2);
 
         break;
     }
 
     case Ast::Node::ReturnT: {
         printf("\n");
-        astDump(p->as<Ast::Return*>()->expression, lvl+1);
+        astDump(p->as<Ast::Return*>()->expression, envir, lvl+1);
         return;
     }
 
@@ -246,7 +250,7 @@ void astDump(Ast::Node* p, int lvl = 0){
         int i = 0;
         for (Ast::Statement *s : v->statements) {
             PADDEDOUT(lvl+1); printf("%d:\n", i++);
-            astDump(s, lvl+2);
+            astDump(s, envir, lvl+2);
         }
         break;
     }
@@ -257,7 +261,7 @@ void astDump(Ast::Node* p, int lvl = 0){
         int i = 0;
         for (Ast::Expression *s : v->expressions) {
             PADDEDOUT(lvl+1); printf("%d:\n", i++);
-            astDump(s, lvl+2);
+            astDump(s, envir, lvl+2);
         }
         break;
     }
@@ -268,7 +272,7 @@ void astDump(Ast::Node* p, int lvl = 0){
         int i = 0;
         for (Ast::Variable *var : v->variables) {
             PADDEDOUT(lvl+1); printf("%d:\n", i++);
-            astDump(var, lvl+2);
+            astDump(var, envir, lvl+2);
         }
         break;
     }
@@ -277,11 +281,11 @@ void astDump(Ast::Node* p, int lvl = 0){
         Ast::If *v = p->as<Ast::If*>();
         printf("\n");
         PADDEDOUT(lvl+1); printf("COND:\n");
-          astDump(v->condition, lvl+2);
+          astDump(v->condition, envir, lvl+2);
         PADDEDOUT(lvl+1); printf("THEN:\n");
-          astDump(v->thenStatement, lvl+2);
+          astDump(v->thenStatement, envir, lvl+2);
         PADDEDOUT(lvl+1); printf("ELSE:\n");
-          astDump(v->elseStatement, lvl+2);
+          astDump(v->elseStatement, envir, lvl+2);
         break;
     }
 
@@ -289,9 +293,9 @@ void astDump(Ast::Node* p, int lvl = 0){
         Ast::While *v = p->as<Ast::While*>();
         printf("\n");
         PADDEDOUT(lvl+1); printf("COND:\n");
-          astDump(v->condition, lvl+2);
+          astDump(v->condition, envir, lvl+2);
         PADDEDOUT(lvl+1); printf("BODY:\n");
-          astDump(v->statement, lvl+2);
+          astDump(v->statement, envir, lvl+2);
         break;
     }
 
@@ -300,13 +304,13 @@ void astDump(Ast::Node* p, int lvl = 0){
 
         printf("\n");
         PADDEDOUT(lvl+1); printf("INIT:\n");
-          astDump(v->init, lvl+2);
+          astDump(v->init, envir, lvl+2);
         PADDEDOUT(lvl+1); printf("COND:\n");
-          astDump(v->cond, lvl+2);
+          astDump(v->cond, envir, lvl+2);
         PADDEDOUT(lvl+1); printf("AFTER:\n");
-          astDump(v->after, lvl+2);
+          astDump(v->after, envir, lvl+2);
         PADDEDOUT(lvl+1); printf("BODY:\n");
-          astDump(v->statement, lvl+2);
+          astDump(v->statement, envir, lvl+2);
         break;
     }
 
@@ -328,7 +332,7 @@ AVal doBuiltInDumpAST(Ast::ExpressionList *v, Environment *envir){
 //    AVal printV = ex(v->expressions.front(), envir);
 //    if(!printV.type() != AVal::FUNCTION)
 //      THROW("type must be function")
-    astDump(toprint);
+    astDump(toprint, envir);
 
     return AVal();
 }
@@ -340,6 +344,7 @@ void registerBuiltins(Environment* e){
     e->setFunction("readDouble", &doBuiltInReadDouble);
     e->setFunction("readString", &doBuiltInReadString);
     e->setFunction("print", &doBuiltInPrint);
+    e->setFunction("dump", &doBuiltInPrint);
     e->setFunction("throw", &doBuiltInThrow);
     e->setFunction("dumpAST", &doBuiltInDumpAST);
     e->setFunction("gc", &doBuiltInGC);

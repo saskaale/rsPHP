@@ -33,3 +33,7 @@ try{
 }catch(e){
     print "CATCHED2 >>"+e+"<<";
 }
+
+
+throw "THIS IS EXIT";
+print "unreachable";

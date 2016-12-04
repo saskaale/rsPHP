@@ -34,6 +34,8 @@ namespace Evaluator
     void cleanup(Ast::Node *p);
 
     AVal ex(Ast::Node *p, Environment* envir);
+
+    AVal INVOKE_INTERNAL( const char* name, Environment* envir, std::initializer_list<AVal> list );
     
     std::vector<Environment*> environments();
 }
