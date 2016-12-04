@@ -16,10 +16,10 @@ namespace Evaluator
 // Functions
 AVal doBuiltInPrint(Ast::ExpressionList *v, Environment* envir)
 {
-    if(v->expressions.empty())
+    if(v->expressions().empty())
       THROW("Print function expects at least one parameter.")
 
-    AVal printV = ex(v->expressions.front(), envir);
+    AVal printV = ex(v->expressions().front(), envir);
     CHECKTHROWN(printV)
 
     return printf("%s\n", printV.toString());
@@ -27,10 +27,10 @@ AVal doBuiltInPrint(Ast::ExpressionList *v, Environment* envir)
 
 AVal doBuiltInTypeof(Ast::ExpressionList *v, Environment* envir)
 {
-    if(v->expressions.empty())
+    if(v->expressions().empty())
       THROW("Print function expects at least one parameter.")
 
-    AVal printV = ex(v->expressions.front(), envir);
+    AVal printV = ex(v->expressions().front(), envir);
     CHECKTHROWN(printV)
 
     return printV.typeStr();
@@ -84,10 +84,10 @@ AVal doBuiltInGC(Ast::ExpressionList *, Environment *)
 
 AVal doBuiltInThrow(Ast::ExpressionList * v, Environment * envir)
 {
-    if(v->expressions.empty())
+    if(v->expressions().empty())
       THROW("Throw function expects at least one parameter.")
 
-    AVal val = ex(v->expressions.front(), envir);
+    AVal val = ex(v->expressions().front(), envir);
     CHECKTHROWN(val)
 
     val.markThrown();
@@ -131,7 +131,7 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
     }
 
     case Ast::Node::AValLiteralT:
-        Evaluator::INVOKE_INTERNAL( "print", envir, { *((AVal*)p->as<Ast::AValLiteral*>()->value) } );
+        Evaluator::INVOKE_INTERNAL( "print", envir, { *((AVal*)p->as<Ast::AValLiteral*>()->value()) } );
         break;
 
     case Ast::Node::ArraySubscriptT: {
@@ -139,7 +139,7 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
         PADDEDOUT(lvl+1); printf("NAME >>%s<<:\n", p->as<Ast::Variable*>()->name.c_str());
 
         PADDEDOUT(lvl+1); printf("INDEX:\n");
-          astDump(p->as<Ast::ArraySubscript*>()->expression, envir, lvl+2);
+          astDump(p->as<Ast::ArraySubscript*>()->expression(), envir, lvl+2);
         break;
     }
 
@@ -147,11 +147,11 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
         Ast::Assignment *v = p->as<Ast::Assignment*>();
         printf("\n");
         PADDEDOUT(lvl+1); printf("EXPR:\n");
-          astDump(v->expression, envir, lvl+2);
+          astDump(v->expression(), envir, lvl+2);
 
-        if (Ast::ArraySubscript *as = v->variable->as<Ast::ArraySubscript*>()) {
+        if (Ast::ArraySubscript *as = v->variable()->as<Ast::ArraySubscript*>()) {
             PADDEDOUT(lvl+1); printf("ARRAYSUBSCRIPT:\n");
-              astDump(v->variable, envir, lvl+2);
+              astDump(v->variable(), envir, lvl+2);
         }
 
         break;
@@ -162,11 +162,11 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
         Ast::Try *v = p->as<Ast::Try*>();
         printf("\n");
         PADDEDOUT(lvl+1); printf("BODY\n");
-          astDump(v->body, envir, lvl+2);
+          astDump(v->body(), envir, lvl+2);
         PADDEDOUT(lvl+1); printf("VARIABLES\n");
-          astDump(v->variables, envir, lvl+2);
+          astDump(v->variables(), envir, lvl+2);
         PADDEDOUT(lvl+1); printf("CATCH\n");
-          astDump(v->catchPart, envir, lvl+2);
+          astDump(v->catchPart(), envir, lvl+2);
         break;
     }
 
@@ -176,9 +176,9 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
         printf("\n");
         PADDEDOUT(lvl+1); printf("NAME: >>%s<<", v->name.c_str());
         PADDEDOUT(lvl+1);  printf("PARAMETERS:\n");
-          astDump(v->parameters, envir, lvl+2);
+          astDump(v->parameters(), envir, lvl+2);
         PADDEDOUT(lvl+1);  printf("STATEMENTS:\n");
-          astDump(v->statements, envir, lvl+2);
+          astDump(v->statements(), envir, lvl+2);
         break;
     }
 
@@ -186,9 +186,9 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
         Ast::FunctionCall *v = p->as<Ast::FunctionCall*>();
         printf("\n");
         PADDEDOUT(lvl+1); printf("FUNCTION:\n");
-          astDump(v->function, envir, lvl+2);
+          astDump(v->function(), envir, lvl+2);
         PADDEDOUT(lvl+1); printf("ARGUMENTS:\n");
-          astDump(v->arguments, envir, lvl+2);
+          astDump(v->arguments(), envir, lvl+2);
         break;
     }
 
@@ -212,7 +212,7 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
             printf("PostDecrement:\n");
             break;
         }
-        astDump(v->expr, envir, lvl+1);
+        astDump(v->expr(), envir, lvl+1);
         break;
     }
 
@@ -221,16 +221,16 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
 
         printf("%s\n", v->opStr());
         PADDEDOUT(lvl+1); printf("LEFT:\n");
-          astDump(v->left, envir, lvl+2);
+          astDump(v->left(), envir, lvl+2);
         PADDEDOUT(lvl+1); printf("RIGHT:\n");
-          astDump(v->right, envir, lvl+2);
+          astDump(v->right(), envir, lvl+2);
 
         break;
     }
 
     case Ast::Node::ReturnT: {
         printf("\n");
-        astDump(p->as<Ast::Return*>()->expression, envir, lvl+1);
+        astDump(p->as<Ast::Return*>()->expression(), envir, lvl+1);
         return;
     }
 
@@ -259,7 +259,7 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
         printf("\n");
         Ast::ExpressionList *v = p->as<Ast::ExpressionList*>();
         int i = 0;
-        for (Ast::Expression *s : v->expressions) {
+        for (Ast::Expression *s : v->expressions()) {
             PADDEDOUT(lvl+1); printf("%d:\n", i++);
             astDump(s, envir, lvl+2);
         }
@@ -281,11 +281,11 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
         Ast::If *v = p->as<Ast::If*>();
         printf("\n");
         PADDEDOUT(lvl+1); printf("COND:\n");
-          astDump(v->condition, envir, lvl+2);
+          astDump(v->condition(), envir, lvl+2);
         PADDEDOUT(lvl+1); printf("THEN:\n");
-          astDump(v->thenStatement, envir, lvl+2);
+          astDump(v->thenStatement(), envir, lvl+2);
         PADDEDOUT(lvl+1); printf("ELSE:\n");
-          astDump(v->elseStatement, envir, lvl+2);
+          astDump(v->elseStatement(), envir, lvl+2);
         break;
     }
 
@@ -293,9 +293,9 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
         Ast::While *v = p->as<Ast::While*>();
         printf("\n");
         PADDEDOUT(lvl+1); printf("COND:\n");
-          astDump(v->condition, envir, lvl+2);
+          astDump(v->condition(), envir, lvl+2);
         PADDEDOUT(lvl+1); printf("BODY:\n");
-          astDump(v->statement, envir, lvl+2);
+          astDump(v->statement(), envir, lvl+2);
         break;
     }
 
@@ -304,13 +304,13 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
 
         printf("\n");
         PADDEDOUT(lvl+1); printf("INIT:\n");
-          astDump(v->init, envir, lvl+2);
+          astDump(v->init(), envir, lvl+2);
         PADDEDOUT(lvl+1); printf("COND:\n");
-          astDump(v->cond, envir, lvl+2);
+          astDump(v->cond(), envir, lvl+2);
         PADDEDOUT(lvl+1); printf("AFTER:\n");
-          astDump(v->after, envir, lvl+2);
+          astDump(v->after(), envir, lvl+2);
         PADDEDOUT(lvl+1); printf("BODY:\n");
-          astDump(v->statement, envir, lvl+2);
+          astDump(v->statement(), envir, lvl+2);
         break;
     }
 
@@ -324,11 +324,11 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
 
 
 AVal doBuiltInDumpAST(Ast::ExpressionList *v, Environment *envir){
-    if(v->expressions.empty())
+    if(v->expressions().empty())
       THROW("dumpAST function expects at least one parameter.")
 
 
-    Ast::Node* toprint = v->expressions.front();
+    Ast::Node* toprint = v->expressions().front();
 //    AVal printV = ex(v->expressions.front(), envir);
 //    if(!printV.type() != AVal::FUNCTION)
 //      THROW("type must be function")
@@ -339,22 +339,22 @@ AVal doBuiltInDumpAST(Ast::ExpressionList *v, Environment *envir){
 
 AVal doBuiltInExit(Ast::ExpressionList *v, Environment *envir)
 {
-    if (v->expressions.size() > 1) {
+    if (v->expressions().size() > 1) {
         THROW("exit() takes one or zero arguments.");
     }
 
-    const int ret = v->expressions.empty() ? 0 : ex(v->expressions[0], envir).toInt();
+    const int ret = v->expressions().empty() ? 0 : ex(v->expressions()[0], envir).toInt();
     Evaluator::exit();
     ::exit(ret);
 }
 
 AVal doBuiltInArray(Ast::ExpressionList *v, Environment *envir)
 {
-    if (v->expressions.size() > 1) {
+    if (v->expressions().size() > 1) {
         THROW("Array() takes one or zero arguments.");
     }
 
-    const int size = v->expressions.empty() ? 0 : ex(v->expressions[0], envir).toInt();
+    const int size = v->expressions().empty() ? 0 : ex(v->expressions()[0], envir).toInt();
     if (size < 0) {
         THROW("Array size cannot be negative.");
     }
@@ -369,11 +369,11 @@ AVal doBuiltInArray(Ast::ExpressionList *v, Environment *envir)
 
 AVal doBuiltInCount(Ast::ExpressionList *v, Environment *envir)
 {
-    if (v->expressions.size() != 1) {
+    if (v->expressions().size() != 1) {
         THROW("count() takes one argument.");
     }
 
-    AVal arr = ex(v->expressions[0], envir);
+    AVal arr = ex(v->expressions()[0], envir);
     if (!arr.isArray() && (!arr.isReference() || !arr.toReference()->isArray())) {
         THROW("count() argument must be of type Array.");
     }
@@ -383,16 +383,16 @@ AVal doBuiltInCount(Ast::ExpressionList *v, Environment *envir)
 
 AVal doBuiltInPush(Ast::ExpressionList *v, Environment *envir)
 {
-    if (v->expressions.size() != 2) {
+    if (v->expressions().size() != 2) {
         THROW("push() takes two arguments.");
     }
 
-    AVal arr = ex(v->expressions[0], envir);
+    AVal arr = ex(v->expressions()[0], envir);
     if (!arr.isReference() || !arr.toReference()->isArray()) {
         THROW("push() argument 1 must be reference to type Array.");
     }
 
-    AVal value = ex(v->expressions[1], envir).dereference();
+    AVal value = ex(v->expressions()[1], envir).dereference();
     AVal *ref = arr.toReference();
     AArray *ar = ref->toArray();
 

@@ -169,16 +169,16 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
     Environment *funcEnvironment = new Environment(envir);
     envirs.push_back(funcEnvironment);
 
-    Ast::VariableList *parameters = func->parameters;
-    Ast::ExpressionList *exprs    = v->arguments;
-    if (exprs->expressions.size() > parameters->variables.size()) {
+    Ast::VariableList *parameters = func->parameters();
+    Ast::ExpressionList *exprs    = v->arguments();
+    if (exprs->expressions().size() > parameters->variables.size()) {
         THROW2("Too many arguments for %s", func->isLambda() ? "[lambda]" : func->name.c_str());
     }
 
 
-    for (int i = 0; i < exprs->expressions.size(); i++) {
+    for (int i = 0; i < exprs->expressions().size(); i++) {
         Ast::Variable *v = parameters->variables[i];
-        Ast::Expression *e = exprs->expressions.size() > i ? exprs->expressions[i] : nullptr;
+        Ast::Expression *e = exprs->expressions().size() > i ? exprs->expressions()[i] : nullptr;
         AVal r;
         if (e && v->ref) {
             if (e->type() != Ast::Node::VariableT && e->type() != Ast::Node::ArraySubscriptT) {
@@ -203,7 +203,7 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
     }
 
     // Execute statement list of function
-    CHECKTHROWN(ex(func->statements, funcEnvironment));
+    CHECKTHROWN(ex(func->statements(), funcEnvironment));
 
     AVal ret = funcEnvironment->returnValue;
 
@@ -258,12 +258,12 @@ AVal ex(Ast::Node *p, Environment* envir)
     }
 
     case Ast::Node::AValLiteralT: {
-        return *((AVal*)p->as<Ast::AValLiteral*>()->value);
+        return *((AVal*)p->as<Ast::AValLiteral*>()->value());
     }
 
     case Ast::Node::ArraySubscriptT: {
         Ast::ArraySubscript *v = p->as<Ast::ArraySubscript*>();
-        AVal ind = ex(v->expression, envir);
+        AVal ind = ex(v->expression(), envir);
         CHECKTHROWN(ind)
         const int index = ind.toInt();
         AVal arr = envir->get(v);
@@ -279,27 +279,27 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::AssignmentT: {
         Ast::Assignment *v = p->as<Ast::Assignment*>();
-        AVal r = ex(v->expression, envir);
+        AVal r = ex(v->expression(), envir);
         CHECKTHROWN(r)
-        assignToVariable(v->variable, r, envir);
+        assignToVariable(v->variable(), r, envir);
         return r;
     }
 
     case Ast::Node::TryT: {
         Ast::Try *v = p->as<Ast::Try*>();
 
-        if(v->variables->variables.empty()){
+        if(v->variables()->variables.empty()){
           THROW("Try expects one name of variable to catch")
         }
 
-        AVal r = ex(v->body, envir);
+        AVal r = ex(v->body(), envir);
 
         if(r.isThrown()){
           AVal catched = r;
           catched.markThrown(false);
-          assignToVariable(v->variables->variables[0], catched, envir);
+          assignToVariable(v->variables()->variables[0], catched, envir);
 
-          AVal catchP = ex(v->catchPart, envir);
+          AVal catchP = ex(v->catchPart(), envir);
           CHECKTHROWN(catchP)
         }
 
@@ -318,14 +318,14 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::FunctionCallT: {
          Ast::FunctionCall *v = p->as<Ast::FunctionCall*>();
 
-         AVal func = ex(v->function, envir);
+         AVal func = ex(v->function(), envir);
          CHECKTHROWN(func)
          if (func.isFunction()) {
               return doUserdefFunction(v, func.toFunction(), envir);
          }else if (func.isBuiltinFunction()) {
               BuiltinCall call = func.toBuiltinFunction();
               if(call)
-                  return (*call)(v->arguments, envir);
+                  return (*call)(v->arguments(), envir);
          }
 
          THROW("Call of argument which is not function")
@@ -337,37 +337,37 @@ AVal ex(Ast::Node *p, Environment* envir)
         Ast::UnaryOperator *v = p->as<Ast::UnaryOperator*>();
         switch (v->op) {
         case Ast::UnaryOperator::Not:
-            return !ex(v->expr, envir).toBool();
+            return !ex(v->expr(), envir).toBool();
 
         case Ast::UnaryOperator::Minus:
-            return binaryOp(Ast::BinaryOperator::Minus, 0, ex(v->expr, envir));
+            return binaryOp(Ast::BinaryOperator::Minus, 0, ex(v->expr(), envir));
 
         case Ast::UnaryOperator::PreIncrement: {
-            AVal val = binaryOp(Ast::BinaryOperator::Plus, ex(v->expr, envir), 1);
-            if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
+            AVal val = binaryOp(Ast::BinaryOperator::Plus, ex(v->expr(), envir), 1);
+            if (Ast::Variable *var = v->expr()->as<Ast::Variable*>()) {
                 assignToVariable(var, val, envir);
             }
             return val;
         }
         case Ast::UnaryOperator::PreDecrement: {
-            AVal val = binaryOp(Ast::BinaryOperator::Minus, ex(v->expr, envir), 1);
-            if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
+            AVal val = binaryOp(Ast::BinaryOperator::Minus, ex(v->expr(), envir), 1);
+            if (Ast::Variable *var = v->expr()->as<Ast::Variable*>()) {
                 assignToVariable(var, val, envir);
             }
             return val;
         }
         case Ast::UnaryOperator::PostIncrement: {
-            AVal val = ex(v->expr, envir);
+            AVal val = ex(v->expr(), envir);
             CHECKTHROWN(val)
-            if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
+            if (Ast::Variable *var = v->expr()->as<Ast::Variable*>()) {
                 assignToVariable(var, binaryOp(Ast::BinaryOperator::Plus, val, 1), envir);
             }
             return val;
         }
         case Ast::UnaryOperator::PostDecrement: {
-            AVal val = ex(v->expr, envir);
+            AVal val = ex(v->expr(), envir);
             CHECKTHROWN(val)
-            if (Ast::Variable *var = v->expr->as<Ast::Variable*>()) {
+            if (Ast::Variable *var = v->expr()->as<Ast::Variable*>()) {
                 assignToVariable(var, binaryOp(Ast::BinaryOperator::Minus, val, 1), envir);
             }
             return val;
@@ -380,13 +380,13 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::BinaryOperatorT: {
         Ast::BinaryOperator *v = p->as<Ast::BinaryOperator*>();
-        return binaryOp(v->op, ex(v->left, envir), ex(v->right, envir));
+        return binaryOp(v->op, ex(v->left(), envir), ex(v->right(), envir));
     }
 
     case Ast::Node::ReturnT: {
         Ast::Return *v = p->as<Ast::Return*>();
         if (envir->parent) { // Only process return in functions
-            envir->returnValue = ex(v->expression, envir);
+            envir->returnValue = ex(v->expression(), envir);
             envir->state = Environment::ReturnCalled;
         }
         return envir->returnValue;
@@ -417,12 +417,12 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::IfT: {
         Ast::If *v = p->as<Ast::If*>();
-        AVal cond = ex(v->condition, envir);
+        AVal cond = ex(v->condition(), envir);
         CHECKTHROWN(cond)
         if (cond.toBool()) {
-            CHECKTHROWN(ex(v->thenStatement, envir));
+            CHECKTHROWN(ex(v->thenStatement(), envir));
         } else {
-            CHECKTHROWN(ex(v->elseStatement, envir));
+            CHECKTHROWN(ex(v->elseStatement(), envir));
         }
         break;
     }
@@ -430,12 +430,12 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::WhileT: {
         Ast::While *v = p->as<Ast::While*>();
         do  {
-            AVal cond = ex(v->condition, envir);
+            AVal cond = ex(v->condition(), envir);
             CHECKTHROWN(cond)
             if(!cond.toBool())
               break;
 
-            CHECKTHROWN(ex(v->statement, envir))
+            CHECKTHROWN(ex(v->statement(), envir))
             MemoryPool::checkCollectGarbage();
             if (envir->state == Environment::BreakCalled) {
                 envir->state = Environment::Normal;
@@ -453,14 +453,14 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::ForT: {
         Ast::For *v = p->as<Ast::For*>();
 
-        CHECKTHROWN(ex(v->init, envir));
+        CHECKTHROWN(ex(v->init(), envir));
         while(1){
-            AVal cond = ex(v->cond, envir);
+            AVal cond = ex(v->cond(), envir);
             CHECKTHROWN(cond)
             if(!cond.toBool())
                 break;
 
-            CHECKTHROWN(ex(v->statement, envir))
+            CHECKTHROWN(ex(v->statement(), envir))
 
             MemoryPool::checkCollectGarbage();
             if (envir->state == Environment::BreakCalled) {
@@ -473,7 +473,7 @@ AVal ex(Ast::Node *p, Environment* envir)
                 break;
             }
 
-            CHECKTHROWN(ex(v->after, envir))
+            CHECKTHROWN(ex(v->after(), envir))
         }
         break;
     }
@@ -562,8 +562,8 @@ void cleanup(Ast::Node *p)
     // Same for lambdas
     if (p->type() == Ast::Node::AssignmentT) {
         Ast::Assignment *a = p->as<Ast::Assignment*>();
-        if (a->expression && a->expression->type() == Ast::Node::FunctionT) {
-            a->expression = nullptr;
+        if (a->expression() && a->expression()->type() == Ast::Node::FunctionT) {
+            a->nullExpression();
         }
     }
 

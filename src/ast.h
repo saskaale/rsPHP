@@ -37,6 +37,21 @@ class StatementList;
 class VariableList;
 class Function;
 
+
+//#if 1
+#define Expression Node
+#define Statement  Node
+/*#else
+class Expression : public Node
+{
+};
+
+class Statement : public Node
+{
+};
+#endif
+*/
+
 class Node
 {
 public:
@@ -47,7 +62,7 @@ public:
         StatementListT, VariableListT, FunctionT
     };
 
-    explicit Node();
+    explicit Node(Node* n1 = nullptr, Node* n2 = nullptr, Node* n3 = nullptr, Node* n4 = nullptr);
     virtual ~Node();
 
     virtual Type type() const = 0;
@@ -55,20 +70,15 @@ public:
 
     template<typename T> T as() { return dynamic_cast<T>(this); }
     template<typename T> T as() const { return dynamic_cast<T>(this); }
-};
 
-#if 1
-#define Expression Node
-#define Statement  Node
-#else
-class Expression : public Node
-{
+    const void* aval1;
+    Node* n1;
+    Node* n2;
+    Node* n3;
+    Node* n4;
+    std::vector<Expression*> exprVec1;
+    std::vector<Statement*> statements;
 };
-
-class Statement : public Node
-{
-};
-#endif
 
 
 
@@ -77,12 +87,13 @@ class Statement : public Node
 class Variable : public Expression
 {
 public:
-    explicit Variable(const std::string &name, bool ref = false);
+    explicit Variable(const std::string &name, bool ref = false, Node* n1 = nullptr);
 
     Type type() const;
 
-    std::string name;
     bool ref;
+
+    std::string name;
 };
 
 class ArraySubscript : public Variable
@@ -93,7 +104,7 @@ public:
 
     Type type() const;
 
-    Expression *expression;
+    Expression * expression() const;
 };
 
 class AValLiteral : public Expression
@@ -103,7 +114,7 @@ public:
 
     Type type() const;
 
-    const void* value;
+    const void* value() const;
 };
 
 
@@ -168,7 +179,7 @@ public:
     Type type() const;
 
     Op op;
-    Expression *expr;
+    Expression *expr() const;
 };
 
 class BinaryOperator : public Expression
@@ -187,8 +198,8 @@ public:
     const char* opStr() const;
 
     Op op;
-    Expression *left;
-    Expression *right;
+    Expression* left() const;
+    Expression* right() const;
 };
 
 class FunctionCall : public Expression
@@ -199,8 +210,8 @@ public:
 
     Type type() const;
 
-    Expression* function;
-    ExpressionList *arguments;
+    Expression* function() const;
+    ExpressionList* arguments() const;
 };
 
 class ExpressionList : public Expression
@@ -213,7 +224,7 @@ public:
 
     Type type() const;
 
-    std::vector<Expression*> expressions;
+    const std::vector<Expression*>& expressions() const;
 };
 
 
@@ -229,9 +240,9 @@ public:
 
     Type type() const;
 
-    StatementList *body;
-    VariableList  *variables;
-    StatementList *catchPart;
+    StatementList * body() const;
+    VariableList  * variables() const;
+    StatementList * catchPart() const;
 };
 
 class Assignment : public Statement
@@ -242,8 +253,9 @@ public:
 
     Type type() const;
 
-    Variable *variable;
-    Expression *expression;
+    Variable *variable() const;
+    Expression *expression() const;
+    void nullExpression();
 };
 
 class If : public Statement
@@ -254,9 +266,9 @@ public:
 
     Type type() const;
 
-    Expression *condition;
-    StatementList *thenStatement;
-    StatementList *elseStatement;
+    Expression *condition() const;
+    StatementList *thenStatement() const;
+    StatementList *elseStatement() const;
 };
 
 class While : public Statement
@@ -267,8 +279,8 @@ public:
 
     Type type() const;
 
-    Expression *condition;
-    StatementList *statement;
+    Expression *condition() const;
+    StatementList *statement() const;
 };
 
 class For : public Statement
@@ -279,10 +291,10 @@ public:
 
     Type type() const;
 
-    Expression *init;
-    Expression *cond;
-    Expression *after;
-    StatementList *statement;
+    Expression *init() const;
+    Expression *cond() const;
+    Expression *after() const;
+    StatementList *statement() const;
 };
 
 class Return : public Statement
@@ -293,7 +305,7 @@ public:
 
     Type type() const;
 
-    Expression *expression;
+    Expression *expression() const;
 };
 
 class Break : public Statement
@@ -319,8 +331,6 @@ public:
     ~StatementList();
 
     Type type() const;
-
-    std::vector<Statement*> statements;
 };
 
 
@@ -349,8 +359,8 @@ public:
     bool isLambda() const;
 
     std::string name;
-    VariableList *parameters;
-    StatementList *statements;
+    VariableList *parameters() const;
+    StatementList *statements() const;
 };
 
 } // namespace Ast
