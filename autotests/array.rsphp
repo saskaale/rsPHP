@@ -28,3 +28,5 @@ bubblesort(ar1);
 forEach(ar1, function(v) {
     print v;
 });
+
+print "index" + indexOf(ar1, 5);

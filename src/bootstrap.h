@@ -28,4 +28,15 @@ function forEach(&a, f)
     }
 }
 
+function indexOf(&a, v)
+{
+    c = count(a);
+    for (i = 0; i < c; ++i) {
+        if (a[i] == v) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 )";
