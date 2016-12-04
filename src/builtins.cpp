@@ -337,6 +337,17 @@ AVal doBuiltInDumpAST(Ast::ExpressionList *v, Environment *envir){
     return AVal();
 }
 
+AVal doBuiltInExit(Ast::ExpressionList *v, Environment *envir)
+{
+    if (v->expressions.size() > 1) {
+        THROW("exit() takes one or zero arguments.");
+    }
+
+    const int ret = v->expressions.empty() ? 0 : ex(v->expressions[0], envir).toInt();
+    Evaluator::exit();
+    ::exit(ret);
+}
+
 AVal doBuiltInArray(Ast::ExpressionList *v, Environment *envir)
 {
     if (v->expressions.size() > 1) {
@@ -408,6 +419,7 @@ void registerBuiltins(Environment* e){
     e->setFunction("throw", &doBuiltInThrow);
     e->setFunction("dumpAST", &doBuiltInDumpAST);
     e->setFunction("gc", &doBuiltInGC);
+    e->setFunction("exit", &doBuiltInExit);
     e->setFunction("Array", &doBuiltInArray);
     e->setFunction("count", &doBuiltInCount);
     e->setFunction("push", &doBuiltInPush);
