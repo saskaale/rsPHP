@@ -133,7 +133,7 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
     case Ast::Node::AValLiteralT:
         Evaluator::INVOKE_INTERNAL( "print", envir, { *((AVal*)p->as<Ast::AValLiteral*>()->value) } );
         break;
-    
+
     case Ast::Node::ArraySubscriptT: {
         printf("\n");
         PADDEDOUT(lvl+1); printf("NAME >>%s<<:\n", p->as<Ast::Variable*>()->name.c_str());
@@ -169,8 +169,8 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
           astDump(v->catchPart, envir, lvl+2);
         break;
     }
-    
-    
+
+
     case Ast::Node::FunctionT: {
         Ast::Function *v = p->as<Ast::Function*>();
         printf("\n");

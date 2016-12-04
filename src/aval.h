@@ -11,6 +11,7 @@ class Environment;
 typedef AVal (*BuiltinCall)(Ast::ExpressionList *v, Environment* envir);
 
 struct AArray;
+struct AString;
 
 class AVal
 {
@@ -75,7 +76,7 @@ public:
         double doubleValue;
         Ast::Function *functionValue;
         BuiltinCall builtinFunctionValue;
-        char *stringValue;
+        AString *stringValue;
         AArray *arrayValue;
     };
 };
@@ -88,5 +89,14 @@ struct AArray {
 
     static size_t allocSize(size_t elements) {
         return sizeof(AArray) + sizeof(AVal) * (elements - 1);
+    }
+};
+
+struct AString {
+    void *mem = nullptr;
+    char string[1];
+
+    static size_t allocSize(size_t elements) {
+        return sizeof(AString) + sizeof(char) * (elements - 1);
     }
 };

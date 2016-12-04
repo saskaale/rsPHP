@@ -43,7 +43,11 @@ AVal::AVal(const char *value, bool thrown)
     : _type(STRING)
     , _thrown(thrown)
 {
-    stringValue = MemoryPool::strdup(value);
+    void *mem;
+    size_t size = strlen(value) + 1;
+    stringValue = (AString*)MemoryPool::alloc(AString::allocSize(size), &mem);
+    strncpy(stringValue->string, value, size);
+    stringValue->mem = mem;
 }
 
 AVal::AVal(AArray *value)
@@ -180,7 +184,7 @@ Ast::Function *AVal::toFunction() const
 
 const char *AVal::toString() const
 {
-    return convertTo(STRING).stringValue;
+    return convertTo(STRING).stringValue->string;
 }
 
 AArray *AVal::toArray() const
@@ -319,11 +323,11 @@ AVal AVal::convertTo(Type t) const
     case STRING:
         switch (t) {
         case INT:
-            return atoi(stringValue);
+            return atoi(stringValue->string);
         case BOOL:
-            return strlen(stringValue) > 0;
+            return strlen(stringValue->string) > 0;
         case DOUBLE:
-            return atof(stringValue);
+            return atof(stringValue->string);
         case FUNCTION:
         case FUNCTION_BUILTIN:
             return static_cast<Ast::Function*>(nullptr);

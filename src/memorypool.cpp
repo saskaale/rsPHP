@@ -117,16 +117,6 @@ void *alloc(size_t size, void **memchunk)
     return d;
 }
 
-char *strdup(const char *s)
-{
-    return ::strdup(s);
-}
-
-void strfree(char *s)
-{
-    free(s);
-}
-
 void cleanup()
 {
     for (MemChunk *m : allocd) {
@@ -148,10 +138,17 @@ int poolSize(){
 
 
 inline static void DFSMark(const AVal& val){
-    if(!val.isArray())
+    if(!val.isArray() && !val.isString())
       return;
 
-    MemChunk::Data* s = (MemChunk::Data*) val.toArray()->mem;
+    void *m = nullptr;
+    if (val.isArray()) {
+        m = val.arrayValue->mem;
+    } else if (val.isString()) {
+        m = val.stringValue->mem;
+    }
+
+    MemChunk::Data* s = (MemChunk::Data*) m;
     if(s == nullptr)
       return;
 

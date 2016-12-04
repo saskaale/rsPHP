@@ -44,7 +44,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %left AND OR
 %nonassoc UMINUS
 
-%type <nPtr> stmt stmt2 expr expr2 stmt_list empty_stmt_list value fundecl var_list var_list2 expr_list variable lambda 
+%type <nPtr> stmt stmt2 expr expr2 stmt_list empty_stmt_list value fundecl var_list var_list2 expr_list variable lambda
 
 %%
 
@@ -102,7 +102,7 @@ var_list2:
           variable                 { $$ = new Ast::VariableList($1->as<Ast::Variable*>()); }
         | var_list2 ',' variable   { $$ = new Ast::VariableList($3->as<Ast::Variable*>(), $1->as<Ast::VariableList*>()); }
         ;
-        
+
 empty_stmt_list:
           stmt_list               { $$ = $1; }
         |                         { $$ = new Ast::StatementList(); }
