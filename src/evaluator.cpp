@@ -10,7 +10,7 @@
 #include <unordered_set>
 
 std::vector<Environment*> envirs;
-std::unordered_set<Ast::Function*> funcs;
+std::vector<Ast::Function*> funcs;
 
 
 // Operators
@@ -311,7 +311,7 @@ AVal ex(Ast::Node *p, Environment* envir)
          Ast::Function *v = p->as<Ast::Function*>();
          AVal fun = AVal(v);
          envir->setFunction(v->name, fun);
-         funcs.insert(v);
+         funcs.push_back(v);
          return fun;
     }
 
