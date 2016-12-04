@@ -40,6 +40,11 @@ function push(&a, v)
     pushinternal(a, v);
 }
 
+function copy(a)
+{
+    return a;
+}
+
 function forEach(&a, f)
 {
     c = count(a);

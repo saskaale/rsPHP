@@ -41,3 +41,16 @@ ar2 = Array();
 push(ar2, "hello");
 passarray(ar2);
 assert("pass array to function by value", ar2[0] == "hello");
+
+// assignment works like pointer assignment
+ar3 = ar2;
+ar3[0] = "he";
+assert("array assignment", ar3[0] == "he");
+assert("array assignment", ar2[0] == "he");
+
+// copy using built-in function
+ar4 = copy(ar3);
+ar4[0] = "hello";
+assert("array copy assignment", ar4[0] == "hello");
+assert("array copy assignment", ar3[0] == "he");
+assert("array copy assignment", ar2[0] == "he");
