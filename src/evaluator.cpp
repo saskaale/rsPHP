@@ -155,16 +155,16 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
 
     Ast::VariableList *parameters = func->parameters;
     Ast::ExpressionList *exprs    = v->arguments;
-    if (parameters->variables.size() != exprs->expressions.size()) {
-        THROW("PARAMETERS MISMATCH FOR FUNCTION");
+    if (exprs->expressions.size() > parameters->variables.size()) {
+        THROW2("Too many arguments for %s", func->isLambda() ? "[lambda]" : func->name.c_str());
     }
 
 
     for (int i = 0; i < exprs->expressions.size(); i++) {
         Ast::Variable *v = parameters->variables[i];
-        Ast::Expression *e = exprs->expressions[i];
+        Ast::Expression *e = exprs->expressions.size() > i ? exprs->expressions[i] : nullptr;
         AVal r;
-        if (v->ref) {
+        if (e && v->ref) {
             if (e->type() != Ast::Node::VariableT && e->type() != Ast::Node::ArraySubscriptT) {
                 THROW2("Argument %d expects reference!", i);
             }
@@ -179,7 +179,7 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
                     r = &stored;
                 }
             }
-        } else {
+        } else if (e) {
             r = ex(e, envir);
             CHECKTHROWN(r)
         }
@@ -205,7 +205,7 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     auto assignToVariable = [](Ast::Variable *v, const AVal &value, Environment *envir) {
         if (Ast::ArraySubscript *as = v->as<Ast::ArraySubscript*>()) {
-            AVal &ref = ex(as, envir);
+            AVal ref = ex(as, envir);
             *ref.toReference() = value.dereference();
         } else {
             AVal &stored = envir->get(v);
