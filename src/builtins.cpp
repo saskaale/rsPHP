@@ -359,8 +359,9 @@ AVal doBuiltInArray(Ast::ExpressionList *v, Environment *envir)
         THROW("Array size cannot be negative.");
     }
 
-    AVal::Array *a = new AVal::Array;
-    a->array = size ? (AVal*)MemoryPool::alloc(sizeof(AVal) * size, &a->mem) : nullptr;
+    void *mem;
+    AArray *a = (AArray*)MemoryPool::alloc(AArray::allocSize(size), &mem);
+    a->mem = mem;
     a->count = 0;
     a->allocd = size;
     return a;
@@ -387,21 +388,26 @@ AVal doBuiltInPush(Ast::ExpressionList *v, Environment *envir)
     }
 
     AVal arr = ex(v->expressions[0], envir);
-    if (!arr.isArray()) {
-        THROW("push() argument 1 must be of type Array.");
+    if (!arr.isReference() || !arr.toReference()->isArray()) {
+        THROW("push() argument 1 must be reference to type Array.");
     }
 
     AVal value = ex(v->expressions[1], envir).dereference();
-    AVal::Array *ar = arr.toArray();
+    AVal *ref = arr.toReference();
+    AArray *ar = ref->toArray();
 
     if (ar->count >= ar->allocd) {
         const int newallocd = (ar->count + 1) * 2;
-        AVal *tmp = (AVal*)MemoryPool::alloc(sizeof(AVal) * newallocd, &ar->mem);
+        void *mem;
+        AArray *tmp = (AArray*)MemoryPool::alloc(AArray::allocSize(newallocd), &mem);
+        tmp->mem = mem;
         for (size_t i = 0; i < ar->count; ++i) {
-            tmp[i] = ar->array[i];
+            tmp->array[i] = ar->array[i];
         }
-        ar->array = tmp;
-        ar->allocd = newallocd;
+        tmp->count = ar->count;
+        tmp->allocd = newallocd;
+        ar = tmp;
+        ref->arrayValue = ar;
     }
 
     ar->array[ar->count++] = value;
@@ -421,7 +427,7 @@ void registerBuiltins(Environment* e){
     e->setFunction("exit", &doBuiltInExit);
     e->setFunction("Array", &doBuiltInArray);
     e->setFunction("count", &doBuiltInCount);
-    e->setFunction("push", &doBuiltInPush);
+    e->setFunction("pushinternal", &doBuiltInPush);
 }
 
 

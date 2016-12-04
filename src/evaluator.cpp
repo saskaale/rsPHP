@@ -268,7 +268,7 @@ AVal ex(Ast::Node *p, Environment* envir)
         if (!arr.isArray() && (!arr.isReference() || !arr.toReference()->isArray())) {
             THROW("Variable is not array");
         }
-        AVal::Array *a = arr.toArray();
+        AArray *a = arr.toArray();
         if (index < 0 || index >= a->count) {
             THROW("Index out of bounds");
         }

@@ -10,6 +10,8 @@ class Environment;
 
 typedef AVal (*BuiltinCall)(Ast::ExpressionList *v, Environment* envir);
 
+struct AArray;
+
 class AVal
 {
 public:
@@ -25,13 +27,6 @@ public:
         FUNCTION_BUILTIN
     };
 
-    struct Array {
-        AVal *array = nullptr;
-        size_t count = 0;
-        size_t allocd = 0;
-        void *mem = nullptr;
-    };
-
     AVal();
     AVal(AVal *value);
     AVal(int value);
@@ -39,7 +34,7 @@ public:
     AVal(double value);
     AVal(const char *value, bool isThrown = false);
     AVal(BuiltinCall value);
-    AVal(Array *value);
+    AVal(AArray *value);
     AVal(Ast::Function *value);
 
     Type type() const;
@@ -67,7 +62,7 @@ public:
     Ast::Function *toFunction() const;
     BuiltinCall toBuiltinFunction() const;
     const char *toString() const;
-    Array *toArray() const;
+    AArray *toArray() const;
 
     AVal convertTo(Type t) const;
 
@@ -81,6 +76,17 @@ public:
         Ast::Function *functionValue;
         BuiltinCall builtinFunctionValue;
         char *stringValue;
-        Array *arrayValue;
+        AArray *arrayValue;
     };
+};
+
+struct AArray {
+    size_t count = 0;
+    size_t allocd = 0;
+    void *mem = nullptr;
+    AVal array[1];
+
+    static size_t allocSize(size_t elements) {
+        return sizeof(AArray) + sizeof(AVal) * (elements - 1);
+    }
 };

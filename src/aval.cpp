@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <sstream>
 
-AVal::Array emptyArray;
+AArray emptyArray;
 
 AVal::AVal()
     : _type(UNDEFINED)
@@ -46,7 +46,7 @@ AVal::AVal(const char *value, bool thrown)
     stringValue = MemoryPool::strdup(value);
 }
 
-AVal::AVal(Array *value)
+AVal::AVal(AArray *value)
     : _type(ARRAY)
 {
     arrayValue = value;
@@ -183,7 +183,7 @@ const char *AVal::toString() const
     return convertTo(STRING).stringValue;
 }
 
-AVal::Array *AVal::toArray() const
+AArray *AVal::toArray() const
 {
     return convertTo(ARRAY).arrayValue;
 }

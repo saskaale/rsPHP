@@ -32,6 +32,11 @@ function assert(c, v)
     }
 }
 
+function push(&a, v)
+{
+    pushinternal(a, v);
+}
+
 function forEach(&a, f)
 {
     c = count(a);
