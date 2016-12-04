@@ -26,7 +26,7 @@ function assert(c, v)
         v = c;
         c = "";
     }
-    if (v === false) {
+    if (!v) {
         print "Assertion " + c + " failed!";
         exit(1);
     }

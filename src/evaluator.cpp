@@ -333,6 +333,9 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::UnaryOperatorT: {
         Ast::UnaryOperator *v = p->as<Ast::UnaryOperator*>();
         switch (v->op) {
+        case Ast::UnaryOperator::Not:
+            return !ex(v->expr, envir).toBool();
+
         case Ast::UnaryOperator::Minus:
             return binaryOp(Ast::BinaryOperator::Minus, 0, ex(v->expr, envir));
 

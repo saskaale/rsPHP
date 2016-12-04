@@ -38,7 +38,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %nonassoc ELSE
 
 %left GE LE EQ EQ_TYPE NE NE_TYPE GREATER LESS
-%left PLUS MINUS
+%left PLUS MINUS NOT
 %left TIMES DIV MOD
 %left INCREMENT DECREMENT
 %left AND OR
@@ -129,6 +129,7 @@ expr2:
         | VARIABLE '(' ')'            { $$ = new Ast::FunctionCall(new Ast::Variable($1)); free($1); }
         | VARIABLE '(' expr_list ')'  { $$ = new Ast::FunctionCall(new Ast::Variable($1), $3->as<Ast::ExpressionList*>()); free($1); }
         | MINUS expr2 %prec UMINUS    { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::Minus, $2); }
+        | NOT expr2                   { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::Not, $2); }
         | INCREMENT expr2             { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::PreIncrement, $2); }
         | DECREMENT expr2             { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::PreDecrement, $2); }
         | expr2 DECREMENT             { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::PostDecrement, $1); }

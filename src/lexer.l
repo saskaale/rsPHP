@@ -41,6 +41,7 @@ void comment();
 "%"             return MOD;
 "<"             return LESS;
 ">"             return GREATER;
+"!"             return NOT;
 "&"             return REFERENCE;
 "&&"            return AND;
 "||"            return OR;

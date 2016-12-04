@@ -162,7 +162,7 @@ class UnaryOperator : public Expression
 {
 public:
     enum Op {
-        Minus, PreIncrement, PostIncrement, PreDecrement, PostDecrement
+        Not, Minus, PreIncrement, PostIncrement, PreDecrement, PostDecrement
     };
 
     explicit UnaryOperator(Op op, Expression *expr);
