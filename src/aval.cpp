@@ -49,9 +49,8 @@ AVal::AVal(double value)
     doubleValue = value;
 }
 
-AVal::AVal(const char *value, bool thrown)
+AVal::AVal(const char *value)
     : _type(STRING)
-    , _thrown(thrown)
 {
     stringValue = rstrdup(value);
 }

@@ -5,8 +5,8 @@
 #include "builtins.h"
 
 
-#define THROW2(name, descr) {(fprintf(stderr, name, descr), fprintf(stderr, "\n"), X_ASSERT(false && name)); return AVal(name, true);};
-#define THROW(name) { (fprintf(stderr, name), fprintf(stderr, "\n"), X_ASSERT(false && name)); return AVal(name, true);}
+#define THROW2(name, descr) {char buf[256];sprintf(buf, name, descr);AVal a(buf);a.markThrown(true);return a; }
+#define THROW(name) {AVal a(name);a.markThrown(true);return a;}
 #define CHECKTHROWN(v) {if((v).isThrown()) return v;}
 
 
@@ -36,6 +36,6 @@ namespace Evaluator
     AVal ex(Ast::Node *p, Environment* envir);
 
     AVal INVOKE_INTERNAL( const char* name, Environment* envir, std::initializer_list<AVal> list );
-    
+
     std::vector<Environment*> environments();
 }

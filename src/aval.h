@@ -33,7 +33,7 @@ public:
     AVal(int value);
     AVal(bool value);
     AVal(double value);
-    AVal(const char *value, bool isThrown = false);
+    AVal(const char *value);
     AVal(BuiltinCall value);
     AVal(AArray *value);
     AVal(Ast::Function *value);
