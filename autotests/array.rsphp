@@ -18,10 +18,7 @@ function bubblesort(&arr)
                 val = j;
             }
         }
-        tmp = arr[i];
-        arr[i] = arr[val];
-        arr[val] = tmp;
-        /* swap(arr[i], arr[val]); */
+        swap(arr[i], arr[val]);
     }
 }
 

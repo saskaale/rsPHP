@@ -165,15 +165,19 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
         Ast::Expression *e = exprs->expressions[i];
         AVal r;
         if (v->ref) {
-            if (e->type() != Ast::Node::VariableT) {
+            if (e->type() != Ast::Node::VariableT && e->type() != Ast::Node::ArraySubscriptT) {
                 THROW2("Argument %d expects reference!", i);
             }
             Ast::Variable *ev = e->as<Ast::Variable*>();
-            AVal &stored = envir->get(ev);
-            if (stored.isReference()) {
-                r = stored;
+            if (Ast::ArraySubscript *as = ev->as<Ast::ArraySubscript*>()) {
+                r = ex(as, envir);
             } else {
-                r = &stored;
+                AVal &stored = envir->get(ev);
+                if (stored.isReference()) {
+                    r = stored;
+                } else {
+                    r = &stored;
+                }
             }
         } else {
             r = ex(e, envir);
@@ -201,18 +205,8 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     auto assignToVariable = [](Ast::Variable *v, const AVal &value, Environment *envir) {
         if (Ast::ArraySubscript *as = v->as<Ast::ArraySubscript*>()) {
-            AVal ind = ex(as->expression, envir);
-            CHECKTHROWN(ind)
-            const int index = ind.toInt();
-            AVal &arr = envir->get(v);
-            if (!arr.isArray() && (!arr.isReference() || !arr.toReference()->isArray())) {
-                THROW("Variable is not array");
-            }
-            const AVal::Array &a = arr.toArray();
-            if (index < 0 || index >= a.count) {
-                THROW("Index out of bounds");
-            }
-            a.array[index] = value.dereference();
+            AVal &ref = ex(as, envir);
+            *ref.toReference() = value.dereference();
         } else {
             AVal &stored = envir->get(v);
             if (stored.isReference()) {
@@ -243,7 +237,7 @@ AVal ex(Ast::Node *p, Environment* envir)
         Ast::Variable *v = p->as<Ast::Variable*>();
         return envir->get(v);
     }
-    
+
     case Ast::Node::AValLiteralT: {
         return *((AVal*)p->as<Ast::AValLiteral*>()->value);
     }
@@ -261,7 +255,7 @@ AVal ex(Ast::Node *p, Environment* envir)
         if (index < 0 || index >= a.count) {
             THROW("Index out of bounds");
         }
-        return a.array[index];
+        return &a.array[index];
     }
 
     case Ast::Node::AssignmentT: {
@@ -289,7 +283,7 @@ AVal ex(Ast::Node *p, Environment* envir)
           AVal catchP = ex(v->catchPart, envir);
           CHECKTHROWN(catchP)
         }
-        
+
         r.markThrown(false);
         return r;
     }
@@ -476,7 +470,7 @@ AVal INVOKE_INTERNAL( const char* name, Environment* envir, std::initializer_lis
     {
         exprs.push_back(new Ast::AValLiteral(&v));
     }
-  
+
     Ast::Node* call = new Ast::FunctionCall(new Ast::Variable(name), new Ast::ExpressionList(exprs));
     AVal r = ex(call, envir);
     delete call;
@@ -489,7 +483,7 @@ AVal INVOKE_INTERNAL( const char* name, Environment* envir, std::initializer_lis
 static void defaultExceptionHandler(Environment* envir, AVal toPrint){
   toPrint.markThrown(false);
   printf("An uncaught exception occured\n");
-  printf("Catched: "); 
+  printf("Catched: ");
   INVOKE_INTERNAL("dump", envir, { toPrint });
   printf("Sorry, Bye :(\n");
   ::exit(EXIT_FAILURE);
@@ -521,7 +515,7 @@ void eval(Ast::Node *p)
     if(ret.isThrown()){
       defaultExceptionHandler(global, ret);
     }
-    
+
     MemoryPool::checkCollectGarbage();
 }
 
