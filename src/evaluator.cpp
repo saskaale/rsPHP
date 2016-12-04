@@ -7,8 +7,10 @@
 
 #include <iostream>
 #include <algorithm>
+#include <unordered_set>
 
 std::vector<Environment*> envirs;
+std::unordered_set<Ast::Function*> funcs;
 
 
 // Operators
@@ -309,6 +311,7 @@ AVal ex(Ast::Node *p, Environment* envir)
          Ast::Function *v = p->as<Ast::Function*>();
          AVal fun = AVal(v);
          envir->setFunction(v->name, fun);
+         funcs.insert(v);
          return fun;
     }
 
@@ -524,6 +527,11 @@ void exit()
         delete e;
     }
     envirs.clear();
+
+    for (Ast::Function *f : funcs) {
+        delete f;
+    }
+    funcs.clear();
 
     MemoryPool::cleanup();
 }
