@@ -8,74 +8,60 @@
 #include <cstddef>
 #include <sstream>
 
+AVal::Array emptyArray;
+
 AVal::AVal()
     : _type(UNDEFINED)
-    , thrown(false)
 {
 }
 
-AVal::AVal(AVal *value, bool thrown)
+AVal::AVal(AVal *value)
     : _type(REFERENCE)
-    , thrown(thrown)
+    , referenceValue(value)
 {
-    data = reinterpret_cast<Data*>(value);
 }
 
-AVal::AVal(int value, bool thrown)
+AVal::AVal(int value)
     : _type(INT)
-    , thrown(thrown)
 {
-    data = reinterpret_cast<Data*>(value);
+    intValue = value;
 }
 
-AVal::AVal(bool value, bool thrown)
+AVal::AVal(bool value)
     : _type(BOOL)
-    , thrown(thrown)
 {
-    data = reinterpret_cast<Data*>(value);
+    boolValue = value;
 }
 
-AVal::AVal(double value, bool thrown)
+AVal::AVal(double value)
     : _type(DOUBLE)
-    , thrown(thrown)
-    , data(MemoryPool::alloc())
 {
-    data->type = _type;
-    data->doubleValue = value;
+    doubleValue = value;
 }
 
 AVal::AVal(const char *value, bool thrown)
     : _type(STRING)
-    , thrown(thrown)
-    , data(MemoryPool::alloc())
+    , _thrown(thrown)
 {
-    data->type = _type;
-    data->stringValue = MemoryPool::strdup(value);
+    stringValue = MemoryPool::strdup(value);
 }
 
-AVal::AVal(Array value, bool thrown)
+AVal::AVal(Array *value)
     : _type(ARRAY)
-    , thrown(thrown)
-    , data(MemoryPool::alloc())
 {
-    data->type = _type;
-    data->arrayValue = value;
+    arrayValue = value;
 }
 
-AVal::AVal(Ast::Function *value, bool thrown)
+AVal::AVal(Ast::Function *value)
     : _type(FUNCTION)
-    , thrown(thrown)
-    , data(MemoryPool::alloc())
 {
-    data->type = _type;
-    data->functionValue = value;
+    functionValue = value;
 }
 
 AVal::AVal(BuiltinCall value)
     : _type(FUNCTION_BUILTIN)
-    , thrown(false)
 {
-    data = reinterpret_cast<Data*>(value);
+    builtinFunctionValue = value;
 }
 
 AVal::Type AVal::type() const
@@ -88,9 +74,9 @@ bool AVal::isWritable() const
     return !isUndefined();
 }
 
-const char* AVal::typeStr() const
+const char *AVal::typeStr() const
 {
-    static const char* const tNames[] = {
+    static const char *tNames[] = {
         "undefined",
         "reference",
         "int",
@@ -159,52 +145,52 @@ bool AVal::isBuiltinFunction() const
 
 bool AVal::isThrown() const
 {
-    return thrown;
+    return _thrown;
 }
 
 void AVal::markThrown(bool is)
 {
-    thrown = is;
+    _thrown = is;
 }
 
 AVal *AVal::toReference() const
 {
-    return reinterpret_cast<AVal*>(convertTo(REFERENCE).data);
+    return convertTo(REFERENCE).referenceValue;
 }
 
 int AVal::toInt() const
 {
-    return reinterpret_cast<std::ptrdiff_t>(convertTo(INT).data);
+    return convertTo(INT).intValue;
 }
 
 bool AVal::toBool() const
 {
-    return reinterpret_cast<std::ptrdiff_t>(convertTo(BOOL).data);
+    return convertTo(BOOL).boolValue;
 }
 
 double AVal::toDouble() const
 {
-    return convertTo(DOUBLE).data->doubleValue;
+    return convertTo(DOUBLE).doubleValue;
 }
 
 Ast::Function *AVal::toFunction() const
 {
-    return convertTo(FUNCTION).data->functionValue;
+    return convertTo(FUNCTION).functionValue;
 }
 
 const char *AVal::toString() const
 {
-    return convertTo(STRING).data->stringValue;
+    return convertTo(STRING).stringValue;
 }
 
-AVal::Array AVal::toArray() const
+AVal::Array *AVal::toArray() const
 {
-    return convertTo(ARRAY).data->arrayValue;
+    return convertTo(ARRAY).arrayValue;
 }
 
 BuiltinCall AVal::toBuiltinFunction() const
 {
-    return reinterpret_cast<BuiltinCall>(convertTo(FUNCTION_BUILTIN).data);
+    return convertTo(FUNCTION_BUILTIN).builtinFunctionValue;
 }
 
 AVal AVal::convertTo(Type t) const
@@ -235,30 +221,30 @@ AVal AVal::convertTo(Type t) const
         case STRING:
             return "[undefined]";
         case ARRAY:
-            return Array();
+            return &emptyArray;
         default:
             X_UNREACHABLE();
         }
 
     case REFERENCE:
-        return toReference()->convertTo(t);
+        return dereference().convertTo(t);
 
     case INT:
         switch (t) {
         case BOOL:
-            return bool(toInt());
+            return bool(intValue);
         case DOUBLE:
-            return double(toInt());
+            return double(intValue);
         case FUNCTION:
         case FUNCTION_BUILTIN:
             return static_cast<Ast::Function*>(nullptr);
         case STRING: {
             std::stringstream ss;
-            ss << toInt();
+            ss << intValue;
             return ss.str().c_str();
         }
         case ARRAY:
-            return Array();
+            return &emptyArray;
         default:
             X_UNREACHABLE();
         }
@@ -266,16 +252,16 @@ AVal AVal::convertTo(Type t) const
     case BOOL:
         switch (t) {
         case INT:
-            return int(toBool());
+            return int(boolValue);
         case DOUBLE:
-            return double(toBool());
+            return double(boolValue);
         case FUNCTION:
         case FUNCTION_BUILTIN:
             return static_cast<Ast::Function*>(nullptr);
         case STRING:
-            return toBool() ? "true" : "false";
+            return boolValue ? "true" : "false";
         case ARRAY:
-            return Array();
+            return &emptyArray;
         default:
             X_UNREACHABLE();
         }
@@ -283,19 +269,19 @@ AVal AVal::convertTo(Type t) const
     case DOUBLE:
         switch (t) {
         case INT:
-            return int(data->doubleValue);
+            return int(doubleValue);
         case BOOL:
-            return bool(data->doubleValue);
+            return bool(doubleValue);
         case FUNCTION:
         case FUNCTION_BUILTIN:
             return static_cast<Ast::Function*>(nullptr);
         case STRING: {
             std::stringstream ss;
-            ss << data->doubleValue;
+            ss << doubleValue;
             return ss.str().c_str();
         }
         case ARRAY:
-            return Array();
+            return &emptyArray;
         default:
             X_UNREACHABLE();
         }
@@ -306,11 +292,11 @@ AVal AVal::convertTo(Type t) const
         case BOOL:
         case DOUBLE:
         case FUNCTION_BUILTIN:
-            return AVal(data->functionValue ? true : false).convertTo(t);
+            return AVal(functionValue ? true : false).convertTo(t);
         case STRING:
             return "[function]";
         case ARRAY:
-            return Array();
+            return &emptyArray;
         default:
             X_UNREACHABLE();
         }
@@ -321,11 +307,11 @@ AVal AVal::convertTo(Type t) const
         case BOOL:
         case DOUBLE:
         case FUNCTION:
-            return AVal(toBuiltinFunction() ? true : false).convertTo(t);
+            return AVal(builtinFunctionValue ? true : false).convertTo(t);
         case STRING:
             return "[builtin function]";
         case ARRAY:
-            return Array();
+            return &emptyArray;
         default:
             X_UNREACHABLE();
         }
@@ -333,16 +319,16 @@ AVal AVal::convertTo(Type t) const
     case STRING:
         switch (t) {
         case INT:
-            return atoi(data->stringValue);
+            return atoi(stringValue);
         case BOOL:
-            return strlen(data->stringValue) > 0;
+            return strlen(stringValue) > 0;
         case DOUBLE:
-            return atof(data->stringValue);
+            return atof(stringValue);
         case FUNCTION:
         case FUNCTION_BUILTIN:
             return static_cast<Ast::Function*>(nullptr);
         case ARRAY:
-            return Array();
+            return &emptyArray;
         default:
             X_UNREACHABLE();
         }
@@ -368,6 +354,7 @@ AVal AVal::convertTo(Type t) const
     return 0;
 }
 
+#if 0
 AVal::Data::~Data()
 {
     if (type == FUNCTION) {
@@ -389,3 +376,4 @@ AVal::Data::Data() :
   memmgr(nullptr)
 {
 }
+#endif

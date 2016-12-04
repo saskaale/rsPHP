@@ -14,7 +14,7 @@ class AVal
 {
 public:
     enum Type {
-        UNDEFINED,
+        UNDEFINED = 0,
         REFERENCE,
         INT,
         BOOL,
@@ -29,17 +29,18 @@ public:
         AVal *array = nullptr;
         size_t count = 0;
         size_t allocd = 0;
+        void *mem = nullptr;
     };
 
     AVal();
-    AVal(AVal *value, bool isThrown = false);
-    AVal(int value, bool isThrown = false);
-    AVal(bool value, bool isThrown = false);
-    AVal(double value, bool isThrown = false);
+    AVal(AVal *value);
+    AVal(int value);
+    AVal(bool value);
+    AVal(double value);
     AVal(const char *value, bool isThrown = false);
     AVal(BuiltinCall value);
-    AVal(Array value, bool isThrown = false);
-    AVal(Ast::Function *value, bool isThrown = false);
+    AVal(Array *value);
+    AVal(Ast::Function *value);
 
     Type type() const;
     bool isWritable() const;
@@ -66,28 +67,20 @@ public:
     Ast::Function *toFunction() const;
     BuiltinCall toBuiltinFunction() const;
     const char *toString() const;
-    Array toArray() const;
+    Array *toArray() const;
 
     AVal convertTo(Type t) const;
 
-    Type _type;
-    bool thrown;
-    void* rawdata;
-
-    struct Data {
-        Data();
-        Data(void* memmgr);
-        ~Data();
-        Type type;
-        void* memmgr;
-        union {
-            int intValue;
-            bool boolValue;
-            double doubleValue;
-            Ast::Function *functionValue;
-            BuiltinCall builtinFunction;
-            char *stringValue;
-            Array arrayValue;
-        };
-    } *data = nullptr;
+    bool _thrown = false;
+    Type _type = UNDEFINED;
+    union {
+        AVal *referenceValue;
+        int intValue;
+        bool boolValue;
+        double doubleValue;
+        Ast::Function *functionValue;
+        BuiltinCall builtinFunctionValue;
+        char *stringValue;
+        Array *arrayValue;
+    };
 };

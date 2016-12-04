@@ -268,11 +268,11 @@ AVal ex(Ast::Node *p, Environment* envir)
         if (!arr.isArray() && (!arr.isReference() || !arr.toReference()->isArray())) {
             THROW("Variable is not array");
         }
-        const AVal::Array &a = arr.toArray();
-        if (index < 0 || index >= a.count) {
+        AVal::Array *a = arr.toArray();
+        if (index < 0 || index >= a->count) {
             THROW("Index out of bounds");
         }
-        return &a.array[index];
+        return &a->array[index];
     }
 
     case Ast::Node::AssignmentT: {

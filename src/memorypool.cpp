@@ -10,8 +10,8 @@
 
 namespace MemoryPool
 {
-  
-  
+
+
 #define MASKUNSET(t, mask) ((t)&=(~0 ^ mask))
 #define MASKSET(t, mask) ((t)|=(mask))
 #define HASMASK(t, mask) ((t)&(mask))
@@ -30,7 +30,7 @@ MemChunk::Data::Data()
     d = nullptr;
     flags = 0;
 };
-  
+
 
 
 AVal PRINTVAL(const AVal& printV){
@@ -50,16 +50,16 @@ void checkCollectGarbage(){
     }
 }
 
-AVal::Data *alloc()
+void *alloc(size_t size, void **memchunk)
 {
     // printf("MemoryPool::alloc()\n");
 
     //find free chunk
-    MemChunk* freechunk = nullptr; 
+    MemChunk* freechunk = nullptr;
 
     //first step to check if there is free chunk, then try run garbage collector, and then second run to find if there is any free chunk
     int cnt = 0;
-    
+
     auto it = allocd.begin();
     int chunks = 1;
     for(; it != allocd.end(); ++it){
@@ -70,17 +70,17 @@ AVal::Data *alloc()
         freechunk = m;
         break;
     }
-    
-    
+
+
     if(freechunk==nullptr){
-      
+
       //mark memory as dirty and allocate new chunk
       memDirty = true;
       allocd.push_back(freechunk = new MemChunk());
 
     }else{
 
-      //mark memory as dirty, when there is less than 10 empty values in the last memory chunk    
+      //mark memory as dirty, when there is less than 10 empty values in the last memory chunk
       auto nextit = it;
       ++nextit;
       if(nextit == allocd.end()){
@@ -106,10 +106,12 @@ AVal::Data *alloc()
         break;
       }
     }
-    
+
     freechunk->freeCnt--;
-    
-    AVal::Data* d = new AVal::Data(&freechunk->d[freepos]);
+
+    void *d = malloc(size);
+    memset(d, 0, size);
+    *memchunk = &freechunk->d[freepos];
     freechunk->d[freepos].d = d;
     freechunk->d[freepos].flags = MemChunk::FREE;
     return d;
@@ -129,7 +131,7 @@ void cleanup()
 {
     for (MemChunk *m : allocd) {
         for(int i = 0; i < MEMCHUNK_SIZE; i++){
-            delete m->d[i].d;
+            free(m->d[i].d);
         }
         delete m;
     }
@@ -146,25 +148,23 @@ int poolSize(){
 
 
 inline static void DFSMark(const AVal& val){
-    if(val.isBuiltinFunction() || val.isBool() || val.isInt() || val.isReference())
+    if(!val.isArray())
       return;
-  
-    if(val.data == nullptr)
-      return;
-    MemChunk::Data* s = (MemChunk::Data*)val.data->memmgr;
+
+    MemChunk::Data* s = (MemChunk::Data*) val.toArray()->mem;
     if(s == nullptr)
       return;
 
     if(HASMASK(s->flags, MemChunk::MARKED))
       return;
-    
+
     MASKSET(s->flags, MemChunk::MARKED);
-    
-    
+
+
     //deep recursion to mark each elements of array
     if(val.isArray()){
-      for(int i = 0; i < val.toArray().allocd; i++){
-        DFSMark(val.toArray().array[i]);
+      for(int i = 0; i < val.toArray()->allocd; i++){
+        DFSMark(val.toArray()->array[i]);
       }
     }
 }
@@ -175,7 +175,7 @@ void collectGarbage( bool silent )
     int size;
     if(!silent)
         size = poolSize();
-  
+
     // Mark & Sweep
     size_t collected = 0;
 
@@ -186,16 +186,16 @@ void collectGarbage( bool silent )
     }
 
     for(auto m: allocd){
-      
+
       for(int i = 0; i < MEMCHUNK_SIZE; i++){
         if(m->d[i].d == nullptr)
           continue;
-        
+
         if(!HASMASK(m->d[i].flags, MemChunk::MARKED)){
           m->d[i].flags = MemChunk::FREE;
-          delete m->d[i].d;
+          free(m->d[i].d);
           m->d[i].d = nullptr;
-          
+
           m->freeCnt++;
           collected++;
         }else{
@@ -203,7 +203,7 @@ void collectGarbage( bool silent )
         }
       }
     }
-    
+
     memDirty = false;
 
     if(!silent){
