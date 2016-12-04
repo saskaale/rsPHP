@@ -509,6 +509,7 @@ static void defaultExceptionHandler(Environment* envir, AVal toPrint){
   printf("Catched: ");
   INVOKE_INTERNAL("dump", envir, { toPrint });
   printf("Sorry, Bye :(\n");
+  Evaluator::exit();
   ::exit(EXIT_FAILURE);
 }
 
