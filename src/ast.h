@@ -37,9 +37,6 @@ class StatementList;
 class VariableList;
 class Function;
 
-// Program
-class Program;
-
 class Node
 {
 public:
@@ -292,6 +289,7 @@ class Return : public Statement
 {
 public:
     explicit Return(Expression *expr);
+    ~Return();
 
     Type type() const;
 
@@ -353,30 +351,6 @@ public:
     std::string name;
     VariableList *parameters;
     StatementList *statements;
-};
-
-
-
-
-// Program
-class Program
-{
-public:
-    explicit Program();
-
-    void setGlobalVariables(VariableList *globvars);
-    void addFunction(Function *function);
-
-    void print() const;
-
-private:
-    VariableList* m_globVars;
-    std::vector<Function*> m_functions;
-
-    Function *m_main;
-
-    friend class Utils;
-    friend class Generic;
 };
 
 } // namespace Ast

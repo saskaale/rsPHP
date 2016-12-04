@@ -354,6 +354,11 @@ Return::Return(Expression *expr)
 {
 }
 
+Return::~Return()
+{
+    delete expression;
+}
+
 Node::Type Return::type() const
 {
     return ReturnT;
@@ -387,7 +392,7 @@ StatementList::StatementList(Statement *stm, StatementList *lst)
         lst->statements.clear();
         delete lst;
     }
-    if(stm){
+    if (stm) {
         statements.push_back(stm);
     }
 }
@@ -417,7 +422,7 @@ VariableList::VariableList(Variable *var, VariableList *lst)
         lst->variables.clear();
         delete lst;
     }
-    if(var) {
+    if (var) {
         variables.push_back(var);
     }
 }
@@ -462,53 +467,6 @@ Node::Type Function::type() const
 bool Function::isLambda() const
 {
     return name.empty();
-}
-
-
-Program::Program()
-    : m_globVars(nullptr)
-{
-    // Create dummy built-in functions
-    m_main = new Function("main", nullptr, nullptr);
-}
-
-void Program::setGlobalVariables(VariableList *globvars)
-{
-    if (globvars)
-        m_globVars = globvars;
-}
-
-void Program::addFunction(Function *function)
-{
-    if (function)
-        m_functions.push_back(function);
-}
-
-void Program::print() const
-{
-#if 0
-    if (m_globVars) {
-        std::list<Variable*>::const_iterator it;
-        for (it = m_globVars->variables.begin();
-                it != m_globVars->variables.end(); ++it) {
-            (*it)->print();
-        }
-    }
-
-    if (!m_functions.empty()) {
-        std::list<Function*>::const_iterator it;
-        for (it = m_functions.begin();
-                it != m_functions.end(); ++it) {
-            Function *func = *it;
-            printf("Func: %s Statements: %d LocVars: %d Params: %d\n",
-                    func->name.c_str(),
-                    !func->isForward() ? (int) func->statements->statements.size() : 0,
-                    func->localVariables ? (int) func->localVariables->variables.size() : 0,
-                    func->parameters ? (int) func->parameters->variables.size() : 0
-                    );
-        }
-    }
-#endif
 }
 
 } // namespace Ast
