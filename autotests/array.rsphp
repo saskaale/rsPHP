@@ -54,3 +54,19 @@ ar4[0] = "hello";
 assert("array copy assignment", ar4[0] == "hello");
 assert("array copy assignment", ar3[0] == "he");
 assert("array copy assignment", ar2[0] == "he");
+
+// array initializer
+ar5 = Array(3, "he");
+assert("array initializer", count(ar5) == 3);
+assert("array initializer", ar5[0] == "he");
+ar5[0] = "hello";
+assert("array initializer", ar5[0] == "hello");
+assert("array initializer", ar5[1] == "he");
+assert("array initializer", ar5[2] == "he");
+
+// multi-dimensional arrays
+ar6 = Array(3, Array(3, "he"));
+assert("2d array", count(ar6) == 3);
+assert("2d array", count(ar6[0]) == 3);
+assert("2d array", count(ar6[1]) == 3);
+assert("2d array", count(ar6[2]) == 3);

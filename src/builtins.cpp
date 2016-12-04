@@ -350,8 +350,8 @@ AVal doBuiltInExit(Ast::ExpressionList *v, Environment *envir)
 
 AVal doBuiltInArray(Ast::ExpressionList *v, Environment *envir)
 {
-    if (v->expressions().size() > 1) {
-        THROW("Array() takes one or zero arguments.");
+    if (v->expressions().size() > 2) {
+        THROW("Array() takes one, zero or two arguments.");
     }
 
     const int size = v->expressions().empty() ? 0 : ex(v->expressions()[0], envir).toInt();
@@ -364,6 +364,15 @@ AVal doBuiltInArray(Ast::ExpressionList *v, Environment *envir)
     a->mem = mem;
     a->count = 0;
     a->allocd = size;
+
+    if (v->expressions().size() == 2) {
+        AVal initializer = ex(v->expressions()[1], envir);
+        for (int i = 0; i < size; ++i) {
+            a->array[i] = initializer.copy();
+        }
+        a->count = size;
+    }
+
     return a;
 }
 
