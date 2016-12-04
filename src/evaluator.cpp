@@ -29,21 +29,21 @@ static AVal binaryOp_impl(Ast::BinaryOperator::Op op, const char *a, const char 
         // Invalid operator for string
         return AVal();
     case Ast::BinaryOperator::Equal:
-        return a == b;
+        return sa == sb;
     case Ast::BinaryOperator::NotEqual:
-        return a != b;
+        return sa != sb;
     case Ast::BinaryOperator::LessThan:
-        return a < b;
+        return sa < sb;
     case Ast::BinaryOperator::GreaterThan:
-        return a > b;
+        return sa > sb;
     case Ast::BinaryOperator::LessThanEqual:
-        return a <= b;
+        return sa <= sb;
     case Ast::BinaryOperator::GreaterThanEqual:
-        return a >= b;
+        return sa >= sb;
     case Ast::BinaryOperator::And:
-        return a && b;
+        return !sa.empty() && !sb.empty();
     case Ast::BinaryOperator::Or:
-        return a || b;
+        return !sa.empty() || !sb.empty();
     default:
         X_UNREACHABLE();
     }
