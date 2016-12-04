@@ -1,0 +1,9 @@
+a = 1;
+b = 1;
+assert(a === b);
+assert((a !== b) == false);
+a = undefined;
+assert(a !== b);
+assert(a === undefined);
+b = undefined;
+assert(a === b);

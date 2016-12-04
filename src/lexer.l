@@ -55,6 +55,8 @@ void comment();
 "*="            return AS_TIMES;
 "/="            return AS_DIV;
 "%="            return AS_MOD;
+"==="           return EQ_TYPE;
+"!=="           return NE_TYPE;
 "for"           return FOR;
 "function"      return FUNCTION;
 "while"         return WHILE;
@@ -69,6 +71,7 @@ void comment();
 "print"         return PRINT;
 "true"          return TRUE;
 "false"         return FALSE;
+"undefined"     return UNDEFINED;
 
 \"(\\.|[^\\"])*\" {
                 size_t size = strlen(yytext);

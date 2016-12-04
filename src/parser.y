@@ -32,12 +32,12 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, 
 %token <iValue> INTEGER
 %token <str> VARIABLE
 %token <str> STRING
-%token FOR WHILE IF PRINT THROW TRUE FALSE FUNCTION RETURN BREAK CONTINUE TRY CATCH
+%token FOR WHILE IF PRINT THROW TRUE FALSE UNDEFINED FUNCTION RETURN BREAK CONTINUE TRY CATCH
 %token ASSIGN AS_PLUS AS_MINUS AS_TIMES AS_DIV AS_MOD REFERENCE
 %nonassoc IFX
 %nonassoc ELSE
 
-%left GE LE EQ NE GREATER LESS
+%left GE LE EQ EQ_TYPE NE NE_TYPE GREATER LESS
 %left PLUS MINUS
 %left TIMES DIV MOD
 %left INCREMENT DECREMENT
@@ -144,6 +144,8 @@ expr2:
         | expr2 LE expr2              { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::LessThanEqual, $1, $3); }
         | expr2 NE expr2              { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::NotEqual, $1, $3); }
         | expr2 EQ expr2              { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Equal, $1, $3); }
+        | expr2 NE_TYPE expr2         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::NotEqualType, $1, $3); }
+        | expr2 EQ_TYPE expr2         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::EqualType, $1, $3); }
         | expr2 AND expr2             { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::And, $1, $3); }
         | expr2 OR expr2              { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Or, $1, $3); }
         | '(' expr ')'                { $$ = $2; }
@@ -158,6 +160,7 @@ value:
         | DOUBLE                  { $$ = new Ast::DoubleLiteral($1); }
         | TRUE                    { $$ = new Ast::BoolLiteral(true); }
         | FALSE                   { $$ = new Ast::BoolLiteral(false); }
+        | UNDEFINED               { $$ = new Ast::UndefinedLiteral(); }
         | STRING                  { $$ = new Ast::StringLiteral($1); free($1); }
         ;
 %%

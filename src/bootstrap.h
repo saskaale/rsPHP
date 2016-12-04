@@ -20,6 +20,18 @@ function swap(&a, &b)
     b = tmp;
 }
 
+function assert(c, v)
+{
+    if (v === undefined) {
+        v = c;
+        c = "";
+    }
+    if (v === false) {
+        print "Assertion " + c + " failed!";
+        exit(1);
+    }
+}
+
 function forEach(&a, f)
 {
     c = count(a);

@@ -21,7 +21,7 @@ Node::~Node()
 const char* Node::typeStr() const
 {
     static const char* const tNames[] = {
-        "VariableT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolLiteralT", "StringLiteralT", "AValLiteralT",
+        "VariableT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolLiteralT", "UndefinedLiteralT", "StringLiteralT", "AValLiteralT",
         "UnaryOperatorT", "BinaryOperatorT", "FunctionCallT", "ExpressionListT", "AssignmentT", "TryT",
         "IfT", "WhileT", "ForT", "ReturnT", "BreakT", "ContinueT",
         "StatementListT", "VariableListT", "FunctionT"
@@ -67,7 +67,6 @@ IntegerLiteral::IntegerLiteral(int value)
 {
 }
 
-
 Node::Type IntegerLiteral::type() const
 {
     return IntegerLiteralT;
@@ -78,19 +77,16 @@ AValLiteral::AValLiteral(const void* value)
 {
 }
 
-
 Node::Type AValLiteral::type() const
 {
     return AValLiteralT;
 }
 
 
-
 DoubleLiteral::DoubleLiteral(double value)
     : value(value)
 {
 }
-
 
 Node::Type DoubleLiteral::type() const
 {
@@ -103,10 +99,19 @@ BoolLiteral::BoolLiteral(bool value)
 {
 }
 
-
 Node::Type BoolLiteral::type() const
 {
     return BoolLiteralT;
+}
+
+
+UndefinedLiteral::UndefinedLiteral()
+{
+}
+
+Node::Type UndefinedLiteral::type() const
+{
+    return UndefinedLiteralT;
 }
 
 
@@ -159,11 +164,11 @@ Node::Type BinaryOperator::type() const
 const char* BinaryOperator::opStr() const
 {
     static const char* const opNames[] = {
-        "Plus", "Minus", "Times", "Equal", "NotEqual",
+        "Plus", "Minus", "Times", "Equal", "EqualType", "NotEqual", "NotEqualType",
         "LessThan", "GreaterThan", "LessThanEqual", "GreaterThanEqual",
         "Div", "Mod", "And", "Or"
     };
-        
+
     return opNames[(int)this->op];
 }
 

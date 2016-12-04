@@ -91,6 +91,15 @@ static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVa
     CHECKTHROWN(a)
     CHECKTHROWN(b)
 
+    if (op == Ast::BinaryOperator::EqualType) {
+        if (a.type() != b.type()) {
+            return false;
+        }
+        op = Ast::BinaryOperator::Equal;
+    } else if (op == Ast::BinaryOperator::NotEqualType) {
+        return !binaryOp(Ast::BinaryOperator::EqualType, a, b).toBool();
+    }
+
     if (a.isReference() || b.isReference()) {
         AVal ar = a;
         AVal br = b;
@@ -104,6 +113,11 @@ static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVa
     }
 
     if (a.isUndefined() || b.isUndefined()) {
+        if (op == Ast::BinaryOperator::Equal) {
+            return a.isUndefined() && b.isUndefined();
+        } else if (op == Ast::BinaryOperator::NotEqual) {
+            return !(a.isUndefined() && b.isUndefined());
+        }
         return AVal();
     } else if (a.isString() || b.isString()) {
         return binaryOp_impl(op, a.toString(), b.toString());
@@ -220,6 +234,9 @@ AVal ex(Ast::Node *p, Environment* envir)
     };
 
     switch (p->type()) {
+
+    case Ast::Node::UndefinedLiteralT:
+        return AVal();
 
     case Ast::Node::IntegerLiteralT:
         return AVal(p->as<Ast::IntegerLiteral*>()->value);
