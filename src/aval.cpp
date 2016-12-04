@@ -10,6 +10,16 @@
 
 AArray emptyArray;
 
+static AString *rstrdup(const char *str)
+{
+    void *mem;
+    size_t size = strlen(str) + 1;
+    AString *out = (AString*)MemoryPool::alloc(AString::allocSize(size), &mem);
+    strncpy(out->string, str, size);
+    out->mem = mem;
+    return out;
+}
+
 AVal::AVal()
     : _type(UNDEFINED)
 {
@@ -43,11 +53,7 @@ AVal::AVal(const char *value, bool thrown)
     : _type(STRING)
     , _thrown(thrown)
 {
-    void *mem;
-    size_t size = strlen(value) + 1;
-    stringValue = (AString*)MemoryPool::alloc(AString::allocSize(size), &mem);
-    strncpy(stringValue->string, value, size);
-    stringValue->mem = mem;
+    stringValue = rstrdup(value);
 }
 
 AVal::AVal(AArray *value)
@@ -92,6 +98,26 @@ const char *AVal::typeStr() const
         "function" //FUNCTION_BUILTIN
     };
     return tNames[(int)type()];
+}
+
+AVal AVal::copy() const
+{
+    switch (type()) {
+    case STRING:
+        return toString();
+
+    case ARRAY: {
+        void *mem;
+        size_t size =AArray::allocSize(arrayValue->count);
+        AArray *a = (AArray*)MemoryPool::alloc(size, &mem);
+        memcpy(a, arrayValue, size);
+        a->mem = mem;
+        return a;
+    }
+
+    default:
+        return *this;
+    }
 }
 
 AVal AVal::dereference() const

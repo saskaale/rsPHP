@@ -41,6 +41,8 @@ public:
     Type type() const;
     bool isWritable() const;
     const char* typeStr() const;
+
+    AVal copy() const;
     AVal dereference() const;
 
     bool isUndefined() const;

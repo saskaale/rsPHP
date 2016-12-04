@@ -197,7 +197,8 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
             }
         } else if (e) {
             r = ex(e, envir);
-            CHECKTHROWN(r)
+            CHECKTHROWN(r);
+            r = r.copy();
         }
         funcEnvironment->set(v, r);
     }

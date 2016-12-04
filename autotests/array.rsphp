@@ -30,3 +30,14 @@ forEach(ar1, function(v) {
 });
 
 print "index" + indexOf(ar1, 5);
+
+// passing array to function as value
+function passarray(arr)
+{
+    arr[0] = "he";
+}
+
+ar2 = Array();
+push(ar2, "hello");
+passarray(ar2);
+assert("pass array to function by value", ar2[0] == "hello");
