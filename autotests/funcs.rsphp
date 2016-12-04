@@ -22,3 +22,34 @@ function tst(a, b)
     print b;
 }
 tst(a);
+
+// global variables
+globs = 23;
+
+function incglobs()
+{
+    globs++;
+}
+
+incglobs();
+assert(globs == 24);
+incglobs();
+assert(globs == 25);
+
+print "done-glob";
+
+function outer()
+{
+    asd = 20;
+    a = function() {
+        asd++;
+        globs++;
+    };
+    a();
+    a();
+    return asd;
+}
+
+assert(outer() == 22);
+assert(globs == 27);
+print "done-outer";
