@@ -160,11 +160,7 @@ static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expres
     envirs.push_back(funcEnvironment);
 
     Ast::VariableList *parameters = func->parameters();
-    if (arguments.size() > parameters->variables.size()) {
-        THROW2("Too many arguments for %s", func->isLambda() ? "[lambda]" : func->name.c_str());
-    }
-
-    for (int i = 0; i < arguments.size(); i++) {
+    for (int i = 0; i < std::min(arguments.size(), parameters->variables.size()); i++) {
         Ast::Variable *v = parameters->variables[i];
         Ast::Expression *e = arguments.size() > i ? arguments[i] : nullptr;
         AVal r;
