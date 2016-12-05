@@ -241,11 +241,6 @@ FunctionCall::~FunctionCall()
     delete arguments();
 }
 
-void FunctionCall::setObject(Expression *object)
-{
-    n3 = object;
-}
-
 Node::Type FunctionCall::type() const
 {
     return FunctionCallT;

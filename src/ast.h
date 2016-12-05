@@ -223,8 +223,6 @@ public:
 
     Type type() const;
 
-    void setObject(Expression *object);
-
     Expression* object() const;
     Expression* function() const;
     ExpressionList* arguments() const;
