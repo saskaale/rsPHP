@@ -29,7 +29,7 @@ forEach(ar1, function(v) {
     print v;
 });
 
-print "index" + indexOf(ar1, 5);
+print "index", indexOf(ar1, 5);
 
 // passing array to function as value
 function passarray(arr)

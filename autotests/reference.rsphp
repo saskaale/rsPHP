@@ -36,7 +36,7 @@ print c;
 s1 = "hello";
 s2 = "world";
 swap(s1, s2);
-print s1 + s2;
+print s1, s2;
 
 /* CONST */
 function constfunc(const &t)

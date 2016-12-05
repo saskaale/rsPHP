@@ -16,13 +16,21 @@ namespace Evaluator
 // Functions
 AVal doBuiltInPrint(const std::vector<Ast::Expression*> &arguments, Environment *envir)
 {
-    if (arguments.empty())
-      THROW("Print function expects at least one parameter.")
+    if (arguments.empty()) {
+        THROW("Print function expects at least one parameter.");
+    }
 
-    AVal printV = ex(arguments[0], envir);
-    CHECKTHROWN(printV)
+    std::string out;
+    for (Ast::Expression *arg : arguments) {
+        AVal printV = ex(arg, envir);
+        CHECKTHROWN(printV);
+        if (!out.empty()) {
+            out += " ";
+        }
+        out += printV.toString();
+    }
 
-    return printf("%s\n", printV.toString());
+    return printf("%s\n", out.c_str());
 }
 
 AVal doBuiltInTypeof(const std::vector<Ast::Expression*> &arguments, Environment *envir)
