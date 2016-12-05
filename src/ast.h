@@ -17,6 +17,7 @@ class ArraySubscript;
 class IntegerLiteral;
 class DoubleLiteral;
 class BoolLiteral;
+class CharLiteral;
 class UndefinedLiteral;
 class StringLiteral;
 class BinaryOperator;
@@ -56,7 +57,7 @@ class Node
 {
 public:
     enum Type {
-        VariableT, ArraySubscriptT, IntegerLiteralT, DoubleLiteralT, BoolLiteralT, UndefinedLiteralT, StringLiteralT, AValLiteralT,
+        VariableT, ArraySubscriptT, IntegerLiteralT, DoubleLiteralT, BoolLiteralT, CharLiteralT, UndefinedLiteralT, StringLiteralT, AValLiteralT,
         UnaryOperatorT, BinaryOperatorT, FunctionCallT, ExpressionListT, AssignmentT, TryT,
         IfT, WhileT, ForT, ReturnT, BreakT, ContinueT,
         StatementListT, VariableListT, FunctionT
@@ -147,6 +148,16 @@ public:
     Type type() const;
 
     bool value;
+};
+
+class CharLiteral : public Expression
+{
+public:
+    explicit CharLiteral(char value);
+
+    Type type() const;
+
+    char value;
 };
 
 class UndefinedLiteral : public Expression

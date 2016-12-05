@@ -25,7 +25,7 @@ Node::~Node()
 const char* Node::typeStr() const
 {
     static const char* const tNames[] = {
-        "VariableT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolLiteralT", "UndefinedLiteralT", "StringLiteralT", "AValLiteralT",
+        "VariableT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolLiteralT", "CharLiteralT", "UndefinedLiteralT", "StringLiteralT", "AValLiteralT",
         "UnaryOperatorT", "BinaryOperatorT", "FunctionCallT", "ExpressionListT", "AssignmentT", "TryT",
         "IfT", "WhileT", "ForT", "ReturnT", "BreakT", "ContinueT",
         "StatementListT", "VariableListT", "FunctionT"
@@ -123,6 +123,17 @@ BoolLiteral::BoolLiteral(bool value)
 Node::Type BoolLiteral::type() const
 {
     return BoolLiteralT;
+}
+
+
+CharLiteral::CharLiteral(char value)
+    : value(value)
+{
+}
+
+Node::Type CharLiteral::type() const
+{
+    return CharLiteralT;
 }
 
 

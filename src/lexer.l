@@ -74,6 +74,11 @@ void comment();
 "false"         return FALSE;
 "undefined"     return UNDEFINED;
 
+'.' {
+                yylval.iValue = yytext[1];
+                return CHAR;
+            }
+
 \"(\\.|[^\\"])*\" {
                 size_t size = strlen(yytext);
                 yylval.str = (char*) malloc(size);

@@ -7,3 +7,13 @@ assert(a !== b);
 assert(a === undefined);
 b = undefined;
 assert(a === b);
+
+// types
+assert("type int", typeof(12) == "int");
+assert("type bool", typeof(false) == "bool");
+assert("type char", typeof('c') == "char");
+assert("type double", typeof(2.0) == "double");
+assert("type string", typeof("cstring") == "string");
+assert("type array", typeof(Array()) == "array");
+assert("type function", typeof(function(){return 1;}) == "function");
+assert("type function builtin", typeof(gc) == "function");

@@ -96,6 +96,7 @@ const char *AVal::typeStr() const
         "reference",
         "int",
         "bool",
+        "char",
         "double",
         "string",
         "array",
@@ -258,6 +259,8 @@ AVal AVal::convertTo(Type t) const
         switch (t) {
         case BOOL:
             return false;
+        case CHAR:
+            return char(0);
         case DOUBLE:
             return NAN;
         case FUNCTION:
@@ -278,6 +281,8 @@ AVal AVal::convertTo(Type t) const
         switch (t) {
         case BOOL:
             return bool(intValue);
+        case CHAR:
+            return char(intValue);
         case DOUBLE:
             return double(intValue);
         case FUNCTION:
@@ -298,6 +303,8 @@ AVal AVal::convertTo(Type t) const
         switch (t) {
         case INT:
             return int(boolValue);
+        case CHAR:
+            return char(boolValue);
         case DOUBLE:
             return double(boolValue);
         case FUNCTION:
@@ -336,6 +343,8 @@ AVal AVal::convertTo(Type t) const
             return int(doubleValue);
         case BOOL:
             return bool(doubleValue);
+        case CHAR:
+            return char(doubleValue);
         case FUNCTION:
         case FUNCTION_BUILTIN:
             return static_cast<Ast::Function*>(nullptr);
@@ -354,6 +363,7 @@ AVal AVal::convertTo(Type t) const
         switch (t) {
         case INT:
         case BOOL:
+        case CHAR:
         case DOUBLE:
         case FUNCTION_BUILTIN:
             return AVal(functionValue ? true : false).convertTo(t);
@@ -369,6 +379,7 @@ AVal AVal::convertTo(Type t) const
         switch (t) {
         case INT:
         case BOOL:
+        case CHAR:
         case DOUBLE:
         case FUNCTION:
             return AVal(builtinFunctionValue ? true : false).convertTo(t);
@@ -386,6 +397,8 @@ AVal AVal::convertTo(Type t) const
             return atoi(stringValue->string);
         case BOOL:
             return strlen(stringValue->string) > 0;
+        case CHAR:
+            return char(0);
         case DOUBLE:
             return atof(stringValue->string);
         case FUNCTION:
@@ -401,6 +414,7 @@ AVal AVal::convertTo(Type t) const
         switch (t) {
         case INT:
         case BOOL:
+        case CHAR:
         case DOUBLE:
         case FUNCTION:
         case FUNCTION_BUILTIN:
@@ -417,27 +431,3 @@ AVal AVal::convertTo(Type t) const
 
     return 0;
 }
-
-#if 0
-AVal::Data::~Data()
-{
-    if (type == FUNCTION) {
-        delete functionValue;
-    } else if (type == STRING) {
-        MemoryPool::strfree(stringValue);
-    } else if (type == ARRAY) {
-        delete []arrayValue.array;
-    }
-}
-
-
-AVal::Data::Data(void* memmgr) :
-  memmgr(memmgr)
-{
-}
-
-AVal::Data::Data() :
-  memmgr(nullptr)
-{
-}
-#endif

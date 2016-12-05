@@ -127,6 +127,8 @@ static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVa
         return binaryOp_impl(op, a.toDouble(), b.toDouble());
     } else if (a.isInt() || b.isInt()) {
         return binaryOp_impl(op, a.toInt(), b.toInt());
+    } else if (a.isChar() || b.isChar()) {
+        return binaryOp_impl(op, a.toChar(), b.toChar());
     } else if (a.isBool() || b.isBool()) {
         return binaryOp_impl(op, a.toBool(), b.toBool());
     } else if (a.isFunction() || b.isFunction() || a.isBuiltinFunction() || b.isBuiltinFunction()
@@ -257,6 +259,9 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::DoubleLiteralT:
         return AVal(p->as<Ast::DoubleLiteral*>()->value);
+
+    case Ast::Node::CharLiteralT:
+        return AVal(p->as<Ast::CharLiteral*>()->value);
 
     case Ast::Node::StringLiteralT:
         return AVal(p->as<Ast::StringLiteral*>()->value.c_str());
