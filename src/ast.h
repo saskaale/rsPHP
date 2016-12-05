@@ -96,15 +96,16 @@ public:
     std::string name;
 };
 
-class ArraySubscript : public Variable
+class ArraySubscript : public Expression
 {
 public:
-    explicit ArraySubscript(const std::string &name, Expression *expr);
+    explicit ArraySubscript(Expression *src, Expression *expr);
     ~ArraySubscript();
 
     Type type() const;
 
-    Expression * expression() const;
+    Expression *source() const;
+    Expression *expression() const;
 };
 
 class AValLiteral : public Expression

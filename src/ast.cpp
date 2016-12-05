@@ -50,13 +50,14 @@ Node::Type Variable::type() const
 }
 
 
-ArraySubscript::ArraySubscript(const std::string &name, Expression *expr)
-    : Variable(name, false, expr)
+ArraySubscript::ArraySubscript(Expression *src, Expression *expr)
+    : Node(src, expr)
 {
 }
 
 ArraySubscript::~ArraySubscript()
 {
+    delete source();
     delete expression();
 }
 
@@ -65,9 +66,14 @@ Node::Type ArraySubscript::type() const
     return ArraySubscriptT;
 }
 
-Expression* ArraySubscript::expression() const
+Expression *ArraySubscript::source() const
 {
     return (Expression*)n1;
+}
+
+Expression *ArraySubscript::expression() const
+{
+    return (Expression*)n2;
 }
 
 

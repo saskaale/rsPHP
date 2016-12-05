@@ -100,7 +100,6 @@ var_list:
 variable:
           VARIABLE                { $$ = new Ast::Variable($1); free($1); }
         | REFERENCE VARIABLE      { $$ = new Ast::Variable($2, true); free($2); }
-        | VARIABLE '[' expr ']'   { $$ = new Ast::ArraySubscript($1, $3); free($1); }
         ;
 
 var_list2:
@@ -154,6 +153,7 @@ expr2:
         | expr2 EQ_TYPE expr2         { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::EqualType, $1, $3); }
         | expr2 AND expr2             { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::And, $1, $3); }
         | expr2 OR expr2              { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Or, $1, $3); }
+        | expr2 '[' expr2 ']'         { $$ = new Ast::ArraySubscript($1, $3); }
         | '(' expr ')'                { $$ = $2; }
         | lambda                      { $$ = $1; }
         ;

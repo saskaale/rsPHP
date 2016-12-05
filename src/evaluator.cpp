@@ -281,7 +281,10 @@ AVal ex(Ast::Node *p, Environment* envir)
         AVal ind = ex(v->expression(), envir);
         CHECKTHROWN(ind)
         const int index = ind.toInt();
-        AVal &arr = envir->get(v);
+        AVal arr = ex(v->source(), envir);
+        if (testExFlag(ReturnLValue)) {
+            arr = arr.dereference();
+        }
         if (!arr.isArray() && (!arr.isReference() || !arr.toReference()->isArray())) {
             THROW("Variable is not array");
         }
