@@ -83,3 +83,13 @@ assert("string []", str1[0] === 't');
 assert("string []", str1[1] === 'e');
 assert("string []", str1[2] === 's');
 assert("string []", str1[3] === 't');
+
+// object call
+ar7 = Array(2);
+ar7.push("t");
+ar7.push("e");
+ar7out = "";
+ar7.forEach(function(v) {
+    ar7out += v;
+});
+assert("object calls", ar7out == "te");

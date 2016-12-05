@@ -24,6 +24,19 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Expression *dst
     return new Ast::Assignment(dst, o);
 }
 
+static Ast::Node *create_hacky_object_call(Ast::Expression *obj, Ast::Expression *func)
+{
+    Ast::FunctionCall *call = func->as<Ast::FunctionCall*>();
+    if (!call) {
+        fprintf(stderr, "Can only call function on object!\n");
+        abort();
+    }
+    std::vector<Ast::Expression*> args = call->arguments()->expressions();
+    args.insert(args.begin(), obj);
+    Ast::FunctionCall *ret = new Ast::FunctionCall(call->function(), new Ast::ExpressionList(args));
+    return ret;
+}
+
 %}
 
 %union {
@@ -158,6 +171,7 @@ expr2:
         | expr2 AND expr2             { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::And, $1, $3); }
         | expr2 OR expr2              { $$ = new Ast::BinaryOperator(Ast::BinaryOperator::Or, $1, $3); }
         | expr2 '[' expr2 ']'         { $$ = new Ast::ArraySubscript($1, $3); }
+        | expr2 '.' expr2             { $$ = create_hacky_object_call($1, $3); }
         | '(' expr ')'                { $$ = $2; }
         | lambda                      { $$ = $1; }
         ;
