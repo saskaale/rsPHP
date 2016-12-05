@@ -45,6 +45,17 @@ function copy(a)
     return a;
 }
 
+function merge(const &a, const &o)
+{
+    s = Array(count(a) + count(o));
+    p = function(v) {
+        s.push(v);
+    };
+    a.forEach(p);
+    b.forEach(p);
+    return s;
+}
+
 function forEach(const &a, f)
 {
     c = a.count();

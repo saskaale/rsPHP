@@ -11,8 +11,50 @@
 #include <algorithm>
 
 std::vector<Environment*> envirs;
+Environment *currentEnvironment = nullptr;
 
 // Operators
+static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b);
+
+static AVal binaryOp_impl(Ast::BinaryOperator::Op op, AArray *a, AArray *b)
+{
+    switch (op) {
+    case Ast::BinaryOperator::Plus:
+        // return (sa + sb).c_str();
+        return Evaluator::INVOKE_INTERNAL("merge", currentEnvironment, { a, b });
+    case Ast::BinaryOperator::Minus:
+    case Ast::BinaryOperator::Times:
+    case Ast::BinaryOperator::Div:
+    case Ast::BinaryOperator::Mod:
+    case Ast::BinaryOperator::LessThan:
+    case Ast::BinaryOperator::GreaterThan:
+    case Ast::BinaryOperator::LessThanEqual:
+    case Ast::BinaryOperator::GreaterThanEqual:
+        // Invalid operator for array
+        return AVal();
+    case Ast::BinaryOperator::Equal:
+        if (a->count != b->count) {
+            return false;
+        }
+        for (size_t i = 0; i < a->count; ++i) {
+            if (!binaryOp(Ast::BinaryOperator::Equal, a->array[i], b->array[i]).toBool()) {
+                return false;
+            }
+        }
+        return true;
+    case Ast::BinaryOperator::NotEqual:
+        return !binaryOp_impl(Ast::BinaryOperator::Equal, a, b).toBool();
+    case Ast::BinaryOperator::And:
+        return a->count && b->count;
+    case Ast::BinaryOperator::Or:
+        return a->count || b->count;
+    default:
+        X_UNREACHABLE();
+    }
+
+    return AVal();
+}
+
 static AVal binaryOp_impl(Ast::BinaryOperator::Op op, const char *a, const char *b)
 {
     std::string sa = a;
@@ -87,7 +129,7 @@ static AVal binaryOp_impl(Ast::BinaryOperator::Op op, T a, T b)
     return AVal();
 }
 
-static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
+static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b)
 {
     CHECKTHROWN(a)
     CHECKTHROWN(b)
@@ -118,6 +160,8 @@ static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVa
         return binaryOp_impl(op, a.toChar(), b.toChar());
     } else if (a.isBool() || b.isBool()) {
         return binaryOp_impl(op, a.toBool(), b.toBool());
+    } else if (a.isArray() | b.isArray()) {
+        return binaryOp_impl(op, a.toArray(), b.toArray());
     } else if (a.isFunction() || b.isFunction() || a.isBuiltinFunction() || b.isBuiltinFunction()
     ) {
         // Cannot evaluate binary operator for functions
@@ -226,6 +270,8 @@ AVal ex(Ast::Node *p, Environment* envir)
         return AVal();
     }
 
+    currentEnvironment = envir;
+
     auto assignToExpression = [](Ast::Expression *v, const AVal &value, Environment *envir) {
         setExFlag(ReturnLValue);
         AVal dest = ex(v, envir);
@@ -303,7 +349,7 @@ AVal ex(Ast::Node *p, Environment* envir)
             }
             return s->string[index];
         } else {
-            THROW("Variable is not array");
+            THROW2("Variable %s is not array", arr.dereference().typeStr());
         }
     }
 
@@ -414,7 +460,7 @@ AVal ex(Ast::Node *p, Environment* envir)
             envir->returnValue = ex(v->expression(), envir);
             envir->state = Environment::ReturnCalled;
         }
-        return envir->returnValue;
+        return AVal();
     }
 
     case Ast::Node::BreakT: {

@@ -1,0 +1,28 @@
+print 5 + 10;
+print 5 + "ahoj";
+print 2.5 + "s";
+print 2 + 'a'; // 'a' == 97
+
+a = Array(2, 0);
+a[0] = 1;
+a[1] = 2;
+
+b = Array(2, 0);
+b[0] = 1;
+b[1] = 2;
+
+assert("array ==", a == b);
+b[0] = 3;
+b[1] = 4;
+assert("array !=", a != b);
+
+/* m = a + b; */
+m = a.merge(b);
+m.forEach(function(v, i) {
+    assert("array +", v == i + 1);
+});
+
+m2 = a + b;
+m2.forEach(function(v, i) {
+    assert("array +", v == i + 1);
+});
