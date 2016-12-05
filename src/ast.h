@@ -217,11 +217,14 @@ public:
 class FunctionCall : public Expression
 {
 public:
-    explicit FunctionCall(Expression* function, Expression *args = nullptr);
+    explicit FunctionCall(Expression* function, Expression *args, Expression *object = nullptr);
     ~FunctionCall();
 
     Type type() const;
 
+    void setObject(Expression *object);
+
+    Expression* object() const;
     Expression* function() const;
     ExpressionList* arguments() const;
 };

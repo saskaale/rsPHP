@@ -221,7 +221,7 @@ const char* BinaryOperator::opStr() const
 
 
 
-FunctionCall::FunctionCall(Expression* function, Expression *args)
+FunctionCall::FunctionCall(Expression* function, Expression *args, Expression *object)
     : Expression(function)
 {
     Node*& arguments = n2;
@@ -232,6 +232,7 @@ FunctionCall::FunctionCall(Expression* function, Expression *args)
     } else {
         arguments = new ExpressionList(args);
     }
+    n3 = object;
 }
 
 FunctionCall::~FunctionCall()
@@ -240,9 +241,19 @@ FunctionCall::~FunctionCall()
     delete arguments();
 }
 
+void FunctionCall::setObject(Expression *object)
+{
+    n3 = object;
+}
+
 Node::Type FunctionCall::type() const
 {
     return FunctionCallT;
+}
+
+Expression* FunctionCall::object() const
+{
+    return n3;
 }
 
 Expression* FunctionCall::function() const

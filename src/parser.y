@@ -31,10 +31,8 @@ static Ast::Node *create_hacky_object_call(Ast::Expression *obj, Ast::Expression
         fprintf(stderr, "Can only call function on object!\n");
         abort();
     }
-    std::vector<Ast::Expression*> args = call->arguments()->expressions();
-    args.insert(args.begin(), obj);
-    Ast::FunctionCall *ret = new Ast::FunctionCall(call->function(), new Ast::ExpressionList(args));
-    return ret;
+    call->setObject(obj);
+    return call;
 }
 
 %}

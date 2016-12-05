@@ -165,22 +165,20 @@ void StackFrame::push(const AVal& v)
     stack->push_back(v);
 };
 
-static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environment *envir)
+static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expression*> &arguments, Environment *envir)
 {
     // Create environment for this function
     Environment *funcEnvironment = new Environment(envir);
     envirs.push_back(funcEnvironment);
 
     Ast::VariableList *parameters = func->parameters();
-    Ast::ExpressionList *exprs    = v->arguments();
-    if (exprs->expressions().size() > parameters->variables.size()) {
+    if (arguments.size() > parameters->variables.size()) {
         THROW2("Too many arguments for %s", func->isLambda() ? "[lambda]" : func->name.c_str());
     }
 
-
-    for (int i = 0; i < exprs->expressions().size(); i++) {
+    for (int i = 0; i < arguments.size(); i++) {
         Ast::Variable *v = parameters->variables[i];
-        Ast::Expression *e = exprs->expressions().size() > i ? exprs->expressions()[i] : nullptr;
+        Ast::Expression *e = arguments.size() > i ? arguments[i] : nullptr;
         AVal r;
         if (e && v->ref) {
             if (e->type() != Ast::Node::VariableT && e->type() != Ast::Node::ArraySubscriptT) {
@@ -351,8 +349,14 @@ AVal ex(Ast::Node *p, Environment* envir)
 
          AVal func = ex(v->function(), envir);
          CHECKTHROWN(func)
+
+         std::vector<Ast::Expression*> args = v->arguments()->expressions();
+         if (v->object()) {
+             args.insert(args.begin(), v->object());
+         }
+
          if (func.isFunction()) {
-              return doUserdefFunction(v, func.toFunction(), envir);
+              return doUserdefFunction(func.toFunction(), args, envir);
          }else if (func.isBuiltinFunction()) {
               BuiltinCall call = func.toBuiltinFunction();
               if(call)
