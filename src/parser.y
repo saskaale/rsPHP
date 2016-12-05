@@ -18,7 +18,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Expression *dst
     Ast::Variable *var = dst->as<Ast::Variable*>();
     if (!var) {
         fprintf(stderr, "AssignOp only implemented for variables!\n");
-        abort();
+        return nullptr;
     }
     Ast::BinaryOperator *o = new Ast::BinaryOperator(op, new Ast::Variable(var->name), right);
     return new Ast::Assignment(dst, o);
@@ -29,7 +29,7 @@ static Ast::Node *create_hacky_object_call(Ast::Expression *obj, Ast::Expression
     Ast::FunctionCall *call = func->as<Ast::FunctionCall*>();
     if (!call) {
         fprintf(stderr, "Can only call function on object!\n");
-        abort();
+        return nullptr;
     }
     call->setObject(obj);
     return call;

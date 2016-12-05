@@ -38,18 +38,21 @@ s2 = "world";
 swap(s1, s2);
 print s1 + s2;
 
-
 /* CONST */
 function constfunc(const &t)
 {
     t = 23;
     s = function(const &v) {
         v = 23;
+        assert(v == 20);
         d = function(const &e) {
             e = 23;
+            assert(e == 20);
         };
         d(v);
         d(t);
+        assert(v == 20);
+        assert(t == 20);
     };
     s(t);
 }

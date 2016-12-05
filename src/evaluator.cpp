@@ -167,8 +167,16 @@ static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expres
         if (e && v->ref) {
             setExFlag(ReturnLValue);
             r = ex(e, envir);
-            r.markConst(v->isconst);
             clearExFlag(ReturnLValue);
+            if (r.isReference() && r.toReference()->isReference()) {
+                // It already was reference
+                r = r.dereference();
+                if (r.isConst() != v->isconst) {
+                    THROW2("Argument %d has non-matching type!", i);
+                }
+            } else {
+                r.markConst(v->isconst);
+            }
             CHECKTHROWN(r);
             if (!r.isConst() && !r.isReference() && !r.isArray()) {
                 THROW2("Argument %d expects reference!", i);
