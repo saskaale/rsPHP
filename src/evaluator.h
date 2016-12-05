@@ -7,7 +7,7 @@
 
 #define THROW2(name, descr) {char buf[256];sprintf(buf, name, descr);AVal a(buf);a.markThrown(true);return a; }
 #define THROW(name) {AVal a(name);a.markThrown(true);return a;}
-#define CHECKTHROWN(v) {if((v).isThrown()) return v;}
+#define CHECKTHROWN(v) {AVal s=(v);if(s.isThrown())return s;}
 
 
 

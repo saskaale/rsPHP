@@ -41,20 +41,26 @@ print s1 + s2;
 /* CONST */
 function constfunc(const &t)
 {
-    t = 23;
-    s = function(const &v) {
-        v = 23;
-        assert(v == 20);
-        d = function(const &e) {
-            e = 23;
-            assert(e == 20);
+    err = false;
+    try {
+        t = 23;
+        s = function(const &v) {
+            v = 23;
+            assert(v == 20);
+            d = function(const &e) {
+                e = 23;
+                assert(e == 20);
+            };
+            d(v);
+            d(t);
+            assert(v == 20);
+            assert(t == 20);
         };
-        d(v);
-        d(t);
-        assert(v == 20);
-        assert(t == 20);
-    };
-    s(t);
+        s(t);
+    } catch (e) {
+        err = true;
+    }
+    assert(err == true);
 }
 ab = 20;
 constfunc(ab);
@@ -91,7 +97,7 @@ function vioref(const &c, &r)
     f2(r); // & -> const&
 
     f3 = function(&v1) {
-        f4 = function(const &s) { s++; };
+        f4 = function(const &s) { try { s++; } catch(e) { } };
         f4(v1);
     };
     v = 10;

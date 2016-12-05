@@ -84,11 +84,6 @@ AVal::Type AVal::type() const
     return _type;
 }
 
-bool AVal::isWritable() const
-{
-    return isReference() && !isConst() && !toReference()->isUndefined();
-}
-
 const char *AVal::typeStr() const
 {
     static const char *tNames[] = {
