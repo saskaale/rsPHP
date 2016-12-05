@@ -178,7 +178,7 @@ static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expres
                 r.markConst(v->isconst);
             }
             CHECKTHROWN(r);
-            if (!r.isConst() && !r.isReference() && !r.isArray()) {
+            if (!r.isConst() && !r.isReference()) {
                 THROW2("Argument %d expects reference!", i);
             }
         } else if (e) {
@@ -286,14 +286,14 @@ AVal ex(Ast::Node *p, Environment* envir)
         if (arr.isArray()) {
             AArray *a = arr.toArray();
             if (index < 0 || index >= a->count) {
-                THROW("Index out of bounds");
+                THROW2("Index %d out of bounds", index);
             }
             return testExFlag(ReturnLValue) ? &a->array[index] : a->array[index];
         } else if (arr.isString()) {
-            AString *s = arr.stringValue;
+            AString *s = arr.dereference().stringValue;
             size_t count = strlen(s->string);
             if (index < 0 || index >= count) {
-                THROW("Index out of bounds");
+                THROW2("Index %d out of bounds", index);
             }
             return s->string[index];
         } else {
