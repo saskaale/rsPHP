@@ -57,8 +57,10 @@ public:
     bool isArray() const;
     bool isFunction() const;
     bool isBuiltinFunction() const;
+    bool isConst() const;
     bool isThrown() const;
 
+    void markConst(bool is = true);
     void markThrown(bool is = true);
 
     AVal *toReference() const;
@@ -73,6 +75,7 @@ public:
 
     AVal convertTo(Type t) const;
 
+    bool _const = false;
     bool _thrown = false;
     Type _type = UNDEFINED;
     union {

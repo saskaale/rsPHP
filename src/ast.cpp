@@ -37,9 +37,9 @@ const char* Node::typeStr() const
 
 
 
-Variable::Variable(const std::string &name, bool ref, Node* n1)
-    : Node(n1)
-    , ref(ref)
+Variable::Variable(const std::string &name, bool ref, bool cnst)
+    : ref(ref)
+    , isconst(cnst)
     , name(name)
 {
 }

@@ -181,13 +181,14 @@ static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expres
         Ast::Expression *e = arguments.size() > i ? arguments[i] : nullptr;
         AVal r;
         if (e && v->ref) {
-            if (e->type() != Ast::Node::VariableT && e->type() != Ast::Node::ArraySubscriptT) {
-                THROW2("Argument %d expects reference!", i);
-            }
             setExFlag(ReturnLValue);
             r = ex(e, envir);
+            r.markConst(v->isconst);
             clearExFlag(ReturnLValue);
             CHECKTHROWN(r);
+            if (!r.isConst() && !r.isReference() && !r.isArray()) {
+                THROW2("Argument %d expects reference!", i);
+            }
         } else if (e) {
             r = ex(e, envir);
             CHECKTHROWN(r);
@@ -237,7 +238,9 @@ AVal ex(Ast::Node *p, Environment* envir)
         if (dest.isReference()) {
             AVal *ref = dest.toReference();
             if (ref->isReference()) {
-                *ref->toReference() = value.dereference();
+                if (!ref->isConst()) { // Cannot write to const reference
+                    *ref->toReference() = value.dereference();
+                }
             } else {
                 *ref = value.dereference();
             }
@@ -364,9 +367,7 @@ AVal ex(Ast::Node *p, Environment* envir)
               }
          }
 
-         THROW("Call of argument which is not function")
-
-         return AVal();
+         THROW2("Call of argument '%s' which is not function", func.toString());
     }
 
     case Ast::Node::UnaryOperatorT: {

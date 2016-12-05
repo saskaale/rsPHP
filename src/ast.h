@@ -88,11 +88,12 @@ public:
 class Variable : public Expression
 {
 public:
-    explicit Variable(const std::string &name, bool ref = false, Node* n1 = nullptr);
+    explicit Variable(const std::string &name, bool ref = false, bool cnst = false);
 
     Type type() const;
 
     bool ref;
+    bool isconst;
 
     std::string name;
 };

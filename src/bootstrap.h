@@ -1,7 +1,7 @@
 #define RSPHP_BOOTSTRAP rsphp_bootstrap
 static const char *rsphp_bootstrap = R"(
 
-function min(a, b)
+function min(const &a, const &b)
 {
     if (a < b) return a;
     return b;
@@ -45,7 +45,7 @@ function copy(a)
     return a;
 }
 
-function forEach(&a, f)
+function forEach(const &a, f)
 {
     c = count(a);
     for (i = 0; i < c; ++i) {
@@ -53,7 +53,7 @@ function forEach(&a, f)
     }
 }
 
-function indexOf(&a, v)
+function indexOf(const &a, v)
 {
     c = count(a);
     for (i = 0; i < c; ++i) {

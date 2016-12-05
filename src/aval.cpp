@@ -86,7 +86,7 @@ AVal::Type AVal::type() const
 
 bool AVal::isWritable() const
 {
-    return !isUndefined();
+    return isReference() && !isConst() && !toReference()->isUndefined();
 }
 
 const char *AVal::typeStr() const
@@ -184,9 +184,19 @@ bool AVal::isBuiltinFunction() const
     return _type == FUNCTION_BUILTIN;
 }
 
+bool AVal::isConst() const
+{
+    return _const;
+}
+
 bool AVal::isThrown() const
 {
     return _thrown;
+}
+
+void AVal::markConst(bool is)
+{
+    _const = is;
 }
 
 void AVal::markThrown(bool is)

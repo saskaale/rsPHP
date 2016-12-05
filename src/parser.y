@@ -49,7 +49,7 @@ static Ast::Node *create_hacky_object_call(Ast::Expression *obj, Ast::Expression
 %token <str> VARIABLE
 %token <str> STRING
 %token FOR WHILE IF PRINT THROW TRUE FALSE UNDEFINED FUNCTION RETURN BREAK CONTINUE TRY CATCH
-%token ASSIGN AS_PLUS AS_MINUS AS_TIMES AS_DIV AS_MOD REFERENCE
+%token ASSIGN AS_PLUS AS_MINUS AS_TIMES AS_DIV AS_MOD REFERENCE CONST
 %nonassoc IFX
 %nonassoc ELSE
 
@@ -99,8 +99,9 @@ fundecl:
         ;
 
 variable:
-          VARIABLE                { $$ = new Ast::Variable($1); free($1); }
-        | REFERENCE VARIABLE      { $$ = new Ast::Variable($2, true); free($2); }
+          VARIABLE                  { $$ = new Ast::Variable($1); free($1); }
+        | REFERENCE VARIABLE        { $$ = new Ast::Variable($2, true); free($2); }
+        | CONST REFERENCE VARIABLE  { $$ = new Ast::Variable($3, true, true); free($3); }
         ;
 
 var_list:

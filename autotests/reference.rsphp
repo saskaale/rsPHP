@@ -37,3 +37,13 @@ s1 = "hello";
 s2 = "world";
 swap(s1, s2);
 print s1 + s2;
+
+
+/* CONST */
+function constfunc(const &t)
+{
+    t = 23;
+}
+ab = 20;
+constfunc(ab);
+assert(ab == 20);

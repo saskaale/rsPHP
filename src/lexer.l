@@ -73,6 +73,7 @@ void comment();
 "true"          return TRUE;
 "false"         return FALSE;
 "undefined"     return UNDEFINED;
+"const"         return CONST;
 
 '.' {
                 yylval.iValue = yytext[1];
