@@ -8,7 +8,7 @@ class Environment;
 
 #include "parser.h"
 
-typedef AVal (*BuiltinCall)(Ast::ExpressionList *v, Environment* envir);
+typedef AVal (*BuiltinCall)(const std::vector<Ast::Expression*> &, Environment *);
 
 struct AArray;
 struct AString;

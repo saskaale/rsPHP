@@ -357,10 +357,11 @@ AVal ex(Ast::Node *p, Environment* envir)
 
          if (func.isFunction()) {
               return doUserdefFunction(func.toFunction(), args, envir);
-         }else if (func.isBuiltinFunction()) {
+         } else if (func.isBuiltinFunction()) {
               BuiltinCall call = func.toBuiltinFunction();
-              if(call)
-                  return (*call)(v->arguments(), envir);
+              if (call) {
+                  return (*call)(args, envir);
+              }
          }
 
          THROW("Call of argument which is not function")

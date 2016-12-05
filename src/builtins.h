@@ -5,22 +5,21 @@
 
 namespace Evaluator
 {
-
     void registerBuiltins(Environment *e);
 
-    AVal doBuiltInTypeof(Ast::ExpressionList *v, Environment*);
-    AVal doBuiltInReadInt(Ast::ExpressionList *v, Environment*);
-    AVal doBuiltInReadDouble(Ast::ExpressionList *v, Environment*);
-    AVal doBuiltInReadString(Ast::ExpressionList *v, Environment*);
-    AVal doBuiltInReadBool(Ast::ExpressionList *v, Environment*);
-    AVal doBuiltInPrint(Ast::ExpressionList *v, Environment*);
-    AVal doBuiltInGC(Ast::ExpressionList *, Environment *);
-    AVal doBuiltInDumpAST(Ast::ExpressionList *, Environment *);
-    AVal doBuiltInExit(Ast::ExpressionList *, Environment *);
+    AVal doBuiltInTypeof(const std::vector<Ast::Expression*> &, Environment *);
+    AVal doBuiltInReadInt(const std::vector<Ast::Expression*> &, Environment *);
+    AVal doBuiltInReadDouble(const std::vector<Ast::ExpressionList*> &, Environment *);
+    AVal doBuiltInReadString(const std::vector<Ast::ExpressionList*> &, Environment *);
+    AVal doBuiltInReadBool(const std::vector<Ast::ExpressionList*> &, Environment *);
+    AVal doBuiltInPrint(const std::vector<Ast::ExpressionList*> &, Environment *);
+    AVal doBuiltInGC(const std::vector<Ast::ExpressionList*> &, Environment *);
+    AVal doBuiltInDumpAST(const std::vector<Ast::ExpressionList*> &, Environment *);
+    AVal doBuiltInExit(const std::vector<Ast::ExpressionList*> &, Environment *);
 
     // Arrays
-    AVal doBuiltInArray(Ast::ExpressionList *, Environment *);
-    AVal doBuiltInCount(Ast::ExpressionList *, Environment *);
-    AVal doBuiltInPush(Ast::ExpressionList *, Environment *);
+    AVal doBuiltInArray(const std::vector<Ast::ExpressionList*> &, Environment *);
+    AVal doBuiltInCount(const std::vector<Ast::ExpressionList*> &, Environment *);
+    AVal doBuiltInPush(const std::vector<Ast::Expression*> &, Environment *);
 
 }

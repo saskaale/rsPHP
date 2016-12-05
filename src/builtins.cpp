@@ -14,30 +14,30 @@ namespace Evaluator
 {
 
 // Functions
-AVal doBuiltInPrint(Ast::ExpressionList *v, Environment* envir)
+AVal doBuiltInPrint(const std::vector<Ast::Expression*> &arguments, Environment *envir)
 {
-    if(v->expressions().empty())
+    if (arguments.empty())
       THROW("Print function expects at least one parameter.")
 
-    AVal printV = ex(v->expressions().front(), envir);
+    AVal printV = ex(arguments[0], envir);
     CHECKTHROWN(printV)
 
     return printf("%s\n", printV.toString());
 }
 
-AVal doBuiltInTypeof(Ast::ExpressionList *v, Environment* envir)
+AVal doBuiltInTypeof(const std::vector<Ast::Expression*> &arguments, Environment *envir)
 {
-    if(v->expressions().empty())
+    if (arguments.empty())
       THROW("Print function expects at least one parameter.")
 
-    AVal printV = ex(v->expressions().front(), envir);
+    AVal printV = ex(arguments[0], envir);
     CHECKTHROWN(printV)
 
     return printV.typeStr();
 }
 
 
-AVal doBuiltInReadInt(Ast::ExpressionList *v, Environment* envir)
+AVal doBuiltInReadInt(const std::vector<Ast::Expression*> &, Environment *)
 {
     int val;
     if(!scanf("%d\n", &val))
@@ -45,7 +45,7 @@ AVal doBuiltInReadInt(Ast::ExpressionList *v, Environment* envir)
     return val;
 }
 
-AVal doBuiltInReadDouble(Ast::ExpressionList *v, Environment* envir)
+AVal doBuiltInReadDouble(const std::vector<Ast::Expression*> &, Environment *)
 {
     double val;
     if(!scanf("%lf\n", &val))
@@ -53,7 +53,7 @@ AVal doBuiltInReadDouble(Ast::ExpressionList *v, Environment* envir)
     return val;
 }
 
-AVal doBuiltInReadString(Ast::ExpressionList *v, Environment* envir)
+AVal doBuiltInReadString(const std::vector<Ast::Expression*> &, Environment *)
 {
     char str[100];
     if(!scanf("%99s\n", str))
@@ -62,9 +62,9 @@ AVal doBuiltInReadString(Ast::ExpressionList *v, Environment* envir)
     return str;
 }
 
-AVal doBuiltInReadBool(Ast::ExpressionList *v, Environment* envir)
+AVal doBuiltInReadBool(const std::vector<Ast::Expression*> &arguments, Environment *envir)
 {
-    AVal val = doBuiltInReadString(v, envir);
+    AVal val = doBuiltInReadString(arguments, envir);
     CHECKTHROWN(val)
     if(val.isString()){
         if(strcmp(val.toString(), "true"))
@@ -75,19 +75,19 @@ AVal doBuiltInReadBool(Ast::ExpressionList *v, Environment* envir)
     return AVal();
 }
 
-AVal doBuiltInGC(Ast::ExpressionList *, Environment *)
+AVal doBuiltInGC(const std::vector<Ast::Expression*> &, Environment *)
 {
     printf("MemoryPool::collectGarbage()\n");
     MemoryPool::collectGarbage(false);
     return AVal();
 }
 
-AVal doBuiltInThrow(Ast::ExpressionList * v, Environment * envir)
+AVal doBuiltInThrow(const std::vector<Ast::Expression*> &arguments, Environment *envir)
 {
-    if(v->expressions().empty())
+    if (arguments.empty())
       THROW("Throw function expects at least one parameter.")
 
-    AVal val = ex(v->expressions().front(), envir);
+    AVal val = ex(arguments[0], envir);
     CHECKTHROWN(val)
 
     val.markThrown();
@@ -318,12 +318,13 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
 }
 
 
-AVal doBuiltInDumpAST(Ast::ExpressionList *v, Environment *envir){
-    if(v->expressions().empty())
+AVal doBuiltInDumpAST(const std::vector<Ast::Expression*> &arguments, Environment *envir)
+{
+    if (arguments.empty())
       THROW("dumpAST function expects at least one parameter.")
 
 
-    Ast::Node* toprint = v->expressions().front();
+    Ast::Node* toprint = arguments[0];
 //    AVal printV = ex(v->expressions.front(), envir);
 //    if(!printV.type() != AVal::FUNCTION)
 //      THROW("type must be function")
@@ -332,24 +333,24 @@ AVal doBuiltInDumpAST(Ast::ExpressionList *v, Environment *envir){
     return AVal();
 }
 
-AVal doBuiltInExit(Ast::ExpressionList *v, Environment *envir)
+AVal doBuiltInExit(const std::vector<Ast::Expression*> &arguments, Environment *envir)
 {
-    if (v->expressions().size() > 1) {
+    if (arguments.size() > 1) {
         THROW("exit() takes one or zero arguments.");
     }
 
-    const int ret = v->expressions().empty() ? 0 : ex(v->expressions()[0], envir).toInt();
+    const int ret = arguments.empty() ? 0 : ex(arguments[0], envir).toInt();
     Evaluator::exit();
     ::exit(ret);
 }
 
-AVal doBuiltInArray(Ast::ExpressionList *v, Environment *envir)
+AVal doBuiltInArray(const std::vector<Ast::Expression*> &arguments, Environment *envir)
 {
-    if (v->expressions().size() > 2) {
+    if (arguments.size() > 2) {
         THROW("Array() takes one, zero or two arguments.");
     }
 
-    const int size = v->expressions().empty() ? 0 : ex(v->expressions()[0], envir).toInt();
+    const int size = arguments.empty() ? 0 : ex(arguments[0], envir).toInt();
     if (size < 0) {
         THROW("Array size cannot be negative.");
     }
@@ -360,8 +361,8 @@ AVal doBuiltInArray(Ast::ExpressionList *v, Environment *envir)
     a->count = 0;
     a->allocd = size;
 
-    if (v->expressions().size() == 2) {
-        AVal initializer = ex(v->expressions()[1], envir);
+    if (arguments.size() == 2) {
+        AVal initializer = ex(arguments[1], envir);
         for (int i = 0; i < size; ++i) {
             a->array[i] = initializer.copy();
         }
@@ -371,13 +372,13 @@ AVal doBuiltInArray(Ast::ExpressionList *v, Environment *envir)
     return a;
 }
 
-AVal doBuiltInCount(Ast::ExpressionList *v, Environment *envir)
+AVal doBuiltInCount(const std::vector<Ast::Expression*> &arguments, Environment *envir)
 {
-    if (v->expressions().size() != 1) {
+    if (arguments.size() != 1) {
         THROW("count() takes one argument.");
     }
 
-    AVal arr = ex(v->expressions()[0], envir);
+    AVal arr = ex(arguments[0], envir);
     if (arr.isArray() || (arr.isReference() && arr.toReference()->isArray())) {
         return int(arr.toArray()->count);
     } else if (arr.isString() || (arr.isReference() && arr.toReference()->isString())) {
@@ -387,18 +388,18 @@ AVal doBuiltInCount(Ast::ExpressionList *v, Environment *envir)
     }
 }
 
-AVal doBuiltInPush(Ast::ExpressionList *v, Environment *envir)
+AVal doBuiltInPush(const std::vector<Ast::Expression*> &arguments, Environment *envir)
 {
-    if (v->expressions().size() != 2) {
+    if (arguments.size() != 2) {
         THROW("push() takes two arguments.");
     }
 
-    AVal arr = ex(v->expressions()[0], envir);
+    AVal arr = ex(arguments[0], envir);
     if (!arr.isReference() || !arr.toReference()->isArray()) {
         THROW("push() argument 1 must be reference to type array.");
     }
 
-    AVal value = ex(v->expressions()[1], envir).dereference();
+    AVal value = ex(arguments[1], envir).dereference();
     AVal *ref = arr.toReference();
     AArray *ar = ref->toArray();
 
@@ -420,7 +421,8 @@ AVal doBuiltInPush(Ast::ExpressionList *v, Environment *envir)
     return AVal();
 }
 
-void registerBuiltins(Environment* e){
+void registerBuiltins(Environment* e)
+{
     e->setFunction("typeof", &doBuiltInTypeof);
     e->setFunction("readInt", &doBuiltInReadInt);
     e->setFunction("readDouble", &doBuiltInReadDouble);
@@ -435,6 +437,5 @@ void registerBuiltins(Environment* e){
     e->setFunction("count", &doBuiltInCount);
     e->setFunction("pushinternal", &doBuiltInPush);
 }
-
 
 }
