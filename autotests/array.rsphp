@@ -99,3 +99,5 @@ Array(2, "t").forEach(function(v) {
     a8out += v;
 });
 assert("object calls", a8out == "tt");
+
+assert("object calls", "test".indexOf('e') == 1);

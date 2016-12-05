@@ -43,6 +43,15 @@ print s1 + s2;
 function constfunc(const &t)
 {
     t = 23;
+    s = function(const &v) {
+        v = 23;
+        d = function(const &e) {
+            e = 23;
+        };
+        d(v);
+        d(t);
+    };
+    s(t);
 }
 ab = 20;
 constfunc(ab);
