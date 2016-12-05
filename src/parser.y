@@ -13,10 +13,15 @@ extern "C" FILE *yyin;
 int yylex(void);
 void yyerror(const char *s);
 
-static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Variable *var, Ast::Expression *right)
+static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Expression *dst, Ast::Expression *right)
 {
+    Ast::Variable *var = dst->as<Ast::Variable*>();
+    if (!var) {
+        fprintf(stderr, "AssignOp only implemented for variables!\n");
+        abort();
+    }
     Ast::BinaryOperator *o = new Ast::BinaryOperator(op, new Ast::Variable(var->name), right);
-    return new Ast::Assignment(var, o);
+    return new Ast::Assignment(dst, o);
 }
 
 %}
@@ -115,12 +120,12 @@ stmt_list:
 
 expr:
           expr2                    { $$ = $1; }
-        | variable ASSIGN expr2    { $$ = new Ast::Assignment($1->as<Ast::Variable*>(), $3); }
-        | variable AS_PLUS expr2   { $$ = create_assign(Ast::BinaryOperator::Plus, $1->as<Ast::Variable*>(), $3); }
-        | variable AS_MINUS expr2  { $$ = create_assign(Ast::BinaryOperator::Minus, $1->as<Ast::Variable*>(), $3); }
-        | variable AS_TIMES expr2  { $$ = create_assign(Ast::BinaryOperator::Times, $1->as<Ast::Variable*>(), $3); }
-        | variable AS_DIV expr2    { $$ = create_assign(Ast::BinaryOperator::Div, $1->as<Ast::Variable*>(), $3); }
-        | variable AS_MOD expr2    { $$ = create_assign(Ast::BinaryOperator::Mod, $1->as<Ast::Variable*>(), $3); }
+        | expr2 ASSIGN expr        { $$ = new Ast::Assignment($1, $3); }
+        | expr2 AS_PLUS expr       { $$ = create_assign(Ast::BinaryOperator::Plus, $1, $3); }
+        | expr2 AS_MINUS expr      { $$ = create_assign(Ast::BinaryOperator::Minus, $1, $3); }
+        | expr2 AS_TIMES expr      { $$ = create_assign(Ast::BinaryOperator::Times, $1, $3); }
+        | expr2 AS_DIV expr        { $$ = create_assign(Ast::BinaryOperator::Div, $1, $3); }
+        | expr2 AS_MOD expr        { $$ = create_assign(Ast::BinaryOperator::Mod, $1, $3); }
         ;
 
 expr2:

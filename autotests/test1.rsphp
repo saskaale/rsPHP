@@ -12,3 +12,7 @@ b = true;
 if (a || b) print "OR2";
 b = false;
 if (a || b) print "OR3"; else print "!OR3";
+
+a = b = "test";
+assert("assignment chain", a == "test");
+assert("assignment chain", b == "test");

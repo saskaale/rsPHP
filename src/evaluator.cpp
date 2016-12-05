@@ -230,7 +230,7 @@ AVal ex(Ast::Node *p, Environment* envir)
         return AVal();
     }
 
-    auto assignToVariable = [](Ast::Variable *v, const AVal &value, Environment *envir) {
+    auto assignToExpression = [](Ast::Expression *v, const AVal &value, Environment *envir) {
         setExFlag(ReturnLValue);
         AVal dest = ex(v, envir);
         clearExFlag(ReturnLValue);
@@ -300,7 +300,7 @@ AVal ex(Ast::Node *p, Environment* envir)
         Ast::Assignment *v = p->as<Ast::Assignment*>();
         AVal r = ex(v->expression(), envir);
         CHECKTHROWN(r)
-        assignToVariable(v->variable(), r, envir);
+        assignToExpression(v->destination(), r, envir);
         return r;
     }
 
@@ -316,7 +316,7 @@ AVal ex(Ast::Node *p, Environment* envir)
         if(r.isThrown()){
           AVal catched = r;
           catched.markThrown(false);
-          assignToVariable(v->variables()->variables[0], catched, envir);
+          assignToExpression(v->variables()->variables[0], catched, envir);
 
           AVal catchP = ex(v->catchPart(), envir);
           CHECKTHROWN(catchP)
@@ -363,32 +363,24 @@ AVal ex(Ast::Node *p, Environment* envir)
 
         case Ast::UnaryOperator::PreIncrement: {
             AVal val = binaryOp(Ast::BinaryOperator::Plus, ex(v->expr(), envir), 1);
-            if (Ast::Variable *var = v->expr()->as<Ast::Variable*>()) {
-                assignToVariable(var, val, envir);
-            }
+            assignToExpression(v->expr(), val, envir);
             return val;
         }
         case Ast::UnaryOperator::PreDecrement: {
             AVal val = binaryOp(Ast::BinaryOperator::Minus, ex(v->expr(), envir), 1);
-            if (Ast::Variable *var = v->expr()->as<Ast::Variable*>()) {
-                assignToVariable(var, val, envir);
-            }
+            assignToExpression(v->expr(), val, envir);
             return val;
         }
         case Ast::UnaryOperator::PostIncrement: {
             AVal val = ex(v->expr(), envir);
             CHECKTHROWN(val)
-            if (Ast::Variable *var = v->expr()->as<Ast::Variable*>()) {
-                assignToVariable(var, binaryOp(Ast::BinaryOperator::Plus, val, 1), envir);
-            }
+            assignToExpression(v->expr(), binaryOp(Ast::BinaryOperator::Plus, val, 1), envir);
             return val;
         }
         case Ast::UnaryOperator::PostDecrement: {
             AVal val = ex(v->expr(), envir);
             CHECKTHROWN(val)
-            if (Ast::Variable *var = v->expr()->as<Ast::Variable*>()) {
-                assignToVariable(var, binaryOp(Ast::BinaryOperator::Minus, val, 1), envir);
-            }
+            assignToExpression(v->expr(), binaryOp(Ast::BinaryOperator::Minus, val, 1), envir);
             return val;
         }
         default:

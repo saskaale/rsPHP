@@ -248,12 +248,12 @@ public:
 class Assignment : public Statement
 {
 public:
-    explicit Assignment(Variable *var, Expression *expr);
+    explicit Assignment(Expression *dest, Expression *expr);
     ~Assignment();
 
     Type type() const;
 
-    Variable *variable() const;
+    Expression *destination() const;
     Expression *expression() const;
     void nullExpression();
 };

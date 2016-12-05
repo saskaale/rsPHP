@@ -315,20 +315,20 @@ StatementList* Try::catchPart() const
 
 
 
-Assignment::Assignment(Variable *var, Expression *expr)
-    : Node(var, expr)
+Assignment::Assignment(Expression *dst, Expression *expr)
+    : Node(dst, expr)
 {
 }
 
 Assignment::~Assignment()
 {
-    delete variable();
+    delete destination();
     delete expression();
 }
 
-Variable *Assignment::variable() const
+Expression *Assignment::destination() const
 {
-    return (Variable*)n1;
+    return (Expression*)n1;
 }
 
 Expression *Assignment::expression() const

@@ -126,7 +126,7 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
 
     case Ast::Node::VariableT: {
         Ast::Variable *v = p->as<Ast::Variable*>();
-        printf(">>%p<<\n", p);
+        printf(">>%p %s<<\n", p, v->name.c_str());
         break;
     }
 
@@ -146,14 +146,9 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
     case Ast::Node::AssignmentT: {
         Ast::Assignment *v = p->as<Ast::Assignment*>();
         printf("\n");
+        astDump(v->destination(), envir, lvl);
         PADDEDOUT(lvl+1); printf("EXPR:\n");
           astDump(v->expression(), envir, lvl+2);
-
-        if (Ast::ArraySubscript *as = v->variable()->as<Ast::ArraySubscript*>()) {
-            PADDEDOUT(lvl+1); printf("ARRAYSUBSCRIPT:\n");
-              astDump(v->variable(), envir, lvl+2);
-        }
-
         break;
     }
 
