@@ -49,7 +49,7 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Expression *dst
 %left AND OR
 %nonassoc UMINUS
 
-%type <nPtr> stmt stmt2 expr expr2 stmt_list empty_stmt_list value fundecl var_list var_list2 expr_list variable lambda
+%type <nPtr> stmt stmt2 expr expr2 stmt_list stmt_list2 value fundecl var_list var_list2 expr_list expr_list2 variable lambda
 
 %%
 
@@ -72,15 +72,10 @@ stmt2:
         |                                         { $$ = new Ast::BoolLiteral(true); }
         ;
 
-expr_list:
-          expr                                        { $$ = new Ast::ExpressionList($1); }
-        | expr_list ',' expr                          { $$ = new Ast::ExpressionList($3, $1->as<Ast::ExpressionList*>()); }
-        ;
-
 stmt:
           stmt2 ';'                                               { $$ = $1; }
         | fundecl                                                 { $$ = $1; }
-        | TRY '{' stmt_list '}' CATCH '(' var_list ')' '{' empty_stmt_list '}'   { $$ = new Ast::Try($3->as<Ast::StatementList*>(), $7->as<Ast::VariableList*>(), $10->as<Ast::StatementList*>()); }
+        | TRY '{' stmt_list '}' CATCH '(' var_list ')' '{' stmt_list '}'   { $$ = new Ast::Try($3->as<Ast::StatementList*>(), $7->as<Ast::VariableList*>(), $10->as<Ast::StatementList*>()); }
         | WHILE '(' expr ')' stmt                                 { $$ = new Ast::While($3, $5); }
         | IF '(' expr ')' stmt %prec IFX                          { $$ = new Ast::If($3, $5, nullptr); }
         | IF '(' expr ')' stmt ELSE stmt                          { $$ = new Ast::If($3, $5, $7); }
@@ -92,14 +87,14 @@ fundecl:
         FUNCTION VARIABLE '(' var_list ')' '{' stmt_list '}'   { $$ = new Ast::Function($2, $4->as<Ast::VariableList*>(), $7->as<Ast::StatementList*>()); free($2); }
         ;
 
-var_list:
-          var_list2               { $$ = $1; }
-        |                         { $$ = new Ast::VariableList(); }
-        ;
-
 variable:
           VARIABLE                { $$ = new Ast::Variable($1); free($1); }
         | REFERENCE VARIABLE      { $$ = new Ast::Variable($2, true); free($2); }
+        ;
+
+var_list:
+          var_list2               { $$ = $1; }
+        |                         { $$ = new Ast::VariableList(); }
         ;
 
 var_list2:
@@ -107,14 +102,24 @@ var_list2:
         | var_list2 ',' variable   { $$ = new Ast::VariableList($3->as<Ast::Variable*>(), $1->as<Ast::VariableList*>()); }
         ;
 
-empty_stmt_list:
-          stmt_list               { $$ = $1; }
-        |                         { $$ = new Ast::StatementList(); }
+stmt_list:
+          stmt_list2               { $$ = $1; }
+        |                          { $$ = new Ast::StatementList(); }
         ;
 
-stmt_list:
-          stmt                    { $$ = new Ast::StatementList($1); }
-        | stmt_list stmt          { $$ = new Ast::StatementList($2->as<Ast::Statement*>(), $1->as<Ast::StatementList*>()); }
+stmt_list2:
+          stmt                     { $$ = new Ast::StatementList($1); }
+        | stmt_list2 stmt          { $$ = new Ast::StatementList($2->as<Ast::Statement*>(), $1->as<Ast::StatementList*>()); }
+        ;
+
+expr_list:
+          expr_list2               { $$ = $1; }
+        |                          { $$ = new Ast::ExpressionList(); }
+        ;
+
+expr_list2:
+          expr                     { $$ = new Ast::ExpressionList($1); }
+        | expr_list2 ',' expr      { $$ = new Ast::ExpressionList($3, $1->as<Ast::ExpressionList*>()); }
         ;
 
 expr:
@@ -130,7 +135,6 @@ expr:
 expr2:
           value                       { $$ = $1; }
         | variable                    { $$ = $1->as<Ast::Variable*>(); }
-        | VARIABLE '(' ')'            { $$ = new Ast::FunctionCall(new Ast::Variable($1)); free($1); }
         | VARIABLE '(' expr_list ')'  { $$ = new Ast::FunctionCall(new Ast::Variable($1), $3->as<Ast::ExpressionList*>()); free($1); }
         | MINUS expr2 %prec UMINUS    { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::Minus, $2); }
         | NOT expr2                   { $$ = new Ast::UnaryOperator(Ast::UnaryOperator::Not, $2); }
