@@ -59,3 +59,45 @@ function constfunc(const &t)
 ab = 20;
 constfunc(ab);
 assert(ab == 20);
+
+/* multi ref */
+function multiref(&t)
+{
+    t++;
+    s = function(&v) {
+        v++;
+        d = function(&e) {
+            e++;
+        };
+        d(v);
+    };
+    s(t);
+}
+ab = 20;
+multiref(ab);
+assert(ab == 23);
+
+function vioref(const &c, &r)
+{
+    f1 = function(&v) { };
+    f2 = function(const &v) { };
+
+    err = false;
+    try { f1(c); } catch (e) { err = true; } // const& -> &
+    assert(err == true);
+
+    f1(r); // & -> &
+    f2(c); // const& -> const&
+    f2(r); // & -> const&
+
+    f3 = function(&v1) {
+        f4 = function(const &s) { s++; };
+        f4(v1);
+    };
+    v = 10;
+    f3(v);
+    assert(v == 10);
+}
+a = 1;
+b = 2;
+vioref(a, b);

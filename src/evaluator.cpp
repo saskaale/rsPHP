@@ -160,7 +160,7 @@ static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expres
     envirs.push_back(funcEnvironment);
 
     Ast::VariableList *parameters = func->parameters();
-    for (int i = 0; i < std::min(arguments.size(), parameters->variables.size()); i++) {
+    for (int i = 0; i < parameters->variables.size(); i++) {
         Ast::Variable *v = parameters->variables[i];
         Ast::Expression *e = arguments.size() > i ? arguments[i] : nullptr;
         AVal r;
@@ -171,8 +171,12 @@ static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expres
             if (r.isReference() && r.toReference()->isReference()) {
                 // It already was reference
                 r = r.dereference();
-                if (r.isConst() != v->isconst) {
-                    THROW2("Argument %d has non-matching type!", i);
+                if (r.isConst() && !v->isconst) {
+                    THROW2("Argument %d violates const-correctness!", i);
+                }
+                if (!r.isConst() && v->isconst) {
+                    r = r.copy();
+                    r.markConst(true);
                 }
             } else {
                 r.markConst(v->isconst);
