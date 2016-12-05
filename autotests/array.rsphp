@@ -71,5 +71,7 @@ assert("2d array", count(ar6[0]) == 3);
 assert("2d array", count(ar6[1]) == 3);
 assert("2d array", count(ar6[2]) == 3);
 ar6[2][1] = "hello";
+ar6[1][0] = ar6[1][1] = ar6[1][2] = "test";
 assert("2d array mult-subscript", ar6[2][1] == "hello");
 assert("2d array mult-subscript", ar6[2][2] == "he");
+assert("2d array mult-subscript", ar6[1][0] + ar6[1][1] + ar6[1][2] == "testtesttest");
