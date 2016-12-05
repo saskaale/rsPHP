@@ -137,7 +137,7 @@ AVal AVal::dereference() const
 bool AVal::isUndefined() const
 {
     if (isReference()) {
-        return dereference()._type == UNDEFINED;
+        return dereference().isUndefined();
     }
     return _type == UNDEFINED;
 }
@@ -150,7 +150,7 @@ bool AVal::isReference() const
 bool AVal::isInt() const
 {
     if (isReference()) {
-        return dereference()._type == INT;
+        return dereference().isInt();
     }
     return _type == INT;
 }
@@ -158,7 +158,7 @@ bool AVal::isInt() const
 bool AVal::isBool() const
 {
     if (isReference()) {
-        return dereference()._type == BOOL;
+        return dereference().isBool();
     }
     return _type == BOOL;
 }
@@ -166,7 +166,7 @@ bool AVal::isBool() const
 bool AVal::isChar() const
 {
     if (isReference()) {
-        return dereference()._type == CHAR;
+        return dereference().isChar();
     }
     return _type == CHAR;
 }
@@ -174,7 +174,7 @@ bool AVal::isChar() const
 bool AVal::isDouble() const
 {
     if (isReference()) {
-        return dereference()._type == DOUBLE;
+        return dereference().isDouble();
     }
     return _type == DOUBLE;
 }
@@ -182,7 +182,7 @@ bool AVal::isDouble() const
 bool AVal::isString() const
 {
     if (isReference()) {
-        return dereference()._type == STRING;
+        return dereference().isString();
     }
     return _type == STRING;
 }
@@ -190,7 +190,7 @@ bool AVal::isString() const
 bool AVal::isArray() const
 {
     if (isReference()) {
-        return dereference()._type == ARRAY;
+        return dereference().isArray();
     }
     return _type == ARRAY;
 }
@@ -198,7 +198,7 @@ bool AVal::isArray() const
 bool AVal::isFunction() const
 {
     if (isReference()) {
-        return dereference()._type == FUNCTION;
+        return dereference().isFunction();
     }
     return _type == FUNCTION;
 }
@@ -206,7 +206,7 @@ bool AVal::isFunction() const
 bool AVal::isBuiltinFunction() const
 {
     if (isReference()) {
-        return dereference()._type == FUNCTION_BUILTIN;
+        return dereference().isBuiltinFunction();
     }
     return _type == FUNCTION_BUILTIN;
 }
