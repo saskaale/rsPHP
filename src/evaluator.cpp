@@ -335,7 +335,9 @@ AVal ex(Ast::Node *p, Environment* envir)
          Ast::Function *v = p->as<Ast::Function*>();
          AVal fun = AVal(v);
          envir->setFunction(v->name, fun);
-         funcs.push_back(v);
+         if (std::find(funcs.begin(), funcs.end(), v) == funcs.end()) {
+             funcs.push_back(v);
+         }
          return fun;
     }
 
