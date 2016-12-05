@@ -5,6 +5,7 @@
 #include "memorypool.h"
 #include "bootstrap.h"
 
+#include <memory>
 #include <cstring>
 #include <iostream>
 #include <algorithm>
@@ -156,8 +157,12 @@ void StackFrame::push(const AVal& v)
 static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expression*> &arguments, Environment *envir)
 {
     // Create environment for this function
-    Environment *funcEnvironment = new Environment(envir);
-    envirs.push_back(funcEnvironment);
+    using Environment_ptr = std::unique_ptr<Environment, std::function<void(Environment*)>>;
+    Environment_ptr funcEnvironment(new Environment(envir), [](Environment *e) {
+        envirs.erase(std::remove(envirs.begin(), envirs.end(), e), envirs.end());
+        delete e;
+    });
+    envirs.push_back(funcEnvironment.get());
 
     Ast::VariableList *parameters = func->parameters();
     for (int i = 0; i < parameters->variables.size(); i++) {
@@ -168,6 +173,7 @@ static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expres
             setExFlag(ReturnLValue);
             r = ex(e, envir);
             clearExFlag(ReturnLValue);
+            CHECKTHROWN(r);
             if (r.isReference() && r.toReference()->isReference()) {
                 // It already was reference
                 r = r.dereference();
@@ -181,7 +187,6 @@ static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expres
             } else {
                 r.markConst(v->isconst);
             }
-            CHECKTHROWN(r);
             if (!r.isConst() && !r.isReference()) {
                 THROW2("Argument %d expects reference!", i);
             }
@@ -194,14 +199,9 @@ static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expres
     }
 
     // Execute statement list of function
-    CHECKTHROWN(ex(func->statements(), funcEnvironment));
+    CHECKTHROWN(ex(func->statements(), funcEnvironment.get()));
 
-    AVal ret = funcEnvironment->returnValue;
-
-    envirs.erase(std::remove(envirs.begin(), envirs.end(), funcEnvironment), envirs.end());
-    delete funcEnvironment;
-
-    return ret;
+    return funcEnvironment->returnValue;
 }
 
 int exFlags = NoFlag;
