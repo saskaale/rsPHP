@@ -264,7 +264,11 @@ AVal ex(Ast::Node *p, Environment* envir)
         if (!envir->has(v)) {
             envir->set(v, AVal());
         }
-        return testExFlag(ReturnLValue) ? &envir->get(v) : envir->get(v);
+        if (testExFlag(ReturnLValue)) {
+            return &envir->get(v);
+        } else {
+            return envir->get(v);
+        }
     }
 
     case Ast::Node::AValLiteralT:
