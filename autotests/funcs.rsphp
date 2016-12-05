@@ -53,3 +53,10 @@ function outer()
 assert(outer() == 22);
 assert(globs == 27);
 print "done-outer";
+
+/* Overwriting builtin functions */
+builtinCount = count;
+count = function(e) {
+    return builtinCount(e) * 2;
+};
+assert("overwriting builtins", Array(5, "s").count() == 10);
