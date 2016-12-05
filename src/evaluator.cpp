@@ -93,15 +93,6 @@ static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVa
     CHECKTHROWN(a)
     CHECKTHROWN(b)
 
-    if (op == Ast::BinaryOperator::EqualType) {
-        if (a.type() != b.type()) {
-            return false;
-        }
-        op = Ast::BinaryOperator::Equal;
-    } else if (op == Ast::BinaryOperator::NotEqualType) {
-        return !binaryOp(Ast::BinaryOperator::EqualType, a, b).toBool();
-    }
-
     if (a.isReference() || b.isReference()) {
         AVal ar = a;
         AVal br = b;
@@ -112,6 +103,15 @@ static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVa
             br = *b.toReference();
         }
         return binaryOp(op, ar, br);
+    }
+
+    if (op == Ast::BinaryOperator::EqualType) {
+        if (a.type() != b.type()) {
+            return false;
+        }
+        op = Ast::BinaryOperator::Equal;
+    } else if (op == Ast::BinaryOperator::NotEqualType) {
+        return !binaryOp(Ast::BinaryOperator::EqualType, a, b).toBool();
     }
 
     if (a.isUndefined() || b.isUndefined()) {
@@ -184,21 +184,14 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
             if (e->type() != Ast::Node::VariableT && e->type() != Ast::Node::ArraySubscriptT) {
                 THROW2("Argument %d expects reference!", i);
             }
-            Ast::Variable *ev = e->as<Ast::Variable*>();
-            if (Ast::ArraySubscript *as = ev->as<Ast::ArraySubscript*>()) {
-                r = ex(as, envir);
-            } else {
-                AVal &stored = envir->get(ev);
-                if (stored.isReference()) {
-                    r = stored;
-                } else {
-                    r = &stored;
-                }
-            }
+            setExFlag(ReturnLValue);
+            r = ex(e, envir);
+            clearExFlag(ReturnLValue);
+            CHECKTHROWN(r);
         } else if (e) {
             r = ex(e, envir);
             CHECKTHROWN(r);
-            r = r.copy();
+            r = r.dereference().copy();
         }
         funcEnvironment->set(v, r);
     }
@@ -214,6 +207,23 @@ static AVal doUserdefFunction(Ast::FunctionCall *v, Ast::Function *func, Environ
     return ret;
 }
 
+int exFlags = NoFlag;
+
+void setExFlag(ExFlag flag)
+{
+    exFlags = exFlags | flag;
+}
+
+bool testExFlag(ExFlag flag)
+{
+    return exFlags & flag;
+}
+
+void clearExFlag(ExFlag flag)
+{
+    exFlags &= ~flag;
+}
+
 AVal ex(Ast::Node *p, Environment* envir)
 {
     if (!p) {
@@ -221,17 +231,15 @@ AVal ex(Ast::Node *p, Environment* envir)
     }
 
     auto assignToVariable = [](Ast::Variable *v, const AVal &value, Environment *envir) {
-        if (Ast::ArraySubscript *as = v->as<Ast::ArraySubscript*>()) {
-            AVal ref = ex(as, envir);
-            *ref.toReference() = value.dereference();
-        } else {
-            AVal &stored = envir->get(v);
-            if (stored.isReference()) {
-                *stored.toReference() = value.dereference();
-            } else if (stored.isWritable()) {
-                stored = value.dereference();
+        setExFlag(ReturnLValue);
+        AVal dest = ex(v, envir);
+        clearExFlag(ReturnLValue);
+        if (dest.isReference()) {
+            AVal *ref = dest.toReference();
+            if (ref->isReference()) {
+                *ref->toReference() = value.dereference();
             } else {
-                envir->set(v, value.dereference());
+                *ref = value.dereference();
             }
         }
     };
@@ -255,19 +263,25 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::VariableT: {
         Ast::Variable *v = p->as<Ast::Variable*>();
-        return envir->get(v);
+        if (!envir->has(v)) {
+            envir->set(v, AVal());
+        }
+        if (testExFlag(ReturnLValue)) {
+            return &envir->get(v);
+        } else {
+            return envir->get(v);
+        }
     }
 
-    case Ast::Node::AValLiteralT: {
+    case Ast::Node::AValLiteralT:
         return *((AVal*)p->as<Ast::AValLiteral*>()->value());
-    }
 
     case Ast::Node::ArraySubscriptT: {
         Ast::ArraySubscript *v = p->as<Ast::ArraySubscript*>();
         AVal ind = ex(v->expression(), envir);
         CHECKTHROWN(ind)
         const int index = ind.toInt();
-        AVal arr = envir->get(v);
+        AVal &arr = envir->get(v);
         if (!arr.isArray() && (!arr.isReference() || !arr.toReference()->isArray())) {
             THROW("Variable is not array");
         }
@@ -275,7 +289,11 @@ AVal ex(Ast::Node *p, Environment* envir)
         if (index < 0 || index >= a->count) {
             THROW("Index out of bounds");
         }
-        return &a->array[index];
+        if (testExFlag(ReturnLValue)) {
+            return &a->array[index];
+        } else {
+            return a->array[index];
+        }
     }
 
     case Ast::Node::AssignmentT: {

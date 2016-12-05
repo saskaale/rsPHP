@@ -16,6 +16,11 @@ class Environment;
 namespace Evaluator
 {
 
+    enum ExFlag {
+        NoFlag = 0,
+        ReturnLValue = 1
+    };
+
     typedef std::vector<AVal> Stack;
 
     class StackFrame{
@@ -33,6 +38,9 @@ namespace Evaluator
     void eval(Ast::Node *p);
     void cleanup(Ast::Node *p);
 
+    void setExFlag(ExFlag flag);
+    bool testExFlag(ExFlag flag);
+    void clearExFlag(ExFlag flag);
     AVal ex(Ast::Node *p, Environment* envir);
 
     AVal INVOKE_INTERNAL( const char* name, Environment* envir, std::initializer_list<AVal> list );
