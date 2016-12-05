@@ -7,7 +7,7 @@ function min(const &a, const &b)
     return b;
 }
 
-function max(a, b)
+function max(const &a, const &b)
 {
     if (a > b) return a;
     return b;
@@ -47,21 +47,24 @@ function copy(a)
 
 function forEach(const &a, f)
 {
-    c = count(a);
+    c = a.count();
     for (i = 0; i < c; ++i) {
-        f(a[i]);
+        if (f(a[i], i) !== undefined) {
+            break;
+        }
     }
 }
 
 function indexOf(const &a, v)
 {
-    c = count(a);
-    for (i = 0; i < c; ++i) {
-        if (a[i] == v) {
-            return i;
+    o = -1;
+    a.forEach(function(s, i) {
+        if (s == v) {
+            o = i;
+            return true;
         }
-    }
-    return -1;
+    });
+    return o;
 }
 
 )";
