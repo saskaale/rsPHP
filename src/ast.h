@@ -53,6 +53,9 @@ class Statement : public Node
 #endif
 */
 
+void cleanup();
+void del(Node *n);
+
 class Node
 {
 public:

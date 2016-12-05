@@ -58,7 +58,7 @@ program:
         ;
 
 function:
-          function stmt         { Evaluator::eval($2); Evaluator::cleanup($2); }
+          function stmt         { Evaluator::eval($2); Ast::del($2); }
         | /* NULL */
         ;
 

@@ -6,9 +6,29 @@
 #include <cstring>
 #include <cstdarg>
 #include <cstdlib>
+#include <unordered_set>
 
 namespace Ast
 {
+
+std::unordered_set<Function*> funcs;
+
+void cleanup()
+{
+    for (Function *f : funcs) {
+        delete f;
+    }
+}
+
+void del(Node *n)
+{
+    if (!n || funcs.find(static_cast<Function*>(n)) != funcs.end()) {
+        return;
+    }
+    if (n->type() != Node::FunctionT) {
+        delete n;
+    }
+}
 
 Node::Node(Node* n1, Node* n2, Node* n3, Node* n4)
   : n1(n1)
@@ -57,8 +77,8 @@ ArraySubscript::ArraySubscript(Expression *src, Expression *expr)
 
 ArraySubscript::~ArraySubscript()
 {
-    delete source();
-    delete expression();
+    del(source());
+    del(expression());
 }
 
 Node::Type ArraySubscript::type() const
@@ -166,7 +186,7 @@ UnaryOperator::UnaryOperator(Op op, Expression *expr)
 
 UnaryOperator::~UnaryOperator()
 {
-    delete expr();
+    del(expr());
 }
 
 Node::Type UnaryOperator::type() const
@@ -189,8 +209,8 @@ BinaryOperator::BinaryOperator(Op op, Expression *left, Expression *right)
 
 BinaryOperator::~BinaryOperator()
 {
-    delete left();
-    delete right();
+    del(left());
+    del(right());
 }
 
 Node::Type BinaryOperator::type() const
@@ -237,8 +257,9 @@ FunctionCall::FunctionCall(Expression* function, Expression *args, Expression *o
 
 FunctionCall::~FunctionCall()
 {
-    delete function();
-    delete arguments();
+    del(object());
+    del(function());
+    del(arguments());
 }
 
 Node::Type FunctionCall::type() const
@@ -276,7 +297,7 @@ ExpressionList::ExpressionList(Expression *expr, ExpressionList *lst)
     if (lst) {
         exprVec1 = lst->exprVec1;
         lst->exprVec1.clear();
-        delete lst;
+        del(lst);
     }
     exprVec1.push_back(expr);
 }
@@ -284,10 +305,7 @@ ExpressionList::ExpressionList(Expression *expr, ExpressionList *lst)
 ExpressionList::~ExpressionList()
 {
     for (Expression *e : exprVec1) {
-        if (e->type() == FunctionT) {
-            continue;
-        }
-        delete e;
+        del(e);
     }
 }
 
@@ -310,9 +328,9 @@ Try::Try(StatementList *body, VariableList* variables, StatementList *catchPart)
 
 Try::~Try()
 {
-    delete body();
-    delete variables();
-    delete catchPart();
+    del(body());
+    del(variables());
+    del(catchPart());
 }
 
 Node::Type Try::type() const
@@ -345,8 +363,8 @@ Assignment::Assignment(Expression *dst, Expression *expr)
 
 Assignment::~Assignment()
 {
-    delete destination();
-    delete expression();
+    del(destination());
+    del(expression());
 }
 
 Expression *Assignment::destination() const
@@ -392,9 +410,9 @@ If::If(Expression *cond, Statement *thenStm, Statement *elseStm)
 
 If::~If()
 {
-    delete condition();
-    delete thenStatement();
-    delete elseStatement();
+    del(condition());
+    del(thenStatement());
+    del(elseStatement());
 }
 
 Node::Type If::type() const
@@ -432,8 +450,8 @@ While::While(Expression *cond, Statement *stm)
 
 While::~While()
 {
-    delete condition();
-    delete statement();
+    del(condition());
+    del(statement());
 }
 
 Node::Type While::type() const
@@ -465,10 +483,10 @@ For::For(Expression *init, Expression *cond, Expression *after, Statement *stm)
 
 For::~For()
 {
-    delete init();
-    delete cond();
-    delete after();
-    delete statement();
+    del(init());
+    del(cond());
+    del(after());
+    del(statement());
 }
 
 Node::Type For::type() const
@@ -506,7 +524,7 @@ Return::Return(Expression *expr)
 
 Return::~Return()
 {
-    delete expression();
+    del(expression());
 }
 
 Node::Type Return::type() const
@@ -546,7 +564,7 @@ StatementList::StatementList(Statement *stm, StatementList *lst)
     if (lst) {
         statements = lst->statements;
         lst->statements.clear();
-        delete lst;
+        del(lst);
     }
     if (stm) {
         statements.push_back(stm);
@@ -556,12 +574,7 @@ StatementList::StatementList(Statement *stm, StatementList *lst)
 StatementList::~StatementList()
 {
     for (Statement *s : statements) {
-        if (Assignment *a = s->as<Assignment*>()) {
-            if (a->expression()->type() == FunctionT) {
-                a->nullExpression();
-            }
-        }
-        delete s;
+        del(s);
     }
 }
 
@@ -576,7 +589,7 @@ VariableList::VariableList(Variable *var, VariableList *lst)
     if (lst) {
         variables = lst->variables;
         lst->variables.clear();
-        delete lst;
+        del(lst);
     }
     if (var) {
         variables.push_back(var);
@@ -586,7 +599,7 @@ VariableList::VariableList(Variable *var, VariableList *lst)
 VariableList::~VariableList()
 {
     for (Variable *v : variables) {
-        delete v;
+        del(v);
     }
 }
 
@@ -599,18 +612,20 @@ Node::Type VariableList::type() const
 Function::Function(VariableList *params, StatementList *stm)
     : Node(params, stm)
 {
+    funcs.insert(this);
 }
 
 Function::Function(const std::string &name, VariableList *params, StatementList *stm)
     : Node(params, stm)
     , name(name)
 {
+    funcs.insert(this);
 }
 
 Function::~Function()
 {
-    delete parameters();
-    delete statements();
+    del(parameters());
+    del(statements());
 }
 
 Node::Type Function::type() const
@@ -632,6 +647,5 @@ StatementList *Function::statements() const
 {
     return (StatementList*)n2;
 }
-
 
 } // namespace Ast

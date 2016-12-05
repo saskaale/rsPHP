@@ -36,7 +36,6 @@ namespace Evaluator
     void exit();
 
     void eval(Ast::Node *p);
-    void cleanup(Ast::Node *p);
 
     void setExFlag(ExFlag flag);
     bool testExFlag(ExFlag flag);

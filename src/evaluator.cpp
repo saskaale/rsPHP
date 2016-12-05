@@ -11,8 +11,6 @@
 #include <algorithm>
 
 std::vector<Environment*> envirs;
-std::vector<Ast::Function*> funcs;
-
 
 // Operators
 static AVal binaryOp_impl(Ast::BinaryOperator::Op op, const char *a, const char *b)
@@ -164,9 +162,8 @@ static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expres
     });
     envirs.push_back(funcEnvironment.get());
 
-    Ast::VariableList *parameters = func->parameters();
-    for (int i = 0; i < parameters->variables.size(); i++) {
-        Ast::Variable *v = parameters->variables[i];
+    for (int i = 0; i < func->parameters()->variables.size(); i++) {
+        Ast::Variable *v = func->parameters()->variables[i];
         Ast::Expression *e = arguments.size() > i ? arguments[i] : nullptr;
         AVal r;
         if (e && v->ref) {
@@ -181,10 +178,12 @@ static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expres
                     THROW2("Argument %d violates const-correctness!", i);
                 }
                 if (!r.isConst() && v->isconst) {
+                    // Passing non-const reference to const reference
                     r = r.copy();
                     r.markConst(true);
                 }
             } else {
+                // Reference was created
                 r.markConst(v->isconst);
             }
             if (!r.isConst() && !r.isReference()) {
@@ -308,7 +307,7 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::AssignmentT: {
         Ast::Assignment *v = p->as<Ast::Assignment*>();
         AVal r = ex(v->expression(), envir);
-        CHECKTHROWN(r)
+        CHECKTHROWN(r);
         assignToExpression(v->destination(), r, envir);
         return r;
     }
@@ -337,12 +336,8 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::FunctionT: {
          Ast::Function *v = p->as<Ast::Function*>();
-         AVal fun = AVal(v);
-         envir->setFunction(v->name, fun);
-         if (std::find(funcs.begin(), funcs.end(), v) == funcs.end()) {
-             funcs.push_back(v);
-         }
-         return fun;
+         envir->setFunction(v->name, v);
+         return v;
     }
 
     case Ast::Node::FunctionCallT: {
@@ -556,11 +551,7 @@ void exit()
     }
     envirs.clear();
 
-    for (Ast::Function *f : funcs) {
-        delete f;
-    }
-    funcs.clear();
-
+    Ast::cleanup();
     MemoryPool::cleanup();
 }
 
@@ -573,28 +564,6 @@ void eval(Ast::Node *p)
     }
 
     MemoryPool::checkCollectGarbage();
-}
-
-void cleanup(Ast::Node *p)
-{
-    if (!p) {
-        return;
-    }
-
-    // We keep the parsed function in Environment, so don't delete it
-    if (p->type() == Ast::Node::FunctionT) {
-        return;
-    }
-
-    // Same for lambdas
-    if (p->type() == Ast::Node::AssignmentT) {
-        Ast::Assignment *a = p->as<Ast::Assignment*>();
-        if (a->expression() && a->expression()->type() == Ast::Node::FunctionT) {
-            a->nullExpression();
-        }
-    }
-
-    delete p;
 }
 
 std::vector<Environment*> environments()
