@@ -5,9 +5,9 @@
 #include "memorypool.h"
 #include "bootstrap.h"
 
+#include <cstring>
 #include <iostream>
 #include <algorithm>
-#include <unordered_set>
 
 std::vector<Environment*> envirs;
 std::vector<Ast::Function*> funcs;
@@ -285,17 +285,21 @@ AVal ex(Ast::Node *p, Environment* envir)
         if (testExFlag(ReturnLValue)) {
             arr = arr.dereference();
         }
-        if (!arr.isArray() && (!arr.isReference() || !arr.toReference()->isArray())) {
-            THROW("Variable is not array");
-        }
-        AArray *a = arr.toArray();
-        if (index < 0 || index >= a->count) {
-            THROW("Index out of bounds");
-        }
-        if (testExFlag(ReturnLValue)) {
-            return &a->array[index];
+        if (arr.isArray() || (arr.isReference() && arr.toReference()->isArray())) {
+            AArray *a = arr.toArray();
+            if (index < 0 || index >= a->count) {
+                THROW("Index out of bounds");
+            }
+            return testExFlag(ReturnLValue) ? &a->array[index] : a->array[index];
+        } else if (arr.isString() || (arr.isReference() && arr.toReference()->isString())) {
+            AString *s = arr.stringValue;
+            size_t count = strlen(s->string);
+            if (index < 0 || index >= count) {
+                THROW("Index out of bounds");
+            }
+            return s->string[index];
         } else {
-            return a->array[index];
+            THROW("Variable is not array");
         }
     }
 

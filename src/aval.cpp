@@ -43,6 +43,12 @@ AVal::AVal(bool value)
     boolValue = value;
 }
 
+AVal::AVal(char value)
+    : _type(CHAR)
+{
+    charValue = value;
+}
+
 AVal::AVal(double value)
     : _type(DOUBLE)
 {
@@ -147,6 +153,11 @@ bool AVal::isBool() const
     return _type == BOOL;
 }
 
+bool AVal::isChar() const
+{
+    return _type == CHAR;
+}
+
 bool AVal::isDouble() const
 {
     return _type == DOUBLE;
@@ -195,6 +206,11 @@ int AVal::toInt() const
 bool AVal::toBool() const
 {
     return convertTo(BOOL).boolValue;
+}
+
+char AVal::toChar() const
+{
+    return convertTo(CHAR).charValue;
 }
 
 double AVal::toDouble() const
@@ -289,6 +305,25 @@ AVal AVal::convertTo(Type t) const
             return static_cast<Ast::Function*>(nullptr);
         case STRING:
             return boolValue ? "true" : "false";
+        case ARRAY:
+            return &emptyArray;
+        default:
+            X_UNREACHABLE();
+        }
+
+    case CHAR:
+        switch (t) {
+        case INT:
+            return int(charValue);
+        case DOUBLE:
+            return double(charValue);
+        case FUNCTION:
+        case FUNCTION_BUILTIN:
+            return static_cast<Ast::Function*>(nullptr);
+        case STRING: {
+            char buf[] = { charValue, '\0' };
+            return buf;
+        }
         case ARRAY:
             return &emptyArray;
         default:

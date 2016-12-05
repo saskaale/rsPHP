@@ -21,6 +21,7 @@ public:
         REFERENCE,
         INT,
         BOOL,
+        CHAR,
         DOUBLE,
         STRING,
         ARRAY,
@@ -32,6 +33,7 @@ public:
     AVal(AVal *value);
     AVal(int value);
     AVal(bool value);
+    AVal(char value);
     AVal(double value);
     AVal(const char *value);
     AVal(BuiltinCall value);
@@ -49,6 +51,7 @@ public:
     bool isReference() const;
     bool isInt() const;
     bool isBool() const;
+    bool isChar() const;
     bool isDouble() const;
     bool isString() const;
     bool isArray() const;
@@ -61,6 +64,7 @@ public:
     AVal *toReference() const;
     int toInt() const;
     bool toBool() const;
+    char toChar() const;
     double toDouble() const;
     Ast::Function *toFunction() const;
     BuiltinCall toBuiltinFunction() const;
@@ -75,6 +79,7 @@ public:
         AVal *referenceValue;
         int intValue;
         bool boolValue;
+        char charValue;
         double doubleValue;
         Ast::Function *functionValue;
         BuiltinCall builtinFunctionValue;

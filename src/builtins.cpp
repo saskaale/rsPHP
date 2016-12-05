@@ -378,11 +378,13 @@ AVal doBuiltInCount(Ast::ExpressionList *v, Environment *envir)
     }
 
     AVal arr = ex(v->expressions()[0], envir);
-    if (!arr.isArray() && (!arr.isReference() || !arr.toReference()->isArray())) {
-        THROW("count() argument must be of type Array.");
+    if (arr.isArray() || (arr.isReference() && arr.toReference()->isArray())) {
+        return int(arr.toArray()->count);
+    } else if (arr.isString() || (arr.isReference() && arr.toReference()->isString())) {
+        return int(strlen(arr.toString()));
+    } else {
+        THROW("count() argument must be of type array or string.");
     }
-
-    return int(arr.toArray()->count);
 }
 
 AVal doBuiltInPush(Ast::ExpressionList *v, Environment *envir)
@@ -393,7 +395,7 @@ AVal doBuiltInPush(Ast::ExpressionList *v, Environment *envir)
 
     AVal arr = ex(v->expressions()[0], envir);
     if (!arr.isReference() || !arr.toReference()->isArray()) {
-        THROW("push() argument 1 must be reference to type Array.");
+        THROW("push() argument 1 must be reference to type array.");
     }
 
     AVal value = ex(v->expressions()[1], envir).dereference();

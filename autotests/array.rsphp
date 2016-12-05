@@ -75,3 +75,11 @@ ar6[1][0] = ar6[1][1] = ar6[1][2] = "test";
 assert("2d array mult-subscript", ar6[2][1] == "hello");
 assert("2d array mult-subscript", ar6[2][2] == "he");
 assert("2d array mult-subscript", ar6[1][0] + ar6[1][1] + ar6[1][2] == "testtesttest");
+
+// strings
+str1 = "test";
+assert("string count", count(str1) == 4);
+assert("string []", str1[0] == "t");
+assert("string []", str1[1] == "e");
+assert("string []", str1[2] == "s");
+assert("string []", str1[3] == "t");
