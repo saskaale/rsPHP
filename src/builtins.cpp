@@ -379,9 +379,9 @@ AVal doBuiltInCount(const std::vector<Ast::Expression*> &arguments, Environment 
     }
 
     AVal arr = ex(arguments[0], envir);
-    if (arr.isArray() || (arr.isReference() && arr.toReference()->isArray())) {
+    if (arr.isArray()) {
         return int(arr.toArray()->count);
-    } else if (arr.isString() || (arr.isReference() && arr.toReference()->isString())) {
+    } else if (arr.isString()) {
         return int(strlen(arr.toString()));
     } else {
         THROW("count() argument must be of type array or string.");

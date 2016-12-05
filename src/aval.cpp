@@ -136,6 +136,9 @@ AVal AVal::dereference() const
 
 bool AVal::isUndefined() const
 {
+    if (isReference()) {
+        return dereference()._type == UNDEFINED;
+    }
     return _type == UNDEFINED;
 }
 
@@ -146,41 +149,65 @@ bool AVal::isReference() const
 
 bool AVal::isInt() const
 {
+    if (isReference()) {
+        return dereference()._type == INT;
+    }
     return _type == INT;
 }
 
 bool AVal::isBool() const
 {
+    if (isReference()) {
+        return dereference()._type == BOOL;
+    }
     return _type == BOOL;
 }
 
 bool AVal::isChar() const
 {
+    if (isReference()) {
+        return dereference()._type == CHAR;
+    }
     return _type == CHAR;
 }
 
 bool AVal::isDouble() const
 {
+    if (isReference()) {
+        return dereference()._type == DOUBLE;
+    }
     return _type == DOUBLE;
 }
 
 bool AVal::isString() const
 {
+    if (isReference()) {
+        return dereference()._type == STRING;
+    }
     return _type == STRING;
 }
 
 bool AVal::isArray() const
 {
+    if (isReference()) {
+        return dereference()._type == ARRAY;
+    }
     return _type == ARRAY;
 }
 
 bool AVal::isFunction() const
 {
+    if (isReference()) {
+        return dereference()._type == FUNCTION;
+    }
     return _type == FUNCTION;
 }
 
 bool AVal::isBuiltinFunction() const
 {
+    if (isReference()) {
+        return dereference()._type == FUNCTION_BUILTIN;
+    }
     return _type == FUNCTION_BUILTIN;
 }
 

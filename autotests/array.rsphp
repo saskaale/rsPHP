@@ -93,3 +93,9 @@ ar7.forEach(function(v) {
     ar7out += v;
 });
 assert("object calls", ar7out == "te");
+
+a8out = "";
+Array(2, "t").forEach(function(v) {
+    a8out += v;
+});
+assert("object calls", a8out == "tt");

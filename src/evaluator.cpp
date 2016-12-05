@@ -93,18 +93,6 @@ static inline AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVa
     CHECKTHROWN(a)
     CHECKTHROWN(b)
 
-    if (a.isReference() || b.isReference()) {
-        AVal ar = a;
-        AVal br = b;
-        if (a.isReference()) {
-            ar = *a.toReference();
-        }
-        if (b.isReference()) {
-            br = *b.toReference();
-        }
-        return binaryOp(op, ar, br);
-    }
-
     if (op == Ast::BinaryOperator::EqualType) {
         if (a.type() != b.type()) {
             return false;
@@ -291,13 +279,13 @@ AVal ex(Ast::Node *p, Environment* envir)
         if (testExFlag(ReturnLValue)) {
             arr = arr.dereference();
         }
-        if (arr.isArray() || (arr.isReference() && arr.toReference()->isArray())) {
+        if (arr.isArray()) {
             AArray *a = arr.toArray();
             if (index < 0 || index >= a->count) {
                 THROW("Index out of bounds");
             }
             return testExFlag(ReturnLValue) ? &a->array[index] : a->array[index];
-        } else if (arr.isString() || (arr.isReference() && arr.toReference()->isString())) {
+        } else if (arr.isString()) {
             AString *s = arr.stringValue;
             size_t count = strlen(s->string);
             if (index < 0 || index >= count) {
