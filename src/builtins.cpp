@@ -53,6 +53,11 @@ AVal doBuiltInReadInt(const std::vector<Ast::Expression*> &, Environment *)
     return val;
 }
 
+AVal doBuiltInRand(const std::vector<Ast::Expression*> &, Environment *)
+{
+    return rand();
+}
+
 AVal doBuiltInReadDouble(const std::vector<Ast::Expression*> &, Environment *)
 {
     double val;
@@ -443,6 +448,7 @@ void registerBuiltins(Environment* e)
     e->set("exit", &doBuiltInExit);
     e->set("Array", &doBuiltInArray);
     e->set("count", &doBuiltInCount);
+    e->set("rand", &doBuiltInRand);
     e->set("pushinternal", &doBuiltInPush);
 }
 

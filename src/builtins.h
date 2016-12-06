@@ -7,6 +7,7 @@ namespace Evaluator
 {
     void registerBuiltins(Environment *e);
 
+    AVal doBuiltInRand(const std::vector<Ast::Expression*> &, Environment *);
     AVal doBuiltInTypeof(const std::vector<Ast::Expression*> &, Environment *);
     AVal doBuiltInReadInt(const std::vector<Ast::Expression*> &, Environment *);
     AVal doBuiltInReadDouble(const std::vector<Ast::ExpressionList*> &, Environment *);
