@@ -2,6 +2,7 @@ print 5 + 10;
 print 5 + "ahoj";
 print 2.5 + "s";
 print 2 + 'a'; // 'a' == 97
+print "dasdasdasdasda?"+"DSADASDA";
 
 a = Array(2, 0);
 a[0] = 1;
