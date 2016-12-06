@@ -23,7 +23,7 @@ std::queue<const AVal*> GCqueue;
 enum GCstateType {OK = 0, DIRTY, INITMARK, BFSMARK, INITSWEEP, SWEEPSTEP, DONE};
 GCstateType GCstate = OK;
 static const int GC_MAX_STEP = 0.05;  //in s
-static const int GC_MIN_WAIT = 0.02;  //in s
+static const int GC_MIN_WAIT = 0.03;  //in s
 
 MemChunk::MemChunk():
   freeCnt(MEMCHUNK_SIZE)
@@ -172,31 +172,31 @@ static inline MemChunk::Data* getUnvisitedMemChunk(const AVal& val){
 }
 
 inline static void Mark(const AVal& val, bool dfs = true){
-  if(val.isArray()){
-    //deep recursion to mark each elements of array
-    for(int i = 0; i < val.toArray()->allocd; i++){
-      if(dfs){
-        Mark(val.toArray()->array[i]);
-      }else{
-        AVal& v = val.toArray()->array[i];
+    if(val.isArray()){
+      //deep recursion to mark each elements of array
+      for(int i = 0; i < val.toArray()->allocd; i++){
+        if(dfs){
+          Mark(val.toArray()->array[i]);
+        }else{
+          AVal& v = val.toArray()->array[i];
 
-        MemChunk::Data* toq = getUnvisitedMemChunk(v);
-        if(toq && HASMASK(toq->flags, MemChunk::MARKED)){
-          MASKSET(toq->flags, MemChunk::MARKED);
-          GCqueue.push(&val);
+          MemChunk::Data* toq = getUnvisitedMemChunk(v);
+          if(toq && HASMASK(toq->flags, MemChunk::MARKED)){
+            MASKSET(toq->flags, MemChunk::MARKED);
+            GCqueue.push(&val);
+          }
         }
       }
     }
-  }
 }
 
 inline static void DFSMark(const AVal& val){
-  MemChunk::Data* s = getUnvisitedMemChunk(val);
-  if(s == nullptr)
-    return;
-  
-  MASKSET(s->flags, MemChunk::MARKED);
-  Mark(val);
+    MemChunk::Data* s = getUnvisitedMemChunk(val);
+    if(s == nullptr)
+      return;
+    
+    MASKSET(s->flags, MemChunk::MARKED);
+    Mark(val);
 }
 
 
