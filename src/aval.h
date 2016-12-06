@@ -1,6 +1,9 @@
 #pragma once
 
 
+#include <unordered_set>
+
+
 class AVal;
 
 class Environment;
@@ -12,6 +15,11 @@ typedef AVal (*BuiltinCall)(const std::vector<Ast::Expression*> &, Environment *
 
 struct AArray;
 struct AString;
+
+
+extern std::unordered_set<AVal*> localAVals;
+
+
 
 class AVal
 {
@@ -29,7 +37,9 @@ public:
         FUNCTION_BUILTIN
     };
 
+    ~AVal();
     AVal();
+    AVal(const AVal& v);
     AVal(AVal *value);
     AVal(int value);
     AVal(bool value);

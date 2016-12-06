@@ -52,6 +52,8 @@ void checkCollectGarbage(){
 
 void *alloc(size_t size, void **memchunk)
 {
+    checkCollectGarbage();
+  
     // printf("MemoryPool::alloc()\n");
 
     //find free chunk
@@ -174,6 +176,11 @@ void collectGarbage( bool silent )
 
     // Mark & Sweep
     size_t collected = 0;
+    
+    
+    for(AVal* v : localAVals){
+      DFSMark(v);
+    }
 
     for (Environment *e : Evaluator::environments()) {
         for (auto it : e->keys) {

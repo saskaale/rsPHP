@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <unordered_set>
 #include "ast.h"
 #include "builtins.h"
 
@@ -21,17 +22,7 @@ namespace Evaluator
         ReturnLValue = 1
     };
 
-    typedef std::vector<AVal> Stack;
-
-    class StackFrame{
-        Stack* stack;
-        int cnt;
-        public:
-            StackFrame(Stack*);
-            ~StackFrame();
-            void push(const AVal& v);
-    };
-
+    
     void init();
     void exit();
 

@@ -10,6 +10,10 @@
 
 AArray emptyArray;
 
+
+std::unordered_set<AVal*> localAVals;
+
+
 static AString *rstrdup(const char *str)
 {
     void *mem;
@@ -25,10 +29,18 @@ AVal::AVal()
 {
 }
 
+AVal::AVal(const AVal& v)
+{
+    memcpy(this,&v, sizeof(*this));
+    localAVals.insert(this);
+}
+
+
 AVal::AVal(AVal *value)
     : _type(REFERENCE)
     , referenceValue(value)
 {
+    localAVals.insert(this);
 }
 
 AVal::AVal(int value)
@@ -53,30 +65,40 @@ AVal::AVal(double value)
     : _type(DOUBLE)
 {
     doubleValue = value;
+    localAVals.insert(this);
 }
 
 AVal::AVal(const char *value)
     : _type(STRING)
 {
     stringValue = rstrdup(value);
+    localAVals.insert(this);
 }
 
 AVal::AVal(AArray *value)
     : _type(ARRAY)
 {
     arrayValue = value;
+    localAVals.insert(this);
 }
 
 AVal::AVal(Ast::Function *value)
     : _type(FUNCTION)
 {
     functionValue = value;
+    localAVals.insert(this);
 }
 
 AVal::AVal(BuiltinCall value)
     : _type(FUNCTION_BUILTIN)
 {
     builtinFunctionValue = value;
+}
+
+
+AVal::~AVal()
+{
+    localAVals.erase(this);
 }
 
 AVal::Type AVal::type() const

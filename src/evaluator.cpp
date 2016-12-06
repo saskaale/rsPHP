@@ -218,22 +218,8 @@ namespace Evaluator
 
 
 
-StackFrame::StackFrame(Stack* s) :
-    cnt(0)
-{
-};
 
-StackFrame::~StackFrame()
-{
-    for(int i = 0; i < cnt; i++){
-        stack->pop_back();
-    }
-};
 
-void StackFrame::push(const AVal& v)
-{
-    stack->push_back(v);
-};
 
 static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expression*> &arguments, Environment *envir)
 {
@@ -309,6 +295,7 @@ void clearExFlag(ExFlag flag)
 {
     exFlags &= ~flag;
 }
+
 
 AVal ex(Ast::Node *p, Environment* envir)
 {
@@ -530,7 +517,6 @@ AVal ex(Ast::Node *p, Environment* envir)
         for (Ast::Statement *s : v->statements) {
             AVal r = ex(s, envir);
             CHECKTHROWN(r)
-            MemoryPool::checkCollectGarbage();
             if (envir->state & Environment::FlowInterrupted) {
                 break;
             }
@@ -559,7 +545,6 @@ AVal ex(Ast::Node *p, Environment* envir)
               break;
 
             CHECKTHROWN(ex(v->statement(), envir))
-            MemoryPool::checkCollectGarbage();
             if (envir->state == Environment::BreakCalled) {
                 envir->state = Environment::Normal;
                 break;
@@ -585,7 +570,6 @@ AVal ex(Ast::Node *p, Environment* envir)
 
             CHECKTHROWN(ex(v->statement(), envir))
 
-            MemoryPool::checkCollectGarbage();
             if (envir->state == Environment::BreakCalled) {
                 envir->state = Environment::Normal;
                 break;
@@ -664,8 +648,6 @@ void eval(Ast::Node *p)
     if(ret.isThrown()){
       defaultExceptionHandler(global, ret);
     }
-
-    MemoryPool::checkCollectGarbage();
 }
 
 std::vector<Environment*> environments()
