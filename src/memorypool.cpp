@@ -179,7 +179,7 @@ void collectGarbage( bool silent )
     
     
     for(AVal* v : localAVals){
-      DFSMark(v);
+      DFSMark(*v);
     }
 
     for (Environment *e : Evaluator::environments()) {
