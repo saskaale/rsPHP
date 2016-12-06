@@ -90,8 +90,7 @@ AVal doBuiltInReadBool(const std::vector<Ast::Expression*> &arguments, Environme
 
 AVal doBuiltInGC(const std::vector<Ast::Expression*> &, Environment *)
 {
-    printf("MemoryPool::collectGarbage()\n");
-    MemoryPool::collectGarbage(false);
+    MemoryPool::collectGarbage(0, 1);
     return AVal();
 }
 

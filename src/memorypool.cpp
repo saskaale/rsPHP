@@ -205,21 +205,18 @@ double timeGCrawSpent = 0., timeGCStart = 0., lastGcEnd = 0.;
 size_t collected = 0;
 int chunks = 0;
 int size;
-bool silent;
+int silent;
 std::list<MemoryPool::MemChunk*>::iterator curMemChunk;
 
-void collectGarbage( bool s )
+void collectGarbage( int s, int whole)
 {
     if(GCstate == OK)
       return;
     
     //does not elapsed enough time to rerun GC
     if(CPUTime() - lastGcEnd <= GC_MIN_WAIT){
-//      printf("wait state %d\n", GCstate);
       return;
     }
-  
-//    printf("State %d\n", GCstate);
   
     s = false;
     
@@ -227,9 +224,12 @@ void collectGarbage( bool s )
 
     bool doing = true;
     while(doing){
+//      printf("STEP %d\n", GCstate);
+
       doing = false;
       switch(GCstate){
         case DIRTY: {
+//          printf("INIT\n");
           silent = s;
           if(!silent)
               size = poolSize();
@@ -256,7 +256,7 @@ void collectGarbage( bool s )
           }
           
           GCstate = BFSMARK;
-          doing = CPUTime() - starttime < GC_MAX_STEP;
+          doing = whole || CPUTime() - starttime < GC_MAX_STEP;
           break;
         }
         case BFSMARK: {
@@ -275,7 +275,7 @@ void collectGarbage( bool s )
             }
           }
 
-          doing = do_bfs;
+          doing = whole || do_bfs;
           if(GCqueue.empty()){
             GCstate = INITSWEEP;
           }
@@ -285,6 +285,7 @@ void collectGarbage( bool s )
           curMemChunk = allocd.begin();
           chunks = 0;
           
+          doing = whole || CPUTime() - starttime < GC_MAX_STEP;
           GCstate = SWEEPSTEP;
           break;
         }
@@ -323,14 +324,15 @@ void collectGarbage( bool s )
             do_sweep = CPUTime() - starttime < GC_MAX_STEP;
           }
           
-          doing = do_sweep;
+          doing = whole || do_sweep;
           if(curMemChunk == allocd.end()){
             GCstate = DONE;
           }
           break;
         }
         case DONE: {
-          if(silent != false){
+//            printf("DONE %d\n", silent);
+          if(silent){
               std::cout << "------ GARBAGE COLLECTOR ------" << std::endl;
               std::cout << "   Objects before:     " << size << std::endl;
               std::cout << "   Objects collected:  " << collected << std::endl;

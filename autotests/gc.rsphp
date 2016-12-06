@@ -1,0 +1,23 @@
+function genstr2(){
+    a="";
+    for(i = 0; i < 2000; i++){
+        a += "?";
+    }
+    return a;
+}
+
+
+function genstr1(){
+    b="";
+    for(i = 0; i < 100; i++){
+        s = genstr2();
+        b += s;
+    }
+}
+
+genstr1();
+
+gc();
+
+print "DONE";
+
