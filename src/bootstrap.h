@@ -37,7 +37,7 @@ function assert(c, v)
 
 function push(&a, v)
 {
-    pushinternal(a, v);
+    __push_internal(a, v);
 }
 
 function copy(a)

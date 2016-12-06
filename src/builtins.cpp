@@ -449,7 +449,7 @@ void registerBuiltins(Environment* e)
     e->set("Array", &doBuiltInArray);
     e->set("count", &doBuiltInCount);
     e->set("rand", &doBuiltInRand);
-    e->set("pushinternal", &doBuiltInPush);
+    e->set("__push_internal", &doBuiltInPush);
 }
 
 }
