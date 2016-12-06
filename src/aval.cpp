@@ -32,7 +32,8 @@ AVal::AVal()
 AVal::AVal(const AVal& v)
 {
     memcpy(this,&v, sizeof(*this));
-    localAVals.insert(this);
+    if( v.type() < 0 )
+        localAVals.insert(this);
 }
 
 
@@ -40,7 +41,8 @@ AVal::AVal(AVal *value)
     : _type(REFERENCE)
     , referenceValue(value)
 {
-    localAVals.insert(this);
+    if( value && value->dereference().type() < 0 )
+        localAVals.insert(this);
 }
 
 AVal::AVal(int value)
@@ -65,7 +67,6 @@ AVal::AVal(double value)
     : _type(DOUBLE)
 {
     doubleValue = value;
-    localAVals.insert(this);
 }
 
 AVal::AVal(const char *value)
@@ -98,7 +99,8 @@ AVal::AVal(BuiltinCall value)
 
 AVal::~AVal()
 {
-    localAVals.erase(this);
+    if( type() < 0 )
+        localAVals.erase(this);
 }
 
 AVal::Type AVal::type() const
