@@ -9,9 +9,48 @@
 #include <cstring>
 #include <iostream>
 #include <algorithm>
+#include <unordered_set>
 
 std::vector<Environment*> envirs;
 Environment *currentEnvironment = nullptr;
+
+typedef std::unordered_set<std::string> Scope;
+Scope globalFunctions;
+std::vector<Scope> scopes;
+std::unordered_map<Ast::Function*, Scope> functionScopes;
+
+static bool symbolLookup(const std::string &s)
+{
+    if (scopes.back().find(s) != scopes.back().end()) {
+        return true;
+    }
+    if (globalFunctions.find(s) != globalFunctions.end()) {
+        return true;
+    }
+    return false;
+}
+
+static void createFunctionScope(Ast::Function *f)
+{
+     Scope scope = scopes.back();
+     for (Ast::Variable *v : f->parameters()->variables) {
+        scope.insert(v->name);
+     }
+     functionScopes[f] = scope;
+}
+
+static void createGlobalScope(Environment *e)
+{
+    Scope scope;
+    for (auto i : e->keys) {
+        if (i.second.isFunction() || i.second.isBuiltinFunction()) {
+            globalFunctions.insert(i.first);
+        } else {
+            scope.insert(i.first);
+        }
+    }
+    scopes.push_back(scope);
+}
 
 // Operators
 static AVal binaryOp(Ast::BinaryOperator::Op op, const AVal &a, const AVal &b);
@@ -199,10 +238,14 @@ void StackFrame::push(const AVal& v)
 static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expression*> &arguments, Environment *envir)
 {
     // Create environment for this function
+    bool pushedScope = false;
     using Environment_ptr = std::unique_ptr<Environment, std::function<void(Environment*)>>;
-    Environment_ptr funcEnvironment(new Environment(envir), [](Environment *e) {
+    Environment_ptr funcEnvironment(new Environment(envir), [&](Environment *e) {
         envirs.erase(std::remove(envirs.begin(), envirs.end(), e), envirs.end());
         delete e;
+        if (pushedScope) {
+            scopes.pop_back();
+        }
     });
     envirs.push_back(funcEnvironment.get());
 
@@ -238,8 +281,11 @@ static AVal doUserdefFunction(Ast::Function *func, const std::vector<Ast::Expres
             CHECKTHROWN(r);
             r = r.dereference().copy();
         }
-        funcEnvironment->set(v, r);
+        funcEnvironment->set(v->name, r);
     }
+
+    scopes.push_back(functionScopes.at(func));
+    pushedScope = true;
 
     // Execute statement list of function
     CHECKTHROWN(ex(func->statements(), funcEnvironment.get()));
@@ -313,14 +359,11 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::VariableT: {
         Ast::Variable *v = p->as<Ast::Variable*>();
-        if (!envir->has(v)) {
-            envir->set(v, AVal());
+        if (!symbolLookup(v->name)) {
+            envir->set(v->name, AVal());
+            scopes.back().insert(v->name);
         }
-        if (testExFlag(ReturnLValue)) {
-            return &envir->get(v);
-        } else {
-            return envir->get(v);
-        }
+        return testExFlag(ReturnLValue) ? &envir->get(v->name) : envir->get(v->name);
     }
 
     case Ast::Node::AValLiteralT:
@@ -385,7 +428,16 @@ AVal ex(Ast::Node *p, Environment* envir)
 
     case Ast::Node::FunctionT: {
          Ast::Function *v = p->as<Ast::Function*>();
-         envir->setFunction(v->name, v);
+         if (!v->isLambda()) {
+             if (envir->parent) {
+                 THROW2("Cannot register function '%s' outside global scope.", v->name.c_str());
+             }
+             globalFunctions.insert(v->name);
+         }
+         createFunctionScope(v);
+         if (!v->isLambda()) {
+             envir->set(v->name, v);
+         }
          return v;
     }
 
@@ -589,6 +641,7 @@ void init()
 {
     Environment *global = new Environment;
     registerBuiltins(global);
+    createGlobalScope(global);
     envirs.push_back(global);
     Parser::parseString(RSPHP_BOOTSTRAP);
 }

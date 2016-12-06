@@ -45,9 +45,9 @@ function copy(a)
     return a;
 }
 
-function merge(const &a, const &o)
+function merge(const &a, const &b)
 {
-    s = Array(count(a) + count(o));
+    s = Array(count(a) + count(b));
     p = function(v) {
         s.push(v);
     };

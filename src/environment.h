@@ -22,25 +22,14 @@ public:
     explicit Environment(Environment *parent = nullptr);
     ~Environment();
 
-    Environment *copy() const;
-
-    AVal &get(Ast::Variable *v);
-    bool has(Ast::Variable *v) const;
-    void set(Ast::Variable *v, const AVal &val);
-
-    AVal &getFunction(const std::string &key);
-    bool hasFunction(const std::string &key) const;
-    void setFunction(const std::string &key, const AVal &val);
+    AVal &get(const std::string &key);
+    bool has(const std::string &key) const;
+    void set(const std::string &key, const AVal &val);
 
     Environment *parent;
     std::unordered_map<std::string, AVal> keys;
 
     AVal returnValue;
     State state = Normal;
-
-private:
-    AVal &get(const std::string &key);
-    bool has(const std::string &key) const;
-    void set(const std::string &key, const AVal &val);
 };
 

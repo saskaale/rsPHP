@@ -60,3 +60,25 @@ count = function(e) {
     return builtinCount(e) * 2;
 };
 assert("overwriting builtins", Array(5, "s").count() == 10);
+
+/* Function scopes */
+print "Scopes";
+scope1 = 23;
+function scopetest()
+{
+    print scope1;
+    print scope2;
+
+    iscope1 = 1;
+
+    t = function() {
+        print scope1;
+        print iscope1;
+        print iscope2;
+    };
+
+    iscope2 = "ah";
+    t();
+}
+scope2 = 20;
+scopetest();

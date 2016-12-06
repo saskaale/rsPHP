@@ -431,19 +431,19 @@ AVal doBuiltInPush(const std::vector<Ast::Expression*> &arguments, Environment *
 
 void registerBuiltins(Environment* e)
 {
-    e->setFunction("typeof", &doBuiltInTypeof);
-    e->setFunction("readInt", &doBuiltInReadInt);
-    e->setFunction("readDouble", &doBuiltInReadDouble);
-    e->setFunction("readString", &doBuiltInReadString);
-    e->setFunction("print", &doBuiltInPrint);
-    e->setFunction("dump", &doBuiltInPrint);
-    e->setFunction("throw", &doBuiltInThrow);
-    e->setFunction("dumpAST", &doBuiltInDumpAST);
-    e->setFunction("gc", &doBuiltInGC);
-    e->setFunction("exit", &doBuiltInExit);
-    e->setFunction("Array", &doBuiltInArray);
-    e->setFunction("count", &doBuiltInCount);
-    e->setFunction("pushinternal", &doBuiltInPush);
+    e->set("typeof", &doBuiltInTypeof);
+    e->set("readInt", &doBuiltInReadInt);
+    e->set("readDouble", &doBuiltInReadDouble);
+    e->set("readString", &doBuiltInReadString);
+    e->set("print", &doBuiltInPrint);
+    e->set("dump", &doBuiltInPrint);
+    e->set("throw", &doBuiltInThrow);
+    e->set("dumpAST", &doBuiltInDumpAST);
+    e->set("gc", &doBuiltInGC);
+    e->set("exit", &doBuiltInExit);
+    e->set("Array", &doBuiltInArray);
+    e->set("count", &doBuiltInCount);
+    e->set("pushinternal", &doBuiltInPush);
 }
 
 }
