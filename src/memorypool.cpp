@@ -106,7 +106,8 @@ void *alloc(size_t size, void **memchunk)
 
     //find free position in chunk
     int freepos = -1;
-    for(int i = 0; i < MEMCHUNK_SIZE; i++){
+    const int startpos = std::rand()%MEMCHUNK_SIZE;
+    for(int i = (startpos+1)%MEMCHUNK_SIZE; i != startpos; i=(i+1)%MEMCHUNK_SIZE){
       if(freechunk->d[i].d == nullptr){
         freepos = i;
         break;
