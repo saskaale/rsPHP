@@ -7,6 +7,7 @@
 #include <iostream>
 #include <algorithm>
 #include <list>
+#include <queue>
 
 namespace MemoryPool
 {
@@ -18,7 +19,11 @@ namespace MemoryPool
 
 
 std::list<MemChunk*> allocd;
-bool memDirty = false;
+std::queue<const AVal*> GCqueue;
+enum GCstateType {OK = 0, DIRTY, INITMARK, BFSMARK, INITSWEEP, SWEEPSTEP, DONE};
+GCstateType GCstate = OK;
+static const int GC_MAX_STEP = 0.05;  //in s
+static const int GC_MIN_WAIT = 0.02;  //in s
 
 MemChunk::MemChunk():
   freeCnt(MEMCHUNK_SIZE)
@@ -44,15 +49,16 @@ AVal PRINTVAL(const AVal& printV){
 
 
 
-void checkCollectGarbage(){
-    if(memDirty){
-      collectGarbage();
+void markDirty(){
+    if(GCstate == OK){
+      GCstate = DIRTY;
     }
 }
 
+
 void *alloc(size_t size, void **memchunk)
 {
-    checkCollectGarbage();
+    collectGarbage();
   
     // printf("MemoryPool::alloc()\n");
 
@@ -75,11 +81,9 @@ void *alloc(size_t size, void **memchunk)
 
 
     if(freechunk==nullptr){
-
+      markDirty();
       //mark memory as dirty and allocate new chunk
-      memDirty = true;
       allocd.push_back(freechunk = new MemChunk());
-
     }else{
 
       //mark memory as dirty, when there is less than 10 empty values in the last memory chunk
@@ -88,11 +92,11 @@ void *alloc(size_t size, void **memchunk)
       if(nextit == allocd.end()){
         if(chunks < 5){
           if((*it)->freeCnt <= 10){
-            memDirty = true;
+            markDirty();
           }
         }else{
           if((*it)->freeCnt <= MEMCHUNK_SIZE/2){
-            memDirty = true;
+            markDirty();
           }
         }
       }
@@ -115,7 +119,15 @@ void *alloc(size_t size, void **memchunk)
     *memchunk = &freechunk->d[freepos];
     freechunk->d[freepos].d = d;
     freechunk->d[freepos].flags = MemChunk::FREE;
+    if(GCstate != OK){
+      //actually doing GC >> must set as marked
+      MASKSET(freechunk->d[freepos].flags, MemChunk::MARKED);
+    }
     return d;
+}
+
+static inline double CPUTime(){
+    return clock() / (double) CLOCKS_PER_SEC;
 }
 
 void cleanup()
@@ -129,7 +141,7 @@ void cleanup()
     allocd.clear();
 }
 
-int poolSize(){
+static inline int poolSize(){
     int s = 0;
     for(auto m: allocd){
       s+= MEMCHUNK_SIZE - m->freeCnt;
@@ -138,10 +150,10 @@ int poolSize(){
 }
 
 
-inline static void DFSMark(const AVal& val){
+static inline MemChunk::Data* getUnvisitedMemChunk(const AVal& val){
     if(!val.isArray() && !val.isString())
-      return;
-
+      return nullptr;
+    
     void *m = nullptr;
     if (val.isArray()) {
         m = val.arrayValue->mem;
@@ -151,71 +163,188 @@ inline static void DFSMark(const AVal& val){
 
     MemChunk::Data* s = (MemChunk::Data*) m;
     if(s == nullptr)
-      return;
+      return nullptr;
 
     if(HASMASK(s->flags, MemChunk::MARKED))
-      return;
+      return nullptr;
 
-    MASKSET(s->flags, MemChunk::MARKED);
-
-
-    //deep recursion to mark each elements of array
-    if(val.isArray()){
-      for(int i = 0; i < val.toArray()->allocd; i++){
-        DFSMark(val.toArray()->array[i]);
-      }
-    }
+    return s;
 }
 
-void collectGarbage( bool silent )
-{
+inline static void Mark(const AVal& val, bool dfs = true){
+  if(val.isArray()){
+    //deep recursion to mark each elements of array
+    for(int i = 0; i < val.toArray()->allocd; i++){
+      if(dfs){
+        Mark(val.toArray()->array[i]);
+      }else{
+        AVal& v = val.toArray()->array[i];
 
-    int size;
-    if(!silent)
-        size = poolSize();
-
-    // Mark & Sweep
-    size_t collected = 0;
-    
-    
-    for(AVal* v : localAVals){
-      DFSMark(*v);
-    }
-
-    for (Environment *e : Evaluator::environments()) {
-        for (auto it : e->keys) {
-          DFSMark(it.second);
-        }
-    }
-
-    for(auto m: allocd){
-
-      for(int i = 0; i < MEMCHUNK_SIZE; i++){
-        if(m->d[i].d == nullptr)
-          continue;
-
-        if(!HASMASK(m->d[i].flags, MemChunk::MARKED)){
-          m->d[i].flags = MemChunk::FREE;
-          free(m->d[i].d);
-          m->d[i].d = nullptr;
-
-          m->freeCnt++;
-          collected++;
-        }else{
-          MASKUNSET(m->d[i].flags, MemChunk::MARKED);
+        MemChunk::Data* toq = getUnvisitedMemChunk(v);
+        if(toq && HASMASK(toq->flags, MemChunk::MARKED)){
+          MASKSET(toq->flags, MemChunk::MARKED);
+          GCqueue.push(&val);
         }
       }
     }
+  }
+}
 
-    memDirty = false;
+inline static void DFSMark(const AVal& val){
+  MemChunk::Data* s = getUnvisitedMemChunk(val);
+  if(s == nullptr)
+    return;
+  
+  MASKSET(s->flags, MemChunk::MARKED);
+  Mark(val);
+}
 
-    if(!silent){
-        std::cout << "------ GARBAGE COLLECTOR ------" << std::endl;
-        std::cout << "   Objects before:    " << size << std::endl;
-        std::cout << "   Objects collected: " << collected << std::endl;
-        std::cout << "   Objects after:     " << size - collected << std::endl;
-        std::cout << "-------------------------------" << std::endl;
+
+// Mark & Sweep
+double timeGCrawSpent = 0., timeGCStart = 0., lastGcEnd = 0.;
+size_t collected = 0;
+int chunks = 0;
+int size;
+bool silent;
+std::list<MemoryPool::MemChunk*>::iterator curMemChunk;
+
+void collectGarbage( bool s )
+{
+    if(GCstate == OK)
+      return;
+    
+    //does not elapsed enough time to rerun GC
+    if(CPUTime() - lastGcEnd <= GC_MIN_WAIT){
+//      printf("wait state %d\n", GCstate);
+      return;
     }
+  
+//    printf("State %d\n", GCstate);
+  
+    s = false;
+    
+    double starttime = CPUTime();
+
+    bool doing = true;
+    while(doing){
+      doing = false;
+      switch(GCstate){
+        case DIRTY: {
+          silent = s;
+          if(!silent)
+              size = poolSize();
+          collected = 0;
+          timeGCStart = CPUTime();
+          timeGCrawSpent = 0.;
+
+          GCstate = INITMARK;
+          doing = true;
+          break;
+        }
+        case INITMARK: {
+          //we must iterate all local values on stack in the single step
+          for(AVal* v : localAVals){
+            Mark(*v);
+          }
+          
+
+          //push all available avals into the local stack
+          for (Environment *e : Evaluator::environments()) {
+              for (auto it : e->keys) {
+                GCqueue.push(&it.second);
+              }
+          }
+          
+          GCstate = BFSMARK;
+          doing = CPUTime() - starttime < GC_MAX_STEP;
+          break;
+        }
+        case BFSMARK: {
+          bool do_bfs = true;          
+          int steps = 0;
+
+          while(!GCqueue.empty() && do_bfs){
+            
+            //doing it in BFS way
+            Mark(GCqueue.front(), false);
+            GCqueue.pop();
+
+            //check running time, each few steps
+            if(steps++%1000 == 0){
+              do_bfs = CPUTime() - starttime < GC_MAX_STEP;
+            }
+          }
+
+          doing = do_bfs;
+          if(GCqueue.empty()){
+            GCstate = INITSWEEP;
+          }
+          break;
+        }
+        case INITSWEEP: {
+          curMemChunk = allocd.begin();
+          chunks = 0;
+          
+          GCstate = SWEEPSTEP;
+          break;
+        }
+        case SWEEPSTEP: {
+          bool do_sweep = true;
+          
+          while(curMemChunk != allocd.end() && do_sweep){
+            MemChunk* m = *curMemChunk;
+
+            for(int i = 0; i < MEMCHUNK_SIZE; i++){
+              if(m->d[i].d == nullptr)
+                continue;
+
+              if(!HASMASK(m->d[i].flags, MemChunk::MARKED)){
+                m->d[i].flags = MemChunk::FREE;
+                free(m->d[i].d);
+                m->d[i].d = nullptr;
+
+                m->freeCnt++;
+                collected++;
+              }else{
+                MASKUNSET(m->d[i].flags, MemChunk::MARKED);
+              }
+            }
+            
+            if(m->freeCnt >= MEMCHUNK_SIZE){
+              //memchunk is empty >> delete it
+              auto oldMemChunk = curMemChunk;
+              ++curMemChunk;
+              allocd.erase(oldMemChunk);
+            }else{
+              chunks++;
+              ++curMemChunk;
+            }
+            
+            do_sweep = CPUTime() - starttime < GC_MAX_STEP;
+          }
+          
+          doing = do_sweep;
+          if(curMemChunk == allocd.end()){
+            GCstate = DONE;
+          }
+          break;
+        }
+        case DONE: {
+          if(silent != false){
+              std::cout << "------ GARBAGE COLLECTOR ------" << std::endl;
+              std::cout << "   Objects before:     " << size << std::endl;
+              std::cout << "   Objects collected:  " << collected << std::endl;
+              std::cout << "   Objects after:      " << size - collected << " ( " << chunks << " blocks )" << std::endl;
+              std::cout << "   CPU time elapsed:   " << CPUTime() - timeGCStart  <<"( raw " << timeGCrawSpent + (CPUTime() - starttime) << " )" << std::endl;
+              std::cout << "-------------------------------" << std::endl;
+          }
+          lastGcEnd = CPUTime();
+          GCstate = OK;
+          break;
+        }
+      }
+    }
+    timeGCrawSpent += CPUTime() - starttime;
 }
 
 } // namespace MemoryPool
