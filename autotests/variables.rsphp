@@ -8,6 +8,11 @@ assert(a === undefined);
 b = undefined;
 assert(a === b);
 
+_c = "undescored";
+assert(_c === "undescored");
+_c_3 = "undescored2";
+assert(_c_3 === "undescored2");
+
 // types
 assert("type int", typeof(12) == "int");
 assert("type bool", typeof(false) == "bool");

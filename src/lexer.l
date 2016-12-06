@@ -88,7 +88,7 @@ void comment();
                 return STRING;
             }
 
-[A-Za-z][0-9A-Za-z]* {
+[A-Za-z_][0-9A-Za-z_]* {
                 yylval.str = strdup(yytext);
                 return VARIABLE;
             }
