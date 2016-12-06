@@ -109,8 +109,7 @@ void *alloc(size_t size, void **memchunk)
 
     freechunk->freeCnt--;
 
-    void *d = malloc(size);
-    memset(d, 0, size);
+    void *d = calloc(1, size);
     *memchunk = &freechunk->d[freepos];
     freechunk->d[freepos].d = d;
     freechunk->d[freepos].flags = MemChunk::FREE;
