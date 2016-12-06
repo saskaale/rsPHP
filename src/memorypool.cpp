@@ -244,7 +244,7 @@ void collectGarbage( int s, int whole)
         case INITMARK: {
           //we must iterate all local values on stack in the single step
           for(AVal* v : localAVals){
-            Mark(*v);
+            DFSMark(*v);
           }
           
 
