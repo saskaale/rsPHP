@@ -55,6 +55,9 @@ public:
 
     AVal copy() const;
     AVal dereference() const;
+    void assign(const AVal &value);
+
+    static AVal createCharReference(char *value);
 
     bool isUndefined() const;
     bool isReference() const;
@@ -86,6 +89,7 @@ public:
 
     bool _const = false;
     bool _thrown = false;
+    bool _charref = false;
     Type _type = UNDEFINED;
     union {
         AVal *referenceValue;

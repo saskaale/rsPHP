@@ -312,14 +312,19 @@ AVal ex(Ast::Node *p, Environment* envir)
         if (!dest.isReference()) {
             THROW("Cannot write to rvalue!");
         }
+        if (dest._charref) {
+            // String subscript
+            dest.assign(value);
+            return AVal();
+        }
         AVal *ref = dest.toReference();
         if (ref->isConst()) {
             THROW("Cannot write to const!");
         }
         if (ref->isReference()) {
-            *ref->toReference() = value.dereference();
+            ref->toReference()->assign(value.dereference());
         } else {
-            *ref = value.dereference();
+            ref->assign(value.dereference());
         }
         return AVal();
     };
@@ -377,7 +382,7 @@ AVal ex(Ast::Node *p, Environment* envir)
             if (index < 0 || index >= count) {
                 THROW2("Index %d out of bounds", index);
             }
-            return s->string[index];
+            return testExFlag(ReturnLValue) ? AVal::createCharReference(&s->string[index]) : s->string[index];
         } else {
             THROW2("Variable %s is not array", arr.dereference().typeStr());
         }

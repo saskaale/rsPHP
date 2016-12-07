@@ -157,6 +157,27 @@ AVal AVal::dereference() const
     return *this;
 }
 
+void AVal::assign(const AVal &value)
+{
+    if (_charref) {
+        if (value.isChar()) {
+            *reinterpret_cast<char*>(referenceValue) = value.toChar();
+        } else {
+            fprintf(stderr, "Cannot assign '%s' to char\n", value.dereference().typeStr());
+        }
+    } else {
+        *this = value;
+    }
+}
+
+// static
+AVal AVal::createCharReference(char *value)
+{
+    AVal v(reinterpret_cast<AVal*>(value));
+    v._charref = true;
+    return v;
+}
+
 bool AVal::isUndefined() const
 {
     if (isReference()) {

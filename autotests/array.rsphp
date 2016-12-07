@@ -88,6 +88,12 @@ str1.push('i');
 str1.push("ng");
 assert("string push", str1 == "testing");
 
+str1[2] = '2';
+str1[4] = 'c';
+assert("write to string subscript", str1[2] == '2');
+assert("write to string subscript", str1[4] == 'c');
+assert("write to string subscript", str1 == "te2tcng");
+
 assert("object calls", "test".indexOf('e') == 1);
 
 // object call
