@@ -13,6 +13,10 @@ AArray emptyArray;
 
 std::unordered_set<AVal*> localAVals;
 
+static bool trackType(AVal::Type t)
+{
+    return t == AVal::STRING || t == AVal::ARRAY || t == AVal::FUNCTION || t == AVal::REFERENCE;
+}
 
 static AString *rstrdup(const char *str)
 {
@@ -31,18 +35,17 @@ AVal::AVal()
 
 AVal::AVal(const AVal& v)
 {
-    memcpy(this,&v, sizeof(*this));
-    if( v.type() < 0 )
-        localAVals.insert(this);
-}
+    memcpy(this, &v, sizeof(*this));
 
+    if (trackType(v.type())) {
+        localAVals.insert(this);
+    }
+}
 
 AVal::AVal(AVal *value)
     : _type(REFERENCE)
     , referenceValue(value)
 {
-    if( value && value->dereference().type() < 0 )
-        localAVals.insert(this);
 }
 
 AVal::AVal(int value)
@@ -99,8 +102,9 @@ AVal::AVal(BuiltinCall value)
 
 AVal::~AVal()
 {
-    if( type() < 0 )
+    if (trackType(type())) {
         localAVals.erase(this);
+    }
 }
 
 AVal::Type AVal::type() const

@@ -22,3 +22,17 @@ assert("type string", typeof("cstring") == "string");
 assert("type array", typeof(Array()) == "array");
 assert("type function", typeof(function(){return 1;}) == "function");
 assert("type function builtin", typeof(gc) == "function");
+
+function reftype(const &a, &b)
+{
+    r = Array(2);
+    r.push(typeof(a));
+    r.push(typeof(b));
+    return r;
+}
+
+va = "str";
+vb = 23.0;
+types = reftype(va, vb);
+assert("type ref", types[0] == "string");
+assert("type ref", types[1] == "double");

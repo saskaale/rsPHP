@@ -26,15 +26,15 @@ class AVal
 public:
     enum Type {
         UNDEFINED = 0,
-        INT = 2,
-        BOOL = 3,
-        CHAR = 4,
-        DOUBLE = 5,
-        FUNCTION_BUILTIN = 6,
-        REFERENCE = -10,
-        STRING = -1,
-        ARRAY = -2,
-        FUNCTION = -3
+        REFERENCE,
+        INT,
+        BOOL,
+        CHAR,
+        DOUBLE,
+        STRING,
+        ARRAY,
+        FUNCTION,
+        FUNCTION_BUILTIN
     };
 
     ~AVal();

@@ -41,7 +41,7 @@ AVal doBuiltInTypeof(const std::vector<Ast::Expression*> &arguments, Environment
     AVal printV = ex(arguments[0], envir);
     CHECKTHROWN(printV)
 
-    return printV.typeStr();
+    return printV.dereference().typeStr();
 }
 
 

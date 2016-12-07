@@ -37,7 +37,11 @@ function assert(c, v)
 
 function push(&a, v)
 {
-    __push_internal(a, v);
+    if (typeof(a) == "string") {
+        a += v;
+    } else {
+        __push_internal(a, v);
+    }
 }
 
 function copy(a)
