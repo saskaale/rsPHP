@@ -18,9 +18,10 @@ struct MemChunk{
     int freeCnt;
 
     struct Data{
-      Data();
-      void *d;
-      char flags;
+        Data();
+        ~Data();
+        void *d;
+        char flags;
     } d[MEMCHUNK_SIZE];
 };
 

@@ -19,7 +19,7 @@ namespace MemoryPool
 #define HASMASK(t, mask) ((t)&(mask))
 
 
-std::list<MemChunk*> allocd;
+std::list<MemChunk> allocd;
 std::queue<const AVal*> GCqueue;
 enum GCstateType {OK = 0, DIRTY, INITMARK, BFSMARK, INITSWEEP, SWEEPSTEP, DONE};
 GCstateType GCstate = OK;
@@ -31,11 +31,18 @@ MemChunk::MemChunk():
 {
 };
 
+
 MemChunk::Data::Data()
 {
     d = nullptr;
     flags = 0;
 };
+
+MemChunk::Data::~Data()
+{
+    free(d);
+}
+
 
 
 
@@ -92,7 +99,7 @@ static inline MemChunk* findFreeChunk(){
     auto it = allocd.begin();
     int chunks = 1;
     for(; it != allocd.end(); ++it){
-        auto m = *it;
+        MemChunk* m = &(*it);
         chunks++;
         if(m->freeCnt<=0)
           continue;
@@ -105,7 +112,8 @@ static inline MemChunk* findFreeChunk(){
     if(freechunk==nullptr){
       markDirty();
       //mark memory as dirty and allocate new chunk
-      allocd.push_back(freechunk = new MemChunk());
+      allocd.push_back(MemChunk());
+      freechunk = &(*allocd.rbegin());
     }else{
       auto nextit = it;
       ++nextit;
@@ -114,11 +122,11 @@ static inline MemChunk* findFreeChunk(){
       //mark memory as dirty, when there is less than 10 empty values in the last memory chunk
       if(nextit == allocd.end()){
         if(chunks < 5){
-          if((*it)->freeCnt <= 10){
+          if((*it).freeCnt <= 10){
             markDirty();
           }
         }else{
-          if((*it)->freeCnt <= MEMCHUNK_SIZE/2){
+          if((*it).freeCnt <= MEMCHUNK_SIZE/2){
             markDirty();
           }
         }
@@ -166,19 +174,13 @@ static inline double CPUTime(){
 
 void cleanup()
 {
-    for (MemChunk *m : allocd) {
-        for(int i = 0; i < MEMCHUNK_SIZE; i++){
-            free(m->d[i].d);
-        }
-        delete m;
-    }
     allocd.clear();
 }
 
 static inline int poolSize(){
     int s = 0;
-    for(auto m: allocd){
-        s+= MEMCHUNK_SIZE - m->freeCnt;
+    for(MemChunk& m: allocd){
+        s+= MEMCHUNK_SIZE - m.freeCnt;
     }
     return s;
 }
@@ -241,7 +243,7 @@ size_t collected = 0;
 int chunks = 0;
 int size;
 bool silent;
-std::list<MemoryPool::MemChunk*>::iterator curMemChunk;
+std::list<MemoryPool::MemChunk>::iterator curMemChunk;
 
 void collectGarbage( bool s, bool whole)
 {
@@ -330,22 +332,22 @@ void collectGarbage( bool s, bool whole)
                 bool do_sweep = true;
                 
                 while(curMemChunk != allocd.end() && do_sweep){
-                    MemChunk* m = *curMemChunk;
+                    MemChunk& m = *curMemChunk;
 
                     for(int i = 0; i < MEMCHUNK_SIZE; i++){
-                        if(m->d[i].d == nullptr){
+                        if(m.d[i].d == nullptr){
                           continue;
                         }
 
-                        if(!HASMASK(m->d[i].flags, MemChunk::MARKED)){
-                            m->d[i].flags = MemChunk::FREE;
-                            free(m->d[i].d);
-                            m->d[i].d = nullptr;
+                        if(!HASMASK(m.d[i].flags, MemChunk::MARKED)){
+                            m.d[i].flags = MemChunk::FREE;
+                            free(m.d[i].d);
+                            m.d[i].d = nullptr;
 
-                            m->freeCnt++;
+                            m.freeCnt++;
                             collected++;
                         }else{
-                            MASKUNSET(m->d[i].flags, MemChunk::MARKED);
+                            MASKUNSET(m.d[i].flags, MemChunk::MARKED);
                         }
                     }
                   
