@@ -10,6 +10,8 @@ static void interpretFile(FILE *file)
 
 int main(int argc, char *argv[])
 {
+    srand (time(NULL));
+
     if (argc > 1) {
         for (int i = 1; i < argc; ++i) {
             FILE *f = fopen(argv[i], "r");

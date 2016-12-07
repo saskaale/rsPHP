@@ -52,6 +52,7 @@ public:
 
     Type type() const;
     const char* typeStr() const;
+    AVal& operator=(const AVal& v);
 
     AVal copy() const;
     AVal dereference() const;
@@ -71,6 +72,8 @@ public:
     bool isBuiltinFunction() const;
     bool isConst() const;
     bool isThrown() const;
+    
+    bool isTracked() const;
 
     void markConst(bool is = true);
     void markThrown(bool is = true);

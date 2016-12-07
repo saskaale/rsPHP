@@ -1,6 +1,7 @@
 #include "memorypool.h"
 #include "environment.h"
 #include "evaluator.h"
+#include "common.h"
 
 #include <vector>
 #include <cstring>
@@ -22,11 +23,11 @@ std::list<MemChunk*> allocd;
 std::queue<const AVal*> GCqueue;
 enum GCstateType {OK = 0, DIRTY, INITMARK, BFSMARK, INITSWEEP, SWEEPSTEP, DONE};
 GCstateType GCstate = OK;
-static const int GC_MAX_STEP = 0.05;  //in s
+static const int GC_MAX_STEP = 0.005;  //in s
 static const int GC_MIN_WAIT = 0.03;  //in s
 
 MemChunk::MemChunk():
-  freeCnt(MEMCHUNK_SIZE)
+    freeCnt(MEMCHUNK_SIZE)
 {
 };
 
@@ -51,23 +52,43 @@ AVal PRINTVAL(const AVal& printV){
 
 void markDirty(){
     if(GCstate == OK){
-      GCstate = DIRTY;
+        GCstate = DIRTY;
     }
 }
 
 
-void *alloc(size_t size, void **memchunk)
-{
-    collectGarbage();
+static inline int findChunkFreePos(MemChunk* freechunk){
   
-    // printf("MemoryPool::alloc()\n");
+    //try 10 times random position
+    #pragma unroll
+    for(int i = 0; i < 10; i++){
+        int pos = ((unsigned int)std::rand())%MEMCHUNK_SIZE;
+        if(pos < 0){
+            pos = 0;
+        }
+        if(freechunk->d[pos].d == nullptr){
+            return pos;
+        }
+    }
+    
+    //do linear lookup
+    const int startpos = ((unsigned int)std::rand())%MEMCHUNK_SIZE;
+    unsigned int i = startpos;
+    do{
+        if(freechunk->d[i].d == nullptr){
+            return i;
+        }
+        i=(i+1)%MEMCHUNK_SIZE;
+    }while(i != startpos);
+    
+    X_UNREACHABLE();
+}
 
+static inline MemChunk* findFreeChunk(){
     //find free chunk
     MemChunk* freechunk = nullptr;
-
-    //first step to check if there is free chunk, then try run garbage collector, and then second run to find if there is any free chunk
-    int cnt = 0;
-
+        
+    //linear lokup in chunks
     auto it = allocd.begin();
     int chunks = 1;
     for(; it != allocd.end(); ++it){
@@ -80,15 +101,17 @@ void *alloc(size_t size, void **memchunk)
     }
 
 
+    //no free chunk found
     if(freechunk==nullptr){
       markDirty();
       //mark memory as dirty and allocate new chunk
       allocd.push_back(freechunk = new MemChunk());
     }else{
-
-      //mark memory as dirty, when there is less than 10 empty values in the last memory chunk
       auto nextit = it;
       ++nextit;
+      
+      //HEURISTIC for marking memory as dirty
+      //mark memory as dirty, when there is less than 10 empty values in the last memory chunk
       if(nextit == allocd.end()){
         if(chunks < 5){
           if((*it)->freeCnt <= 10){
@@ -102,17 +125,21 @@ void *alloc(size_t size, void **memchunk)
       }
 
     }
+    
+    
+    return freechunk;
+}
 
 
+void *alloc(size_t size, void **memchunk)
+{
+
+    //find free Memory chunk
+    MemChunk* freechunk = findFreeChunk();
+  
     //find free position in chunk
-    int freepos = -1;
-    const int startpos = std::rand()%MEMCHUNK_SIZE;
-    for(int i = (startpos+1)%MEMCHUNK_SIZE; i != startpos; i=(i+1)%MEMCHUNK_SIZE){
-      if(freechunk->d[i].d == nullptr){
-        freepos = i;
-        break;
-      }
-    }
+    int freepos = findChunkFreePos( freechunk );
+
 
     freechunk->freeCnt--;
 
@@ -120,10 +147,16 @@ void *alloc(size_t size, void **memchunk)
     *memchunk = &freechunk->d[freepos];
     freechunk->d[freepos].d = d;
     freechunk->d[freepos].flags = MemChunk::FREE;
+
+    //actually doing GC >> must set new memory as marked
     if(GCstate != OK){
-      //actually doing GC >> must set as marked
-      MASKSET(freechunk->d[freepos].flags, MemChunk::MARKED);
+        MASKSET(freechunk->d[freepos].flags, MemChunk::MARKED);
     }
+    
+
+    //check if there is need to collect garbage
+    collectGarbage();
+    
     return d;
 }
 
@@ -145,15 +178,18 @@ void cleanup()
 static inline int poolSize(){
     int s = 0;
     for(auto m: allocd){
-      s+= MEMCHUNK_SIZE - m->freeCnt;
+        s+= MEMCHUNK_SIZE - m->freeCnt;
     }
     return s;
 }
 
 
 static inline MemChunk::Data* getUnvisitedMemChunk(const AVal& val){
+    if(!&val)
+        return nullptr;
+
     if(!val.isArray() && !val.isString())
-      return nullptr;
+        return nullptr;
     
     void *m = nullptr;
     if (val.isArray()) {
@@ -164,40 +200,38 @@ static inline MemChunk::Data* getUnvisitedMemChunk(const AVal& val){
 
     MemChunk::Data* s = (MemChunk::Data*) m;
     if(s == nullptr)
-      return nullptr;
+        return nullptr;
 
     if(HASMASK(s->flags, MemChunk::MARKED))
-      return nullptr;
+        return nullptr;
 
     return s;
 }
 
 inline static void Mark(const AVal& val, bool dfs = true){
-    if(val.isArray()){
-      //deep recursion to mark each elements of array
-      for(int i = 0; i < val.toArray()->allocd; i++){
-        if(dfs){
-          Mark(val.toArray()->array[i]);
-        }else{
-          AVal& v = val.toArray()->array[i];
-
-          MemChunk::Data* toq = getUnvisitedMemChunk(v);
-          if(toq && HASMASK(toq->flags, MemChunk::MARKED)){
-            MASKSET(toq->flags, MemChunk::MARKED);
-            GCqueue.push(&val);
-          }
-        }
-      }
-    }
-}
-
-inline static void DFSMark(const AVal& val){
     MemChunk::Data* s = getUnvisitedMemChunk(val);
     if(s == nullptr)
       return;
     
     MASKSET(s->flags, MemChunk::MARKED);
-    Mark(val);
+
+  
+    if(val.dereference().isArray()){
+      //deep recursion to mark each elements of array
+        for(int i = 0; i < val.toArray()->allocd; i++){
+            if(dfs){
+                Mark(val.toArray()->array[i].dereference(), true);
+            }else{
+                AVal v = val.toArray()->array[i].dereference();
+
+                MemChunk::Data* toq = getUnvisitedMemChunk(v);
+                if(toq && !HASMASK(toq->flags, MemChunk::MARKED)){
+                    MASKSET(toq->flags, MemChunk::MARKED);
+                    GCqueue.push(&val);
+                }
+            }
+        }
+    }
 }
 
 
@@ -206,11 +240,12 @@ double timeGCrawSpent = 0., timeGCStart = 0., lastGcEnd = 0.;
 size_t collected = 0;
 int chunks = 0;
 int size;
-int silent;
+bool silent;
 std::list<MemoryPool::MemChunk*>::iterator curMemChunk;
 
-void collectGarbage( int s, int whole)
+void collectGarbage( bool s, bool whole)
 {
+    //just for skipping elapsed time-counters
     if(GCstate == OK)
       return;
     
@@ -219,133 +254,127 @@ void collectGarbage( int s, int whole)
       return;
     }
   
-    s = false;
-    
     double starttime = CPUTime();
 
     bool doing = true;
     while(doing){
-//      printf("STEP %d\n", GCstate);
+        doing = false;
+        switch(GCstate){
+            case DIRTY: {
+                silent = s;
+                if(!silent)
+                    size = poolSize();
+                collected = 0;
+                timeGCStart = CPUTime();
+                timeGCrawSpent = 0.;
 
-      doing = false;
-      switch(GCstate){
-        case DIRTY: {
-//          printf("INIT\n");
-          silent = s;
-          if(!silent)
-              size = poolSize();
-          collected = 0;
-          timeGCStart = CPUTime();
-          timeGCrawSpent = 0.;
-
-          GCstate = INITMARK;
-          doing = true;
-          break;
-        }
-        case INITMARK: {
-          //we must iterate all local values on stack in the single step
-          for(AVal* v : localAVals){
-            DFSMark(*v);
-          }
-          
-
-          //push all available avals into the local stack
-          for (Environment *e : Evaluator::environments()) {
-              for (auto it : e->keys) {
-                GCqueue.push(&it.second);
-              }
-          }
-          
-          GCstate = BFSMARK;
-          doing = whole || CPUTime() - starttime < GC_MAX_STEP;
-          break;
-        }
-        case BFSMARK: {
-          bool do_bfs = true;          
-          int steps = 0;
-
-          while(!GCqueue.empty() && do_bfs){
-            
-            //doing it in BFS way
-            Mark(GCqueue.front(), false);
-            GCqueue.pop();
-
-            //check running time, each few steps
-            if(steps++%1000 == 0){
-              do_bfs = CPUTime() - starttime < GC_MAX_STEP;
+                GCstate = INITMARK;
+                doing = true;
+                break;
             }
-          }
+            case INITMARK: {
+                //we must iterate all local values on stack in the single step
+                int locals = 0;
 
-          doing = whole || do_bfs;
-          if(GCqueue.empty()){
-            GCstate = INITSWEEP;
-          }
-          break;
-        }
-        case INITSWEEP: {
-          curMemChunk = allocd.begin();
-          chunks = 0;
-          
-          doing = whole || CPUTime() - starttime < GC_MAX_STEP;
-          GCstate = SWEEPSTEP;
-          break;
-        }
-        case SWEEPSTEP: {
-          bool do_sweep = true;
-          
-          while(curMemChunk != allocd.end() && do_sweep){
-            MemChunk* m = *curMemChunk;
+                //must create copy of the locals hash map, because there would be modified this map over there
+                auto copiedLocalAVals = localAVals;
+                for(AVal* v : copiedLocalAVals){
+                  Mark(v->dereference(), true);
+                  locals++;
+                }
 
-            for(int i = 0; i < MEMCHUNK_SIZE; i++){
-              if(m->d[i].d == nullptr)
-                continue;
+                int envirs = 0;
+                int vals = 0;
+                //push all available avals into the local stack
+                for (Environment *e : Evaluator::environments()) {
+                    envirs++;
+                    for (auto it : e->keys) {
+                      GCqueue.push(&it.second);
+                      vals++;
+                    }
+                }
 
-              if(!HASMASK(m->d[i].flags, MemChunk::MARKED)){
-                m->d[i].flags = MemChunk::FREE;
-                free(m->d[i].d);
-                m->d[i].d = nullptr;
-
-                m->freeCnt++;
-                collected++;
-              }else{
-                MASKUNSET(m->d[i].flags, MemChunk::MARKED);
-              }
+                GCstate = BFSMARK;
+                doing = whole || CPUTime() - starttime < GC_MAX_STEP;
+                break;
             }
-            
-            if(m->freeCnt >= MEMCHUNK_SIZE){
-              //memchunk is empty >> delete it
-              auto oldMemChunk = curMemChunk;
-              ++curMemChunk;
-              allocd.erase(oldMemChunk);
-            }else{
-              chunks++;
-              ++curMemChunk;
+            case BFSMARK: {
+                bool do_bfs = true;          
+                int steps = 0;
+
+                while(!GCqueue.empty() && do_bfs){
+                    Mark(GCqueue.front()->dereference(), false);
+                    GCqueue.pop();
+
+                    //check running time, each few steps
+                    if(steps++%1000 == 0){
+                        do_bfs = CPUTime() - starttime < GC_MAX_STEP;
+                    }
+                }
+
+                doing = whole || do_bfs;
+                if(GCqueue.empty()){
+                    GCstate = INITSWEEP;
+                }
+                break;
             }
-            
-            do_sweep = CPUTime() - starttime < GC_MAX_STEP;
-          }
-          
-          doing = whole || do_sweep;
-          if(curMemChunk == allocd.end()){
-            GCstate = DONE;
-          }
-          break;
+            case INITSWEEP: {
+                curMemChunk = allocd.begin();
+                chunks = 0;
+                
+                doing = whole || CPUTime() - starttime < GC_MAX_STEP;
+                GCstate = SWEEPSTEP;
+                break;
+            }
+            case SWEEPSTEP: {
+                bool do_sweep = true;
+                
+                while(curMemChunk != allocd.end() && do_sweep){
+                    MemChunk* m = *curMemChunk;
+
+                    for(int i = 0; i < MEMCHUNK_SIZE; i++){
+                        if(m->d[i].d == nullptr){
+                          continue;
+                        }
+
+                        if(!HASMASK(m->d[i].flags, MemChunk::MARKED)){
+                            m->d[i].flags = MemChunk::FREE;
+                            free(m->d[i].d);
+                            m->d[i].d = nullptr;
+
+                            m->freeCnt++;
+                            collected++;
+                        }else{
+                            MASKUNSET(m->d[i].flags, MemChunk::MARKED);
+                        }
+                    }
+                  
+                    chunks++;
+                    curMemChunk++;
+                  
+                    do_sweep = CPUTime() - starttime < GC_MAX_STEP;
+                }
+                
+                doing = whole || do_sweep;
+                if(curMemChunk == allocd.end()){
+                  GCstate = DONE;
+                }
+                break;
+            }
+            case DONE: {
+                if(!silent){
+                    printf("------ GARBAGE COLLECTOR ------\n");
+                    printf("   Objects before:     %d\n", size);
+                    printf("   Objects collected:  %ld\n", collected);
+                    printf("   Objects after:      %ld ( %d blocks )\n", size - collected, chunks);
+                    printf("   CPU Time elapsed:   %lf ( raw %lf )\n", CPUTime() - timeGCStart, timeGCrawSpent + (CPUTime() - starttime));
+                    printf("-------------------------------\n");
+                }
+                lastGcEnd = CPUTime();
+                GCstate = OK;
+                break;
+            }
         }
-        case DONE: {
-//            printf("DONE %d\n", silent);
-          if(silent){
-              std::cout << "------ GARBAGE COLLECTOR ------" << std::endl;
-              std::cout << "   Objects before:     " << size << std::endl;
-              std::cout << "   Objects collected:  " << collected << std::endl;
-              std::cout << "   Objects after:      " << size - collected << " ( " << chunks << " blocks )" << std::endl;
-              std::cout << "   CPU time elapsed:   " << CPUTime() - timeGCStart  <<"( raw " << timeGCrawSpent + (CPUTime() - starttime) << " )" << std::endl;
-              std::cout << "-------------------------------" << std::endl;
-          }
-          lastGcEnd = CPUTime();
-          GCstate = OK;
-          break;
-        }
-      }
     }
     timeGCrawSpent += CPUTime() - starttime;
 }

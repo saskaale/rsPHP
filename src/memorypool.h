@@ -26,6 +26,6 @@ struct MemChunk{
 
 void *alloc(size_t size, void **memchunk);
 void cleanup();
-void collectGarbage(int silent = 1, int singlestep = 0);
+void collectGarbage(bool silent = true, bool singlestep = false);
 
 } // namespace MemoryPool

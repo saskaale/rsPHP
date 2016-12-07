@@ -13,10 +13,6 @@ AArray emptyArray;
 
 std::unordered_set<AVal*> localAVals;
 
-static bool trackType(AVal::Type t)
-{
-    return t == AVal::STRING || t == AVal::ARRAY || t == AVal::FUNCTION || t == AVal::REFERENCE;
-}
 
 static AString *rstrdup(const char *str)
 {
@@ -35,17 +31,42 @@ AVal::AVal()
 
 AVal::AVal(const AVal& v)
 {
-    memcpy(this, &v, sizeof(*this));
+    if(&v == this)
+        return;
 
-    if (trackType(v.type())) {
+    memcpy(this,&v, sizeof(*this));
+    if( isTracked() ){
         localAVals.insert(this);
     }
+}
+
+AVal& AVal::operator=(const AVal& v)
+{
+    if(&v == this)
+        return *this;
+
+    bool old_tracked = isTracked();
+
+    memcpy(this,&v, sizeof(*this));
+
+    bool new_tracked = isTracked();
+    if( new_tracked != old_tracked ){
+        if( new_tracked ){
+            localAVals.insert(this);
+        }else{
+            localAVals.erase(this);
+        }
+    }
+    return *this;
 }
 
 AVal::AVal(AVal *value)
     : _type(REFERENCE)
     , referenceValue(value)
 {
+    if( isTracked() ){
+        localAVals.insert(this);
+    }
 }
 
 AVal::AVal(int value)
@@ -62,18 +83,19 @@ AVal::AVal(bool value)
 
 AVal::AVal(char value)
     : _type(CHAR)
+    , charValue(value)
 {
-    charValue = value;
 }
 
 AVal::AVal(double value)
     : _type(DOUBLE)
+    , doubleValue(value)
 {
-    doubleValue = value;
 }
 
 AVal::AVal(const char *value)
     : _type(STRING)
+    , stringValue(nullptr)
 {
     stringValue = rstrdup(value);
     localAVals.insert(this);
@@ -90,7 +112,6 @@ AVal::AVal(Ast::Function *value)
     : _type(FUNCTION)
 {
     functionValue = value;
-    localAVals.insert(this);
 }
 
 AVal::AVal(BuiltinCall value)
@@ -102,7 +123,7 @@ AVal::AVal(BuiltinCall value)
 
 AVal::~AVal()
 {
-    if (trackType(type())) {
+    if( isTracked() ){
         localAVals.erase(this);
     }
 }
@@ -263,6 +284,17 @@ bool AVal::isConst() const
 bool AVal::isThrown() const
 {
     return _thrown;
+}
+
+bool AVal::isTracked() const
+{
+    Type t;
+    if(isReference()) {
+        t = referenceValue->type();
+    }else{
+        t = type();
+    }
+    return t == STRING || t == ARRAY;
 }
 
 void AVal::markConst(bool is)
