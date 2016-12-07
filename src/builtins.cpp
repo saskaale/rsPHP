@@ -128,6 +128,10 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
         printf("%s\n", p->as<Ast::BoolLiteral*>()->value ? "true":"false");
         break;
 
+    case Ast::Node::CharLiteralT:
+        printf("%c\n", p->as<Ast::CharLiteral*>()->value);
+        break;
+
     case Ast::Node::DoubleLiteralT:
         printf("%lf\n", p->as<Ast::DoubleLiteral*>()->value);
         break;

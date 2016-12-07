@@ -82,3 +82,13 @@ function scopetest()
 }
 scope2 = 20;
 scopetest();
+
+function isAlphabetic(c)
+{
+    return typeof(c) == "char" && ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
+}
+assert(isAlphabetic('Z'));
+assert(isAlphabetic('a'));
+assert(isAlphabetic('b'));
+assert(isAlphabetic('O'));
+assert(!isAlphabetic('_'));
