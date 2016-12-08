@@ -45,7 +45,7 @@ Node::~Node()
 const char* Node::typeStr() const
 {
     static const char* const tNames[] = {
-        "VariableT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolLiteralT", "CharLiteralT", "UndefinedLiteralT", "StringLiteralT", "AValLiteralT",
+        "VariableT", "ArraySubscriptT", "IntegerLiteralT", "DoubleLiteralT", "BoolLiteralT", "CharLiteralT", "UndefinedLiteralT", "AValLiteralT", "ConstantLiteralT",
         "UnaryOperatorT", "BinaryOperatorT", "FunctionCallT", "ExpressionListT", "AssignmentT", "TryT",
         "IfT", "WhileT", "ForT", "ReturnT", "BreakT", "ContinueT",
         "StatementListT", "VariableListT", "FunctionT"
@@ -53,6 +53,7 @@ const char* Node::typeStr() const
 
     return tNames[(int)this->type()];
 }
+
 
 
 
@@ -107,7 +108,7 @@ Node::Type IntegerLiteral::type() const
     return IntegerLiteralT;
 }
 
-AValLiteral::AValLiteral(const void* value)
+AValLiteral::AValLiteral(const AVal* value)
 {
       aval1 = value;
 }
@@ -117,9 +118,30 @@ Node::Type AValLiteral::type() const
     return AValLiteralT;
 }
 
-const void* AValLiteral::value() const
+const AVal* AValLiteral::value() const
 {
     return aval1;
+}
+
+
+ConstantLiteral::ConstantLiteral(const AVal& value)
+{
+    aval1 = new AVal(value);
+}
+
+ConstantLiteral::~ConstantLiteral()
+{
+    delete aval1;
+}
+
+Node::Type ConstantLiteral::type() const
+{
+    return ConstantLiteralT;
+}
+
+const AVal& ConstantLiteral::value() const
+{
+    return *aval1;
 }
 
 
@@ -164,17 +186,6 @@ UndefinedLiteral::UndefinedLiteral()
 Node::Type UndefinedLiteral::type() const
 {
     return UndefinedLiteralT;
-}
-
-
-StringLiteral::StringLiteral(const std::string &value)
-    : value(value)
-{
-}
-
-Node::Type StringLiteral::type() const
-{
-    return StringLiteralT;
 }
 
 

@@ -136,9 +136,11 @@ void astDump(Ast::Node* p, Environment* envir, int lvl = 0){
         printf("%lf\n", p->as<Ast::DoubleLiteral*>()->value);
         break;
 
-    case Ast::Node::StringLiteralT:
-        printf(">>%s<<\n", p->as<Ast::StringLiteral*>()->value.c_str());
+    case Ast::Node::ConstantLiteralT:{
+        const AVal& v = p->as<Ast::ConstantLiteral*>()->value();
+        printf(">>AVal %s<<\n", v.typeStr());
         break;
+    }
 
     case Ast::Node::VariableT: {
         Ast::Variable *v = p->as<Ast::Variable*>();

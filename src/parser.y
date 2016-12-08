@@ -175,7 +175,7 @@ value:
         | FALSE                   { $$ = new Ast::BoolLiteral(false); }
         | UNDEFINED               { $$ = new Ast::UndefinedLiteral(); }
         | CHAR                    { $$ = new Ast::CharLiteral($1); }
-        | STRING                  { $$ = new Ast::StringLiteral($1); free($1); }
+        | STRING                  { $$ = new Ast::ConstantLiteral(AVal($1)); free($1); }
         ;
 %%
 

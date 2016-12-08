@@ -346,9 +346,9 @@ AVal ex(Ast::Node *p, Environment* envir)
     case Ast::Node::CharLiteralT:
         return AVal(p->as<Ast::CharLiteral*>()->value);
 
-    case Ast::Node::StringLiteralT:
-        return AVal(p->as<Ast::StringLiteral*>()->value.c_str());
-
+    case Ast::Node::ConstantLiteralT:
+        return p->as<Ast::ConstantLiteral*>()->value();
+        
     case Ast::Node::VariableT: {
         Ast::Variable *v = p->as<Ast::Variable*>();
         if (!symbolLookup(v->name)) {
@@ -648,8 +648,12 @@ void exit()
 
 void eval(Ast::Node *p)
 {
+    //initialize global environment
     Environment* global = envirs[0];
+
+    //execute Ast
     AVal ret = ex(p, global);
+
     if(ret.isThrown()){
       defaultExceptionHandler(global, ret);
     }

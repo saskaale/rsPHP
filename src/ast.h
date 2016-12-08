@@ -10,6 +10,9 @@ class Node;
 class Expression;
 class Statement;
 
+#define Expression Node
+#define Statement  Node
+
 // Expressions
 class Variable;
 class Array;
@@ -38,21 +41,13 @@ class StatementList;
 class VariableList;
 class Function;
 
+}
 
-//#if 1
-#define Expression Node
-#define Statement  Node
-/*#else
-class Expression : public Node
+#include "aval.h"
+
+namespace Ast
 {
-};
-
-class Statement : public Node
-{
-};
-#endif
-*/
-
+  
 void cleanup();
 void del(Node *n);
 
@@ -60,7 +55,7 @@ class Node
 {
 public:
     enum Type {
-        VariableT, ArraySubscriptT, IntegerLiteralT, DoubleLiteralT, BoolLiteralT, CharLiteralT, UndefinedLiteralT, StringLiteralT, AValLiteralT,
+        VariableT, ArraySubscriptT, IntegerLiteralT, DoubleLiteralT, BoolLiteralT, CharLiteralT, UndefinedLiteralT, AValLiteralT, ConstantLiteralT, 
         UnaryOperatorT, BinaryOperatorT, FunctionCallT, ExpressionListT, AssignmentT, TryT,
         IfT, WhileT, ForT, ReturnT, BreakT, ContinueT,
         StatementListT, VariableListT, FunctionT
@@ -68,14 +63,14 @@ public:
 
     explicit Node(Node* n1 = nullptr, Node* n2 = nullptr, Node* n3 = nullptr, Node* n4 = nullptr);
     virtual ~Node();
-
+    
     virtual Type type() const = 0;
     const char* typeStr() const;
 
     template<typename T> T as() { return dynamic_cast<T>(this); }
     template<typename T> T as() const { return dynamic_cast<T>(this); }
 
-    const void* aval1;
+    const AVal* aval1;
     Node* n1;
     Node* n2;
     Node* n3;
@@ -116,13 +111,23 @@ public:
 class AValLiteral : public Expression
 {
 public:
-    explicit AValLiteral(const void* value);
+    explicit AValLiteral(const AVal* value);
 
     Type type() const;
 
-    const void* value() const;
+    const AVal* value() const;
 };
 
+class ConstantLiteral : public Expression
+{
+public:
+    explicit ConstantLiteral(const AVal& value);
+    virtual ~ConstantLiteral();
+
+    Type type() const;
+
+    const AVal& value() const;
+};
 
 class IntegerLiteral : public Expression
 {
@@ -170,16 +175,6 @@ public:
     explicit UndefinedLiteral();
 
     Type type() const;
-};
-
-class StringLiteral : public Expression
-{
-public:
-    explicit StringLiteral(const std::string &value);
-
-    Type type() const;
-
-    std::string value;
 };
 
 class UnaryOperator : public Expression
@@ -374,6 +369,8 @@ public:
 
     Type type() const;
     bool isLambda() const;
+
+    bool preprocessed = true;
 
     std::string name;
     VariableList *parameters() const;
