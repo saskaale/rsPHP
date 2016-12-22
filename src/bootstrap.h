@@ -82,4 +82,25 @@ function indexOf(const &a, v)
     return o;
 }
 
+
+function reduce(const &a, f)
+{
+    c = count(a);
+    ret = f(a[0],a[1]);
+    for(i = 2; i < c; ++i){
+        ret = f(ret,a[i]);
+    }
+    return ret;
+}
+
+function map(const &a, f)
+{
+    c = count(a);
+    ret = Array(c, undefined);
+    for (i = 0; i < c; ++i) {
+        ret[i] = f(a[i]);
+    }
+    return ret;
+}
+
 )";

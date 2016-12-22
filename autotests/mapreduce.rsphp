@@ -1,0 +1,17 @@
+print "init array";
+a = Array(10, 0);
+for(i = 0; i < 10; i++){
+    a[i] = i;
+}
+
+print "mapping";
+twiceA = a.map(function(v){return v*2;});
+
+for(i = 0; i < 10; i++){
+    print a[i]+" "+twiceA[i];
+}
+
+sumfunc = function(v1, v2){return v1+v2;};
+
+print "reduced: "+a.reduce(sumfunc)+" - "+twiceA.reduce(sumfunc);
+
