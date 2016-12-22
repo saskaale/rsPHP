@@ -42,11 +42,13 @@ static Ast::Node *create_assign(Ast::BinaryOperator::Op op, Ast::Expression *dst
 %nonassoc IFX
 %nonassoc ELSE
 
+%left AND OR
 %left GE LE EQ EQ_TYPE NE NE_TYPE GREATER LESS
 %left PLUS MINUS NOT
 %left TIMES DIV MOD
 %left INCREMENT DECREMENT
-%left AND OR
+%left '.'
+%left '['
 %nonassoc UMINUS
 
 %type <nPtr> stmt stmt2 expr expr2 stmt_list stmt_list2 value fundecl var_list var_list2 expr_list expr_list2 variable lambda
