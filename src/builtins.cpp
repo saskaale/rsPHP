@@ -48,7 +48,7 @@ AVal doBuiltInTypeof(const std::vector<Ast::Expression*> &arguments, Environment
 AVal doBuiltInReadInt(const std::vector<Ast::Expression*> &, Environment *)
 {
     int val;
-    if(!scanf("%d\n", &val))
+    if(!scanf("%d", &val))
         return AVal();
     return val;
 }
@@ -61,7 +61,7 @@ AVal doBuiltInRand(const std::vector<Ast::Expression*> &, Environment *)
 AVal doBuiltInReadDouble(const std::vector<Ast::Expression*> &, Environment *)
 {
     double val;
-    if(!scanf("%lf\n", &val))
+    if(!scanf("%lf", &val))
         return AVal();
     return val;
 }
